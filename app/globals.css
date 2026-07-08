@@ -1,0 +1,269 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Radius — design system soft-rounded values */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+
+  /* Warm shadows (stone-tinted, low alpha) */
+  --shadow-xs: 0 1px 2px oklch(20.5% 0.005 75 / 0.06);
+  --shadow-sm: 0 1px 2px oklch(20.5% 0.005 75 / 0.05), 0 2px 6px oklch(20.5% 0.005 75 / 0.06);
+  --shadow-md: 0 2px 4px oklch(20.5% 0.005 75 / 0.05), 0 6px 16px oklch(20.5% 0.005 75 / 0.08);
+  --shadow-lg: 0 4px 8px oklch(20.5% 0.005 75 / 0.05), 0 12px 32px oklch(20.5% 0.005 75 / 0.10);
+  --shadow-xl: 0 8px 16px oklch(20.5% 0.005 75 / 0.06), 0 20px 48px oklch(20.5% 0.005 75 / 0.12);
+
+  /* ── Pine ramp — brand teal (hue 185) ── */
+  --color-pine-50:  var(--pine-50);
+  --color-pine-100: var(--pine-100);
+  --color-pine-200: var(--pine-200);
+  --color-pine-300: var(--pine-300);
+  --color-pine-400: var(--pine-400);
+  --color-pine-500: var(--pine-500);
+  --color-pine-600: var(--pine-600);
+  --color-pine-700: var(--pine-700);
+  --color-pine-800: var(--pine-800);
+  --color-pine-900: var(--pine-900);
+  --color-pine-950: var(--pine-950);
+
+  /* ── Stone ramp — warm neutral (hue 75) ── */
+  --color-stone-0:   var(--stone-0);
+  --color-stone-50:  var(--stone-50);
+  --color-stone-100: var(--stone-100);
+  --color-stone-150: var(--stone-150);
+  --color-stone-200: var(--stone-200);
+  --color-stone-300: var(--stone-300);
+  --color-stone-400: var(--stone-400);
+  --color-stone-500: var(--stone-500);
+  --color-stone-600: var(--stone-600);
+  --color-stone-700: var(--stone-700);
+  --color-stone-800: var(--stone-800);
+  --color-stone-900: var(--stone-900);
+  --color-stone-950: var(--stone-950);
+
+  /* ── Amber ramp — warm accent ── */
+  --color-amber-50:  var(--amber-50);
+  --color-amber-100: var(--amber-100);
+  --color-amber-200: var(--amber-200);
+  --color-amber-300: var(--amber-300);
+  --color-amber-400: var(--amber-400);
+  --color-amber-500: var(--amber-500);
+  --color-amber-600: var(--amber-600);
+  --color-amber-700: var(--amber-700);
+  --color-amber-800: var(--amber-800);
+  --color-amber-900: var(--amber-900);
+
+  /* ── Sky — chat content type ── */
+  --color-sky-100: var(--sky-100);
+  --color-sky-200: var(--sky-200);
+  --color-sky-500: var(--sky-500);
+  --color-sky-700: var(--sky-700);
+
+  /* ── Violet — docs content type ── */
+  --color-violet-100: var(--violet-100);
+  --color-violet-200: var(--violet-200);
+  --color-violet-500: var(--violet-500);
+  --color-violet-700: var(--violet-700);
+
+  /* ── Green — success ── */
+  --color-green-100: var(--green-100);
+  --color-green-500: var(--green-500);
+  --color-green-700: var(--green-700);
+
+  /* ── Red — danger ── */
+  --color-red-100: var(--red-100);
+  --color-red-500: var(--red-500);
+  --color-red-700: var(--red-700);
+
+  /* ── shadcn semantic aliases ── */
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+}
+
+@layer base {
+  :root {
+    /* Fonts */
+    --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    /* ── PINE — brand teal ── */
+    --pine-50:  oklch(97.5% 0.012 185);
+    --pine-100: oklch(94.5% 0.025 185);
+    --pine-200: oklch(89.0% 0.045 185);
+    --pine-300: oklch(80.5% 0.066 185);
+    --pine-400: oklch(70.5% 0.085 185);
+    --pine-500: oklch(60.5% 0.094 185);
+    --pine-600: oklch(52.0% 0.090 185);
+    --pine-700: oklch(44.0% 0.078 185);
+    --pine-800: oklch(36.0% 0.062 185);
+    --pine-900: oklch(28.5% 0.048 185);
+    --pine-950: oklch(21.0% 0.035 185);
+
+    /* ── STONE — warm neutral ── */
+    --stone-0:   oklch(100%  0     75);
+    --stone-50:  oklch(98.6% 0.003 75);
+    --stone-100: oklch(96.6% 0.004 75);
+    --stone-150: oklch(94.2% 0.005 75);
+    --stone-200: oklch(91.0% 0.006 75);
+    --stone-300: oklch(84.5% 0.007 75);
+    --stone-400: oklch(71.0% 0.008 75);
+    --stone-500: oklch(57.5% 0.008 75);
+    --stone-600: oklch(46.5% 0.008 75);
+    --stone-700: oklch(37.5% 0.007 75);
+    --stone-800: oklch(27.5% 0.006 75);
+    --stone-900: oklch(20.5% 0.005 75);
+    --stone-950: oklch(14.5% 0.004 75);
+
+    /* ── AMBER — warm accent ── */
+    --amber-50:  oklch(97.5% 0.020 75);
+    --amber-100: oklch(93.5% 0.042 73);
+    --amber-200: oklch(88.0% 0.072 70);
+    --amber-300: oklch(82.5% 0.105 68);
+    --amber-400: oklch(78.0% 0.130 65);
+    --amber-500: oklch(74.0% 0.142 62);
+    --amber-600: oklch(66.0% 0.132 55);
+    --amber-700: oklch(55.0% 0.112 50);
+    --amber-800: oklch(45.0% 0.090 48);
+    --amber-900: oklch(36.5% 0.070 48);
+
+    /* ── SKY — chat content type ── */
+    --sky-100: oklch(94.0% 0.030 235);
+    --sky-200: oklch(88.0% 0.055 235);
+    --sky-500: oklch(60.0% 0.105 240);
+    --sky-700: oklch(48.0% 0.095 243);
+
+    /* ── VIOLET — docs content type ── */
+    --violet-100: oklch(93.5% 0.028 300);
+    --violet-200: oklch(87.5% 0.050 300);
+    --violet-500: oklch(56.0% 0.110 300);
+    --violet-700: oklch(46.0% 0.095 302);
+
+    /* ── GREEN — success status ── */
+    --green-100: oklch(93.5% 0.045 150);
+    --green-500: oklch(62.0% 0.120 150);
+    --green-700: oklch(48.0% 0.105 152);
+
+    /* ── RED — danger status ── */
+    --red-100: oklch(94.0% 0.030 25);
+    --red-500: oklch(58.0% 0.185 25);
+    --red-700: oklch(48.0% 0.170 25);
+
+    /* ── DESIGN SYSTEM SEMANTIC ALIASES ── */
+    --brand:              var(--pine-600);
+    --brand-hover:        var(--pine-700);
+    --brand-active:       var(--pine-800);
+    --brand-subtle:       var(--pine-50);
+    --brand-subtle-hover: var(--pine-100);
+    --brand-border:       var(--pine-200);
+    --on-brand:           var(--stone-0);
+
+    --bg:             var(--stone-50);
+    --surface:        var(--stone-0);
+    --surface-sunken: var(--stone-100);
+    --surface-hover:  var(--stone-100);
+
+    --text:          var(--stone-900);
+    --text-secondary:var(--stone-600);
+    --text-muted:    var(--stone-500);
+    --text-disabled: var(--stone-400);
+
+    --border-line:   var(--stone-200);
+    --border-strong: var(--stone-300);
+    --ring-focus:    var(--pine-500);
+
+    /* Status */
+    --success:        var(--green-500);
+    --success-subtle: var(--green-100);
+    --success-text:   var(--green-700);
+    --warning:        var(--amber-500);
+    --warning-subtle: var(--amber-100);
+    --warning-text:   var(--amber-700);
+    --danger:         var(--red-500);
+    --danger-subtle:  var(--red-100);
+    --danger-text:    var(--red-700);
+    --info:           var(--sky-500);
+    --info-subtle:    var(--sky-100);
+    --info-text:      var(--sky-700);
+
+    /* Content-type coding */
+    --type-board:        var(--pine-700);
+    --type-board-subtle: var(--pine-50);
+    --type-board-border: var(--pine-200);
+    --type-forum:        var(--amber-800);
+    --type-forum-subtle: var(--amber-50);
+    --type-forum-border: var(--amber-200);
+    --type-chat:         var(--sky-700);
+    --type-chat-subtle:  var(--sky-100);
+    --type-chat-border:  var(--sky-200);
+    --type-docs:         var(--violet-700);
+    --type-docs-subtle:  var(--violet-100);
+    --type-docs-border:  var(--violet-200);
+
+    /* ── SHADCN/UI SEMANTIC MAPPING ── */
+    --background:           var(--bg);
+    --foreground:           var(--text);
+    --card:                 var(--surface);
+    --card-foreground:      var(--text);
+    --popover:              var(--surface);
+    --popover-foreground:   var(--text);
+    --primary:              var(--brand);
+    --primary-foreground:   var(--on-brand);
+    --secondary:            var(--surface-sunken);
+    --secondary-foreground: var(--text);
+    --muted:                var(--surface-sunken);
+    --muted-foreground:     var(--text-secondary);
+    --accent:               var(--surface-hover);
+    --accent-foreground:    var(--text);
+    --destructive:          var(--danger);
+    --destructive-foreground: var(--stone-0);
+    --border:               var(--stone-200);
+    --input:                var(--surface-sunken);
+    --ring:                 var(--ring-focus);
+    --radius:               0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
