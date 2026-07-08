@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  Creates a new system user (UPRAVNIK). These are named accounts with email/password login that manage buildings. Only SUPER_ADMIN can call this.
+
+  **Who can call it:** SUPER_ADMIN only.
+
+  **Auth:** Bearer token required.
+
+  **Body fields:**
+  - `email` (string, required) — used as the username for login
+  - `password` (string, required) — plaintext, hashed on the server
+  - `firstName` (string, optional)
+  - `lastName` (string, optional)
+  - `phone` (string, optional)
+  - `buildingIds` (string[], optional) — UUIDs of buildings to assign this upravnik to immediately. A `BuildingMember` record with role `UPRAVNIK` is created for each.
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not SUPER_ADMIN
+  - `409` — email already in use
+url: "{{baseUrl}}/users/system"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "email": "novi.upravnik@zgrada.rs",
+      "password": "Password123!",
+      "firstName": "Novi",
+      "lastName": "Upravnik",
+      "phone": "+381601234567",
+      "buildingIds": ["{{buildingId}}"]
+    }
+order: 1000

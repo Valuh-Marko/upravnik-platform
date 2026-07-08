@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Returns the full profile of the currently authenticated user including building memberships, unit info (for residents), and all threads they have created.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Response fields:**
+  - `id` — user UUID
+  - `username` — email for system users, unit number for residents
+  - `email`, `firstName`, `lastName`, `phone` — profile info (nullable)
+  - `accountType` — `SYSTEM_USER` or `UNIT_ACCOUNT`
+  - `systemRole` — `SUPER_ADMIN` for the platform admin, `null` for everyone else
+  - `createdAt` — account creation timestamp
+  - `buildingMembers` — array of buildings this user belongs to, each with `role`, `joinedAt`, `building { id, name, address, city }`, `unit { id, unitNumber, floor, type }` (null for non-residents)
+  - `threads` — all threads created by this user, newest first, each with `id`, `title`, `category`, `status`, `createdAt`, `_count.replies`
+
+  **Errors:**
+  - `401` — no token or token expired
+url: "{{baseUrl}}/auth/me"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 6000

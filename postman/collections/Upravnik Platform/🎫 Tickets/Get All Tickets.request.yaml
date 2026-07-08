@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Returns tickets for a building. The response is filtered by role:
+  - **RESIDENT** — sees only their own tickets
+  - **UPRAVNIK / BOARD_MEMBER** — sees all tickets in the building
+
+  Tickets are ordered by `createdAt` descending (newest first). Each item includes the author name, reply count, and `isUnread` — a per-caller boolean that is `true` when the ticket has new activity the caller hasn't seen yet. Use this to render unread badges in the UI.
+
+  Reading a ticket via `GET /tickets/:id` automatically marks it as read for the caller. Posting a reply also marks it as read for the replier, while the other party's read status is untouched (so they see `isUnread: true`).
+
+  **Who can call it:** Any authenticated building member.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Response:** Array of ticket objects, each with `author { id, firstName, lastName }`, `_count.replies`, and `isUnread: boolean`.
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — user is not a member of this building
+url: "{{baseUrl}}/buildings/{{buildingId}}/tickets"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

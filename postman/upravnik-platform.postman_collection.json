@@ -1,0 +1,1229 @@
+{
+  "info": {
+    "name": "Upravnik Platform",
+    "_postman_id": "upravnik-platform-v1",
+    "description": "Full API collection for the Upravnik platform.\n\n**Quick start:**\n1. Send any Login request — token saves automatically to {{authToken}}\n2. All other requests use it via Bearer auth\n\n**Seeded accounts:**\n- SUPER_ADMIN  → admin@upravnik.rs / Admin123!\n- UPRAVNIK     → upravnik@zgrada.rs / Upravnik123!\n- BOARD_MEMBER → board@zgrada.rs / Board123!\n- RESIDENT     → 1A / 2A / 2B / 3A ... / Resident123!",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",       "value": "http://localhost:3000/api",                    "type": "string" },
+    { "key": "authToken",     "value": "",                                              "type": "string" },
+    { "key": "complexId",     "value": "90a2dc0b-5576-41f6-8a29-5d1a1dcca120",        "type": "string" },
+    { "key": "buildingId",    "value": "617eb395-f115-49d0-9862-e70076c49284",        "type": "string" },
+    { "key": "buildingB_id",  "value": "6303264a-6d98-4ae2-899f-6f3361e28c38",        "type": "string" },
+    { "key": "buildingC_id",  "value": "173c1f8d-3c5b-4663-a121-a376b2da97fb",        "type": "string" },
+    { "key": "unitId",        "value": "1ee6a762-750f-4cac-86a4-c841673fc150",        "type": "string" },
+    { "key": "unit2_id",      "value": "6d7aec5b-3c7d-47be-8708-b6fa8140849b",        "type": "string" },
+    { "key": "user_admin",    "value": "c14c45bd-36c9-4d31-a9cf-52d54646a13e",        "type": "string" },
+    { "key": "user_upravnik", "value": "563c55b3-55f2-4db4-90e5-c63d7b10cf88",        "type": "string" },
+    { "key": "user_board_a",  "value": "173f446b-70cc-4de8-b971-31d58bbe2d80",        "type": "string" },
+    { "key": "user_board_b",  "value": "37f93142-c146-4076-bda3-d5205d3de545",        "type": "string" },
+    { "key": "user_board_c",  "value": "c774c127-b334-4e05-94f2-8a2e83dd3a00",        "type": "string" },
+    { "key": "userId",        "value": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb",        "type": "string" },
+    { "key": "user2_id",      "value": "cefe80f9-0416-4aa6-8a6b-2a5e43fc42a7",        "type": "string" },
+    { "key": "announce1_id",  "value": "1b659c0d-52f1-4c8f-8690-b29283c87978",        "type": "string" },
+    { "key": "announce2_id",  "value": "a7e07983-55c2-40d2-905c-baf6e73aacaf",        "type": "string" },
+    { "key": "doc1_id",       "value": "a8fd9758-afba-4524-97ba-d6acdb079569",        "type": "string" },
+    { "key": "thread1_id",    "value": "fd8dab79-5f34-49eb-8bc1-5968b5a53539",        "type": "string" },
+    { "key": "thread2_id",    "value": "741fa718-2389-4609-9e73-d234c13ca0c7",        "type": "string" },
+    { "key": "reply1_id",     "value": "d591f97b-2f0f-4623-a8bb-1cce9ade0af8",        "type": "string" },
+    { "key": "ticket1_id",   "value": "",                                              "type": "string" },
+    { "key": "notification1_id", "value": "",                                          "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔑 Auth",
+      "item": [
+        {
+          "name": "Login as Upravnik",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "if (r.accessToken) {",
+            "  pm.environment.set('authToken', r.accessToken);",
+            "  console.log('Token saved for: upravnik@zgrada.rs');",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"upravnik@zgrada.rs\",\n  \"password\": \"Upravnik123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Authenticates a user and returns a JWT access token. The token is valid for 7 days. Use any of the Login requests to switch between roles — the token is saved automatically to {{authToken}}.\n\n**Who can call it:** Anyone (no auth required).\n\n**Body fields:**\n- `username` (string, required) — email for system users (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER); unit number (e.g. '1A') for residents\n- `password` (string, required)\n\n**Errors:**\n- `401` — invalid credentials or account is inactive"
+          }
+        },
+        {
+          "name": "Login as Admin",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "if (r.accessToken) pm.environment.set('authToken', r.accessToken);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin@upravnik.rs\",\n  \"password\": \"Admin123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Authenticates as SUPER_ADMIN. Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+          }
+        },
+        {
+          "name": "Login as Board Member",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "if (r.accessToken) pm.environment.set('authToken', r.accessToken);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"board.l1@zgrada.rs\",\n  \"password\": \"Board123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Authenticates as BOARD_MEMBER of Lamela 1. Token is saved to {{authToken}}.\n\nBoard members are building-specific: board.l1@zgrada.rs (Lamela 1), board.l2@zgrada.rs (Lamela 2), board.l3@zgrada.rs (Lamela 3), board.l4@zgrada.rs (Lamela 4).\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+          }
+        },
+        {
+          "name": "Login as Resident 1A",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "if (r.accessToken) pm.environment.set('authToken', r.accessToken);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"1A\",\n  \"password\": \"Resident123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Authenticates as RESIDENT (unit 1A). Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+          }
+        },
+        {
+          "name": "Login as Resident 1B",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "const r = pm.response.json();",
+            "if (r.accessToken) pm.environment.set('authToken', r.accessToken);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"1B\",\n  \"password\": \"Resident123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Authenticates as RESIDENT (unit 1B). Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+          }
+        },
+        {
+          "name": "Get My Profile (me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] },
+            "description": "Returns the full profile of the currently authenticated user including building memberships, unit info (for residents), and all threads they have created.\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response fields:**\n- `id` — user UUID\n- `username` — email for system users, unit number for residents\n- `email`, `firstName`, `lastName`, `phone` — profile info (nullable)\n- `accountType` — `SYSTEM_USER` or `UNIT_ACCOUNT`\n- `systemRole` — `SUPER_ADMIN` for the platform admin, `null` for everyone else\n- `createdAt` — account creation timestamp\n- `buildingMembers` — array of buildings this user belongs to, each with `role`, `joinedAt`, `building { id, name, address, city }`, `unit { id, unitNumber, floor, type }` (null for non-residents)\n- `threads` — all threads created by this user, newest first, each with `id`, `title`, `category`, `status`, `createdAt`, `_count.replies`\n\n**Errors:**\n- `401` — no token or token expired",
+            "response_example": {
+              "id": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "username": "upravnik@zgrada.rs",
+              "email": "upravnik@zgrada.rs",
+              "firstName": "Marko",
+              "lastName": "Petrović",
+              "phone": null,
+              "accountType": "SYSTEM_USER",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "buildingMembers": [
+                {
+                  "role": "UPRAVNIK",
+                  "joinedAt": "2024-06-14T09:00:00Z",
+                  "building": { "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c", "name": "Zgrada A", "address": "Nemanjina 4", "city": "Beograd" },
+                  "unit": null
+                }
+              ],
+              "threads": [
+                { "id": "uuid", "title": "Kvar na liftu", "category": "MAINTENANCE", "status": "OPEN", "createdAt": "2024-06-14T10:00:00Z", "_count": { "replies": 3 } }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.environment.set('authToken', '');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "description": "Logs out the current user. Since auth is stateless JWT, the token is not invalidated server-side — the client must discard it. The Postman test script clears {{authToken}} automatically on success.\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response:** `{ message: 'Logged out' }`\n\n**Errors:**\n- `401` — no token or token expired",
+            "response_example": { "message": "Logged out" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "item": [
+        {
+          "name": "Create System User (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"novi.upravnik@zgrada.rs\",\n  \"password\": \"Password123!\",\n  \"role\": \"UPRAVNIK\",\n  \"firstName\": \"Novi\",\n  \"lastName\": \"Upravnik\",\n  \"phone\": \"+381601234567\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/system", "host": ["{{baseUrl}}"], "path": ["users", "system"] },
+            "description": "Creates a new system user (UPRAVNIK or BOARD_MEMBER). These are named accounts with email/password login. Only SUPER_ADMIN can call this.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Body fields:**\n- `email` (string, required) — used as the username for login\n- `password` (string, required) — plaintext, hashed on the server\n- `role` (string, required) — `UPRAVNIK` or `BOARD_MEMBER`\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `phone` (string, optional)\n\n**Response:** Created user object (password hash is never returned).\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not SUPER_ADMIN\n- `409` — email already in use",
+            "response_example": {
+              "id": "uuid",
+              "username": "novi.upravnik@zgrada.rs",
+              "email": "novi.upravnik@zgrada.rs",
+              "accountType": "SYSTEM_USER",
+              "createdAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Create Unit Account (Upravnik only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"unitId\": \"{{unit2_id}}\",\n  \"unitNumber\": \"a.1-2\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"Stanar\",\n  \"email\": \"stanar@email.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/unit/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["users", "unit", "{{buildingId}}"] },
+            "description": "Creates a unit account (RESIDENT) for a specific unit in a building. The username is the unit number (e.g. '2A') and the password is auto-generated. The plaintext password is returned only once in this response — store it and give it to the resident.\n\n**Who can call it:** UPRAVNIK only.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required) — the building the unit belongs to\n\n**Body fields:**\n- `unitId` (UUID, required) — the unit to associate the account with\n- `unitNumber` (string, required) — becomes the login username\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `email` (string, optional)\n- `phone` (string, optional)\n\n**Side effects:** Creates a `BuildingMember` record with role RESIDENT and links the user to the unit.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `404` — `unitId` does not exist or does not belong to `buildingId`\n- `409` — unit number already has an account",
+            "response_example": {
+              "id": "uuid",
+              "username": "2A",
+              "accountType": "UNIT_ACCOUNT",
+              "plainPassword": "XK92MNQ1"
+            }
+          }
+        },
+        {
+          "name": "Reset Unit Account Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "reset-password"] },
+            "description": "Generates a new random password for a unit account and returns it in plaintext. Use this when a resident forgets their password. The new password is returned only once — give it to the resident immediately.\n\n**Who can call it:** UPRAVNIK only.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `userId` (UUID, required) — the unit account to reset\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK\n- `404` — user not found",
+            "response_example": { "plainPassword": "A7BX92PQ" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Setup",
+      "item": [
+        {
+          "name": "Bulk Create Complex + Buildings + Units",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"complex\": {\n    \"name\": \"Blok 23\",\n    \"address\": \"Bulevar Oslobođenja 12\",\n    \"city\": \"Novi Sad\"\n  },\n  \"buildings\": [\n    {\n      \"name\": \"Zgrada A\",\n      \"address\": \"Bulevar Oslobođenja 12\",\n      \"city\": \"Novi Sad\",\n      \"units\": [\n        { \"unitNumber\": \"1-1\", \"floor\": 1, \"type\": \"APARTMENT\", \"areaSqm\": 52.5 },\n        { \"unitNumber\": \"1-2\", \"floor\": 1, \"type\": \"APARTMENT\", \"areaSqm\": 48.0 },\n        { \"unitNumber\": \"2-1\", \"floor\": 2, \"type\": \"APARTMENT\", \"areaSqm\": 52.5 },\n        { \"unitNumber\": \"2-2\", \"floor\": 2, \"type\": \"APARTMENT\", \"areaSqm\": 48.0 }\n      ]\n    },\n    {\n      \"name\": \"Zgrada B\",\n      \"address\": \"Bulevar Oslobođenja 14\",\n      \"city\": \"Novi Sad\",\n      \"units\": [\n        { \"unitNumber\": \"1-1\", \"floor\": 1, \"type\": \"APARTMENT\" },\n        { \"unitNumber\": \"1-2\", \"floor\": 1, \"type\": \"OFFICE\" }\n      ]\n    }\n  ]\n}" },
+            "url": { "raw": "{{baseUrl}}/setup/bulk", "host": ["{{baseUrl}}"], "path": ["setup", "bulk"] },
+            "description": "Creates a full property structure in a single atomic transaction: an optional complex, one or more buildings, and all units within each building. If any part fails, nothing is created.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Body fields:**\n- `complex` (object, optional) — omit entirely for standalone buildings\n  - `name` (string, required)\n  - `address` (string, required)\n  - `city` (string, required)\n- `buildings` (array, required, min 1)\n  - `name` (string, required)\n  - `address` (string, required)\n  - `city` (string, required)\n  - `units` (array, required, min 1)\n    - `unitNumber` (string, required) — unique within the building\n    - `floor` (integer, optional)\n    - `type` (string, required) — `APARTMENT` | `OFFICE` | `COMMERCIAL`\n    - `areaSqm` (decimal, optional)\n\n**Errors:**\n- `400` — validation error\n- `401` — not authenticated\n- `403` — authenticated user is not SUPER_ADMIN",
+            "response_example": {
+              "complex": { "id": "uuid", "name": "Blok 23" },
+              "buildings": [
+                { "id": "uuid", "name": "Zgrada A", "unitCount": 4 },
+                { "id": "uuid", "name": "Zgrada B", "unitCount": 2 }
+              ],
+              "totalUnits": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "item": [
+        {
+          "name": "Create System User (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"novi.upravnik@zgrada.rs\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Novi\",\n  \"lastName\": \"Upravnik\",\n  \"phone\": \"+381601234567\",\n  \"buildingIds\": [\"{{buildingId}}\"]\n}" },
+            "url": { "raw": "{{baseUrl}}/users/system", "host": ["{{baseUrl}}"], "path": ["users", "system"] },
+            "description": "Creates a new system user (UPRAVNIK). These are named accounts with email/password login that manage buildings. Only SUPER_ADMIN can call this.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Body fields:**\n- `email` (string, required) — used as the username for login\n- `password` (string, required) — plaintext, hashed on the server\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `phone` (string, optional)\n- `buildingIds` (string[], optional) — UUIDs of buildings to assign this upravnik to immediately. A `BuildingMember` record with role `UPRAVNIK` is created for each.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not SUPER_ADMIN\n- `409` — email already in use",
+            "response_example": {
+              "id": "uuid",
+              "username": "novi.upravnik@zgrada.rs",
+              "email": "novi.upravnik@zgrada.rs",
+              "accountType": "SYSTEM_USER",
+              "createdAt": "2024-06-17T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Create Board Member (Upravnik only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"board.member@zgrada.rs\",\n  \"password\": \"Board123!\",\n  \"firstName\": \"Dragan\",\n  \"lastName\": \"Nikolić\",\n  \"phone\": \"+381611234567\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/board-member/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["users", "board-member", "{{buildingId}}"] },
+            "description": "Creates a board member (BOARD_MEMBER) account for a specific building. Board members are appointed by the upravnik to manage announcements — they are not tenants and have no unit. The account uses email/password login (SYSTEM_USER account type).\n\n**Who can call it:** UPRAVNIK only (must be an UPRAVNIK of the specified building).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required) — the building this board member will manage\n\n**Body fields:**\n- `email` (string, required) — used as the login username\n- `password` (string, required) — set by the upravnik, given to the board member\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `phone` (string, optional)\n\n**Side effects:** Creates a `BuildingMember` record with role `BOARD_MEMBER`. No unit is linked.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `409` — email already in use",
+            "response_example": {
+              "id": "uuid",
+              "username": "board.member@zgrada.rs",
+              "email": "board.member@zgrada.rs",
+              "accountType": "SYSTEM_USER",
+              "createdAt": "2024-06-17T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Create Unit Account (Upravnik only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"unitId\": \"{{unit2_id}}\",\n  \"unitNumber\": \"a.1-2\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"Stanar\",\n  \"email\": \"stanar@email.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/unit/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["users", "unit", "{{buildingId}}"] },
+            "description": "Creates a unit account (RESIDENT) for a specific unit in a building. The username is the unit number (e.g. '2A') and the password is auto-generated. The plaintext password is returned only once in this response — store it and give it to the resident.\n\n**Who can call it:** UPRAVNIK only (must be an UPRAVNIK of the specified building).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `unitId` (UUID, required) — the unit to associate the account with\n- `unitNumber` (string, required) — becomes the login username\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `email` (string, optional)\n- `phone` (string, optional)\n\n**Side effects:** Creates a `BuildingMember` record with role `RESIDENT` and links the user to the unit.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `404` — `unitId` does not exist or does not belong to `buildingId`\n- `409` — unit number already has an account",
+            "response_example": {
+              "id": "uuid",
+              "username": "2A",
+              "accountType": "UNIT_ACCOUNT",
+              "plainPassword": "P7M3WXYZ"
+            }
+          }
+        },
+        {
+          "name": "Reset Unit Account Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/{{buildingId}}/members/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{buildingId}}", "members", "{{userId}}", "reset-password"] },
+            "description": "Generates a new random password for a unit account and returns it in plaintext. Use this when a resident or board member forgets their password. The new password is returned only once — give it to the user immediately.\n\n**Who can call it:** UPRAVNIK only (must be an UPRAVNIK of the specified building).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required) — the building the user belongs to (used to verify UPRAVNIK access)\n- `userId` (UUID, required) — the unit account to reset\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `404` — user not found",
+            "response_example": { "plainPassword": "N2J8QRST" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏘️ Complexes",
+      "item": [
+        {
+          "name": "Create Complex",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Kompleks Mir\",\n  \"address\": \"Bulevar Kralja Aleksandra 22\",\n  \"city\": \"Beograd\"\n}" },
+            "url": { "raw": "{{baseUrl}}/complexes", "host": ["{{baseUrl}}"], "path": ["complexes"] },
+            "description": "Creates a new residential complex. A complex is a top-level grouping that can contain multiple buildings.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Body fields:**\n- `name` (string, required) — name of the complex\n- `address` (string, required) — street address\n- `city` (string, required)\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not SUPER_ADMIN",
+            "response_example": {
+              "id": "uuid",
+              "name": "Kompleks Mir",
+              "address": "Bulevar Kralja Aleksandra 22",
+              "city": "Beograd",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Complexes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/complexes", "host": ["{{baseUrl}}"], "path": ["complexes"] },
+            "description": "Returns complexes with their associated buildings, scoped to the caller: SUPER_ADMIN receives every complex in the system; all other roles only receive complexes that contain at least one building they are a member of.\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response:** Array of complex objects, each including a `buildings` array.\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": [
+              {
+                "id": "3a80d6a8-a085-492f-8c8b-d158371f37f3",
+                "name": "Kompleks Sunce",
+                "address": "Bulevar Oslobođenja 1",
+                "city": "Beograd",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "buildings": [
+                  { "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c", "name": "Zgrada A", "address": "Nemanjina 4", "city": "Beograd", "complexId": "3a80d6a8-a085-492f-8c8b-d158371f37f3", "createdAt": "2024-06-14T09:00:00Z", "updatedAt": "2024-06-14T09:00:00Z" }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Complex by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}"] },
+            "description": "Returns a single complex by ID including its buildings.\n\n**Who can call it:** SUPER_ADMIN, or any authenticated user who is a member of at least one building within this complex.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `id` (UUID, required) — the complex ID\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user has no membership in any building of this complex\n- `404` — complex not found",
+            "response_example": {
+              "id": "3a80d6a8-a085-492f-8c8b-d158371f37f3",
+              "name": "Kompleks Sunce",
+              "address": "Bulevar Oslobođenja 1",
+              "city": "Beograd",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z",
+              "buildings": [
+                { "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c", "name": "Zgrada A", "address": "Nemanjina 4", "city": "Beograd", "complexId": "3a80d6a8-a085-492f-8c8b-d158371f37f3", "createdAt": "2024-06-14T09:00:00Z", "updatedAt": "2024-06-14T09:00:00Z" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Buildings",
+      "item": [
+        {
+          "name": "Create Building",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"complexId\": \"{{complexId}}\",\n  \"name\": \"Zgrada B\",\n  \"address\": \"Nemanjina 4\",\n  \"city\": \"Beograd\"\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings", "host": ["{{baseUrl}}"], "path": ["buildings"] },
+            "description": "Creates a new building, optionally linked to a complex.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Body fields:**\n- `name` (string, required)\n- `address` (string, required)\n- `city` (string, required)\n- `complexId` (UUID, optional) — link to an existing complex\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not SUPER_ADMIN",
+            "response_example": {
+              "id": "uuid",
+              "complexId": "3a80d6a8-a085-492f-8c8b-d158371f37f3",
+              "name": "Zgrada B",
+              "address": "Nemanjina 4",
+              "city": "Beograd",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Buildings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings", "host": ["{{baseUrl}}"], "path": ["buildings"] },
+            "description": "Returns buildings with their parent complex, scoped to the caller: SUPER_ADMIN receives every building in the system; all other roles (UPRAVNIK, BOARD_MEMBER, RESIDENT) only receive buildings they are a member of.\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response:** Array of building objects, each including a `complex` object (nullable if not linked to a complex).\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": [
+              {
+                "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "complexId": "3a80d6a8-a085-492f-8c8b-d158371f37f3",
+                "name": "Zgrada A",
+                "address": "Nemanjina 4",
+                "city": "Beograd",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "complex": { "id": "3a80d6a8-a085-492f-8c8b-d158371f37f3", "name": "Kompleks Sunce", "address": "Bulevar Oslobođenja 1", "city": "Beograd" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Building by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}"] },
+            "description": "Returns a single building by ID with full detail: complex, all units, and all members (with user data). The nested `members[].user` object never includes the password hash.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `id` (UUID, required) — the building ID\n\n**Response includes:**\n- `complex` — parent complex (nullable)\n- `units` — all units in the building\n- `members` — all building members with their full user object and role\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — building not found",
+            "response_example": {
+              "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "name": "Zgrada A",
+              "address": "Nemanjina 4",
+              "city": "Beograd",
+              "complexId": "3a80d6a8-a085-492f-8c8b-d158371f37f3",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z",
+              "complex": { "id": "3a80d6a8-a085-492f-8c8b-d158371f37f3", "name": "Kompleks Sunce" },
+              "units": [{ "id": "uuid", "unitNumber": "1A", "floor": 1, "type": "APARTMENT", "areaSqm": "52.5" }],
+              "members": [{ "id": "uuid", "role": "UPRAVNIK", "joinedAt": "2024-06-14T09:00:00Z", "user": { "id": "uuid", "username": "upravnik@zgrada.rs", "firstName": "Marko", "lastName": "Petrović" } }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚪 Units",
+      "item": [
+        {
+          "name": "Create Unit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"unitNumber\": \"5D\",\n  \"floor\": 5,\n  \"type\": \"APARTMENT\",\n  \"areaSqm\": 72.5\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/units", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "units"] },
+            "description": "Creates a new unit (apartment, office, or commercial space) inside a building. Once created, use Create Unit Account to assign a resident login to this unit.\n\n**Who can call it:** UPRAVNIK only.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `unitNumber` (string, required) — e.g. '1A', '3B'\n- `floor` (integer, optional)\n- `type` (string, required) — `APARTMENT`, `OFFICE`, or `COMMERCIAL`\n- `areaSqm` (decimal, optional) — area in square meters\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "unitNumber": "5D",
+              "floor": 5,
+              "type": "APARTMENT",
+              "areaSqm": "72.5",
+              "userId": null,
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Units in Building",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/units", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "units"] },
+            "description": "Returns all units in a building, each including the associated user account (if one has been created for that unit).\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Response:** Array of unit objects, each with a `user` field (nullable).\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building",
+            "response_example": [
+              {
+                "id": "4933b3f1-f848-4c86-983a-87396599a744",
+                "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "unitNumber": "1A",
+                "floor": 1,
+                "type": "APARTMENT",
+                "areaSqm": "52.5",
+                "userId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "user": { "id": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee", "username": "1A", "firstName": "Ana", "lastName": "Jović", "accountType": "UNIT_ACCOUNT" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Unit 1A by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/units/{{unitId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "units", "{{unitId}}"] },
+            "description": "Returns a single unit by ID including the associated user account.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the unit ID\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — unit not found, or the unit does not belong to this building",
+            "response_example": {
+              "id": "4933b3f1-f848-4c86-983a-87396599a744",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "unitNumber": "1A",
+              "floor": 1,
+              "type": "APARTMENT",
+              "areaSqm": "52.5",
+              "userId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z",
+              "user": { "id": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee", "username": "1A", "firstName": "Ana", "lastName": "Jović", "accountType": "UNIT_ACCOUNT" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📢 Announcements",
+      "item": [
+        {
+          "name": "Get All My Announcements (cross-building)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/announcements",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements"],
+              "query": [
+                { "key": "buildingId", "value": "", "description": "Optional. Filter to a specific building UUID.", "disabled": true }
+              ]
+            },
+            "description": "Returns all announcements across every building the authenticated user belongs to. Pinned announcements appear first per the standard ordering rule, then by `createdAt` descending. Each result includes `building { id, name }` so the frontend can group or label by building.\n\n**Who can call it:** Any authenticated user (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER, RESIDENT). Results are always scoped to the caller's own building memberships (SUPER_ADMIN currently gets the same membership-scoped result as everyone else, since this endpoint has no admin-wide bypass — use `GET /buildings/:buildingId/announcements` per building if you need cross-tenant visibility as SUPER_ADMIN). If `buildingId` is passed and the caller is not a member of that building, an empty array is returned (not an error).\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building you are a member of\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": [
+              {
+                "id": "448e7eee-d829-4841-a5e4-540ac327e69a",
+                "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+                "title": "Isključenje vode — subota 8–12h",
+                "body": "Zbog radova na mreži voda će biti isključena u subotu od 8 do 12h.",
+                "isPinned": true,
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "author": { "id": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5", "firstName": "Marko", "lastName": "Petrović" },
+                "building": { "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c", "name": "Zgrada A" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Create Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Servisiranje lifta\",\n  \"body\": \"Lift će biti van funkcije u subotu od 8 do 14h zbog redovnog servisa.\",\n  \"isPinned\": false\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements"] },
+            "description": "Creates a new announcement for a building. Pinned announcements always appear first in the list regardless of date.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `title` (string, required)\n- `body` (string, required) — full announcement text\n- `isPinned` (boolean, optional, default: false)\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER in this building",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "title": "Servisiranje lifta",
+              "body": "Lift će biti van funkcije u subotu od 8 do 14h zbog redovnog servisa.",
+              "isPinned": false,
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Announcements",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements"] },
+            "description": "Returns all announcements for a building. Pinned announcements always appear first, then the rest ordered by `createdAt` descending.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Response:** Array of announcements each including `author { id, firstName, lastName }`.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building",
+            "response_example": [
+              {
+                "id": "448e7eee-d829-4841-a5e4-540ac327e69a",
+                "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+                "title": "Isključenje vode — subota 8–12h",
+                "body": "Zbog radova na mreži voda će biti isključena u subotu od 8 do 12h.",
+                "isPinned": true,
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "author": { "id": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5", "firstName": "Marko", "lastName": "Petrović" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Announcement by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements/{{announce1_id}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements", "{{announce1_id}}"] },
+            "description": "Returns a single announcement by ID including the author.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the announcement ID\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — announcement not found, or the announcement does not belong to this building",
+            "response_example": {
+              "id": "448e7eee-d829-4841-a5e4-540ac327e69a",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "title": "Isključenje vode — subota 8–12h",
+              "body": "Zbog radova na mreži voda će biti isključena u subotu od 8 do 12h.",
+              "isPinned": true,
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z",
+              "author": { "id": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5", "firstName": "Marko", "lastName": "Petrović" }
+            }
+          }
+        },
+        {
+          "name": "Update Announcement",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"isPinned\": true\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements/{{announce1_id}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements", "{{announce1_id}}"] },
+            "description": "Partially updates an announcement. Currently supports toggling the pinned state. Pinned announcements always appear at the top of the list regardless of creation date.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the announcement to update\n\n**Body fields (all optional):**\n- `isPinned` (boolean) — `true` to pin, `false` to unpin\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER\n- `404` — announcement not found",
+            "response_example": {
+              "id": "448e7eee-d829-4841-a5e4-540ac327e69a",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "title": "Isključenje vode — subota 8–12h",
+              "body": "Zbog radova na mreži...",
+              "isPinned": true,
+              "createdAt": "2024-06-14T09:14:00Z",
+              "updatedAt": "2024-06-14T10:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 Documents",
+      "item": [
+        {
+          "name": "Create Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Godišnji izveštaj 2025\",\n  \"fileUrl\": \"https://storage.example.com/docs/izvestaj-2025.pdf\",\n  \"fileType\": \"pdf\",\n  \"category\": \"REPORT\"\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents"] },
+            "description": "Uploads a document record for a building. The file itself must be hosted externally — this endpoint only stores the metadata and URL.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `title` (string, required)\n- `fileUrl` (string, required) — publicly accessible URL to the file\n- `fileType` (string, optional) — e.g. 'pdf', 'docx'\n- `category` (string, required) — `CONTRACT`, `REPORT`, `DECISION`, or `OTHER`\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "uploadedBy": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "title": "Godišnji izveštaj 2025",
+              "fileUrl": "https://storage.example.com/docs/izvestaj-2025.pdf",
+              "fileType": "pdf",
+              "category": "REPORT",
+              "createdAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Documents",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents"] },
+            "description": "Returns all documents for a building ordered by `createdAt` descending. Each document includes the uploader's name.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building",
+            "response_example": [
+              {
+                "id": "a8b42a92-7f4b-4018-9d0e-91b7e903122e",
+                "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "uploadedBy": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+                "title": "Godišnji izveštaj 2025",
+                "fileUrl": "https://storage.example.com/docs/izvestaj-2025.pdf",
+                "fileType": "pdf",
+                "category": "REPORT",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "uploader": { "id": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5", "firstName": "Marko", "lastName": "Petrović" }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents/{{doc1_id}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents", "{{doc1_id}}"] },
+            "description": "Returns a single document by ID. Note: uploader info is not included in this response — use Get All Documents if you need the uploader name.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the document ID\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — document not found, or the document does not belong to this building",
+            "response_example": {
+              "id": "a8b42a92-7f4b-4018-9d0e-91b7e903122e",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "uploadedBy": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "title": "Godišnji izveštaj 2025",
+              "fileUrl": "https://storage.example.com/docs/izvestaj-2025.pdf",
+              "fileType": "pdf",
+              "category": "REPORT",
+              "createdAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Threads",
+      "item": [
+        {
+          "name": "Create Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Kvar na liftu\",\n  \"body\": \"Lift je van funkcije od jutros. Ko je kontaktirao servis?\",\n  \"category\": \"MAINTENANCE\"\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads"] },
+            "description": "Creates a new discussion thread in a building. Any authenticated member of the building can create a thread — this is intentional so residents can raise issues.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `title` (string, required)\n- `body` (string, required) — the opening message of the thread\n- `category` (string, required) — `GENERAL`, `MAINTENANCE`, `COMPLAINT`, or `QUESTION`\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "authorId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+              "title": "Kvar na liftu",
+              "body": "Lift je van funkcije od jutros. Ko je kontaktirao servis?",
+              "category": "MAINTENANCE",
+              "status": "OPEN",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Threads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads"] },
+            "description": "Returns all threads in a building ordered by `createdAt` descending. Each thread includes the author name and a reply count — replies themselves are not included here, use Get Thread by ID for those.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building",
+            "response_example": [
+              {
+                "id": "be7e1cde-9850-428f-998a-36b6c83f73f9",
+                "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "authorId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+                "title": "Kvar na liftu",
+                "body": "Lift je van funkcije od jutros.",
+                "category": "MAINTENANCE",
+                "status": "OPEN",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "author": { "id": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee", "firstName": "Ana", "lastName": "Jović", "unitNumber": "l1.1-1" },
+                "_count": { "replies": 3 }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Thread by ID (with replies)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread1_id}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{thread1_id}}"] },
+            "description": "Returns a single thread by ID with all replies included. Replies are ordered oldest first (ascending `createdAt`) so the conversation reads top-to-bottom. This is the only endpoint that returns reply bodies — there is no separate GET /replies endpoint.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread ID\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — thread not found, or the thread does not belong to this building",
+            "response_example": {
+              "id": "be7e1cde-9850-428f-998a-36b6c83f73f9",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "authorId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+              "title": "Kvar na liftu",
+              "body": "Lift je van funkcije od jutros.",
+              "category": "MAINTENANCE",
+              "status": "OPEN",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z",
+              "author": { "id": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee", "firstName": "Ana", "lastName": "Jović", "unitNumber": "l1.1-1" },
+              "replies": [
+                {
+                  "id": "uuid",
+                  "threadId": "be7e1cde-9850-428f-998a-36b6c83f73f9",
+                  "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+                  "body": "Servis je kontaktiran i dolazi u petak.",
+                  "createdAt": "2024-06-14T10:00:00Z",
+                  "author": { "id": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5", "firstName": "Marko", "lastName": "Petrović", "unitNumber": null }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reply to Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Servis je obavešten i dolazi u petak.\"\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{thread1_id}}", "replies"] },
+            "description": "Adds a reply to an existing thread. Any authenticated member of the building can reply.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread to reply to\n\n**Body fields:**\n- `body` (string, required) — the reply text\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — thread not found, or the thread does not belong to this building",
+            "response_example": {
+              "id": "uuid",
+              "threadId": "be7e1cde-9850-428f-998a-36b6c83f73f9",
+              "authorId": "20cfb8bb-6b92-4f57-91b7-3925f1dc00f5",
+              "body": "Servis je obavešten i dolazi u petak.",
+              "createdAt": "2024-06-14T10:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All My Threads (cross-building)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/threads",
+              "host": ["{{baseUrl}}"],
+              "path": ["threads"],
+              "query": [
+                { "key": "buildingId", "value": "", "description": "Optional. Filter to a specific building UUID.", "disabled": true },
+                { "key": "status", "value": "OPEN", "description": "Optional. Filter by status: OPEN or CLOSED.", "disabled": true }
+              ]
+            },
+            "description": "Returns all threads across every building the authenticated user belongs to. For an UPRAVNIK managing multiple buildings this returns threads from all of them in a single call. Includes `building { id, name }` on each thread so the frontend can group or label by building.\n\n**Who can call it:** Any authenticated user (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER, RESIDENT). Results are always scoped to the caller's own building memberships — SUPER_ADMIN sees every thread across all buildings, everyone else only sees threads from buildings they belong to. If `buildingId` is passed and the caller is not a member of that building, an empty array is returned (not an error) — this prevents probing for buildings you don't belong to.\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building you are a member of\n- `status` (`OPEN` | `CLOSED`) — filter by thread status\n\n**Response:** Array of threads ordered by `createdAt` descending, each including:\n- `author { id, firstName, lastName }`\n- `building { id, name }` — which building the thread belongs to\n- `_count.replies` — reply count\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": [
+              {
+                "id": "be7e1cde-9850-428f-998a-36b6c83f73f9",
+                "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+                "authorId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+                "title": "Kvar na liftu",
+                "body": "Lift je van funkcije od jutros.",
+                "category": "MAINTENANCE",
+                "status": "OPEN",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "author": { "id": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee", "firstName": "Ana", "lastName": "Jović", "unitNumber": "l1.1-1" },
+                "building": { "id": "1ce90703-648e-4c97-9e71-2a6f3f98d90c", "name": "Zgrada A" },
+                "_count": { "replies": 3 }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Close Thread",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread2_id}}/close", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{thread2_id}}", "close"] },
+            "description": "Marks a thread as CLOSED. Closed threads are still visible but indicate the issue has been resolved. There is no reopen endpoint currently.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread to close\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER\n- `404` — thread not found",
+            "response_example": {
+              "id": "0c14dba2-c5f0-4d11-a03a-a9db90960a19",
+              "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
+              "authorId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+              "title": "Kvar na liftu",
+              "body": "Lift je van funkcije od jutros.",
+              "category": "MAINTENANCE",
+              "status": "CLOSED",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T11:00:00Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎫 Tickets",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Kvar na grejanju u stanu\",\n  \"body\": \"Od jutros nemam grejanje u dnevnoj sobi. Molim hitnu intervenciju.\",\n  \"category\": \"MAINTENANCE\"\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets"] },
+            "description": "Opens a new private support ticket addressed to the Upravnik and Board Members of the building. Unlike forum threads, tickets are only visible to the resident who created them and to UPRAVNIK and BOARD_MEMBER roles — other residents cannot see them.\n\nWhen a ticket is created, all UPRAVNIK and BOARD_MEMBER members of the building receive an in-app notification.\n\n**Who can call it:** Any authenticated building member (RESIDENT, BOARD_MEMBER, UPRAVNIK).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `title` (string, required) — brief summary of the issue\n- `body` (string, required) — full description\n- `category` (string, required) — `GENERAL`, `MAINTENANCE`, `COMPLAINT`, `PAYMENT`, or `REQUEST`\n\n**Response:** The created ticket object.\n\n**Side effects:** Sends an in-app notification to all UPRAVNIK and BOARD_MEMBER members in the building.\n\n**Errors:**\n- `401` — not authenticated\n- `404` — user is not a member of this building",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "aa405297-333e-493d-b0f2-9d54a6e9bac6",
+              "authorId": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb",
+              "title": "Kvar na grejanju u stanu",
+              "body": "Od jutros nemam grejanje u dnevnoj sobi. Molim hitnu intervenciju.",
+              "category": "MAINTENANCE",
+              "status": "OPEN",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Tickets",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets"] },
+            "description": "Returns tickets for a building. The response is filtered by role:\n- **RESIDENT** — sees only their own tickets\n- **UPRAVNIK / BOARD_MEMBER** — sees all tickets in the building\n\nTickets are ordered by `createdAt` descending (newest first). Each item includes the author name, reply count, and `isUnread` — a per-caller boolean that is `true` when the ticket has new activity the caller hasn't seen yet. Use this to render unread badges in the UI.\n\nReading a ticket via `GET /tickets/:id` automatically marks it as read for the caller. Posting a reply also marks it as read for the replier, while the other party's read status is untouched (so they see `isUnread: true`).\n\n**Who can call it:** Any authenticated building member.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Response:** Array of ticket objects, each with `author { id, firstName, lastName }`, `_count.replies`, and `isUnread: boolean`.\n\n**Errors:**\n- `401` — not authenticated\n- `404` — user is not a member of this building",
+            "response_example": [
+              {
+                "id": "uuid",
+                "buildingId": "e8309e5e-3526-43c2-b426-fc02db425764",
+                "authorId": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb",
+                "title": "Kvar na grejanju u stanu",
+                "body": "Od jutros nemam grejanje u dnevnoj sobi.",
+                "category": "MAINTENANCE",
+                "status": "OPEN",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "building": { "id": "e8309e5e-3526-43c2-b426-fc02db425764", "name": "Zgrada A", "address": "Bulevar Oslobođenja 12", "city": "Novi Sad" },
+                "author": { "id": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb", "firstName": "Ana", "lastName": "Jović", "unit": { "id": "uuid", "unitNumber": "a.1-1", "floor": 1 } },
+                "_count": { "replies": 1 },
+                "isUnread": true
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Ticket by ID (with replies)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticket1_id}}"] },
+            "description": "Returns a single ticket with all replies. Replies are ordered oldest first so the conversation reads top-to-bottom.\n\nAccess rules:\n- **RESIDENT** — can only fetch their own ticket. Returns `403` for any other ticket ID.\n- **UPRAVNIK / BOARD_MEMBER** — can fetch any ticket in the building.\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket ID\n\n**Response:** Ticket object with `author { id, firstName, lastName }` and `replies[]`, each reply with `author { id, firstName, lastName }`.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to access another resident's ticket\n- `404` — ticket not found or user not a member of this building",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "e8309e5e-3526-43c2-b426-fc02db425764",
+              "authorId": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb",
+              "title": "Kvar na grejanju u stanu",
+              "body": "Od jutros nemam grejanje u dnevnoj sobi. Molim hitnu intervenciju.",
+              "category": "MAINTENANCE",
+              "status": "OPEN",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T09:00:00Z",
+              "building": { "id": "e8309e5e-3526-43c2-b426-fc02db425764", "name": "Zgrada A", "address": "Bulevar Oslobođenja 12", "city": "Novi Sad" },
+              "author": { "id": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb", "firstName": "Ana", "lastName": "Jović", "unit": { "id": "uuid", "unitNumber": "a.1-1", "floor": 1 } },
+              "replies": [
+                {
+                  "id": "uuid",
+                  "ticketId": "uuid",
+                  "authorId": "563c55b3-55f2-4db4-90e5-c63d7b10cf88",
+                  "body": "Servis je obavešten i dolazi sutra između 10 i 12h.",
+                  "createdAt": "2024-06-14T11:00:00Z",
+                  "author": { "id": "563c55b3-55f2-4db4-90e5-c63d7b10cf88", "firstName": "Marko", "lastName": "Petrović" }
+                }
+              ],
+              "isUnread": false
+            }
+          }
+        },
+        {
+          "name": "Reply to Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Servis je obavešten i dolazi sutra između 10 i 12h.\"\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticket1_id}}", "replies"] },
+            "description": "Adds a reply to an existing ticket. Only the ticket author (RESIDENT) and staff (UPRAVNIK, BOARD_MEMBER) may reply.\n\nNotification behavior:\n- Reply by RESIDENT → all UPRAVNIK and BOARD_MEMBER in the building are notified\n- Reply by UPRAVNIK or BOARD_MEMBER → the ticket author is notified\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket to reply to\n\n**Body fields:**\n- `body` (string, required) — the reply text\n\n**Side effects:** Sends an in-app notification to the other party (see above).\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to reply to another resident's ticket\n- `404` — ticket not found or user not a member of this building",
+            "response_example": {
+              "id": "uuid",
+              "ticketId": "uuid",
+              "authorId": "563c55b3-55f2-4db4-90e5-c63d7b10cf88",
+              "body": "Servis je obavešten i dolazi sutra između 10 i 12h.",
+              "createdAt": "2024-06-14T11:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Close Ticket",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}/close", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticket1_id}}", "close"] },
+            "description": "Marks a ticket as CLOSED. Closed tickets are still visible but indicate the issue has been resolved. There is no reopen endpoint.\n\nAny of the three parties may close the ticket:\n- The RESIDENT who opened it (e.g. the issue resolved itself)\n- The UPRAVNIK\n- A BOARD_MEMBER\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket to close\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to close another resident's ticket\n- `404` — ticket not found or user not a member of this building",
+            "response_example": {
+              "id": "uuid",
+              "buildingId": "aa405297-333e-493d-b0f2-9d54a6e9bac6",
+              "authorId": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb",
+              "title": "Kvar na grejanju u stanu",
+              "body": "Od jutros nemam grejanje u dnevnoj sobi.",
+              "category": "MAINTENANCE",
+              "status": "CLOSED",
+              "createdAt": "2024-06-14T09:00:00Z",
+              "updatedAt": "2024-06-14T12:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All My Tickets (cross-building)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["tickets"],
+              "query": [
+                { "key": "buildingId", "value": "", "description": "Optional. Filter to a specific building UUID.", "disabled": true },
+                { "key": "status", "value": "OPEN", "description": "Optional. Filter by status: OPEN or CLOSED.", "disabled": true }
+              ]
+            },
+            "description": "Returns all tickets authored by the currently authenticated user across all their buildings. Useful for a resident dashboard showing all their open/closed tickets. Includes `building { id, name }` on each ticket so the frontend can group by building.\n\n**Who can call it:** Any authenticated user (always scoped to own tickets regardless of role).\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building\n- `status` (`OPEN` | `CLOSED`) — filter by ticket status\n\n**Response:** Array of ticket objects ordered by `createdAt` descending, each with:\n- `author { id, firstName, lastName }`\n- `building { id, name }`\n- `_count.replies`\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": [
+              {
+                "id": "uuid",
+                "buildingId": "e8309e5e-3526-43c2-b426-fc02db425764",
+                "authorId": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb",
+                "title": "Kvar na grejanju u stanu",
+                "body": "Od jutros nemam grejanje u dnevnoj sobi.",
+                "category": "MAINTENANCE",
+                "status": "OPEN",
+                "createdAt": "2024-06-14T09:00:00Z",
+                "updatedAt": "2024-06-14T09:00:00Z",
+                "building": { "id": "e8309e5e-3526-43c2-b426-fc02db425764", "name": "Zgrada A", "address": "Bulevar Oslobođenja 12", "city": "Novi Sad" },
+                "author": { "id": "3c4ac894-2055-4d84-8c90-f73f3bf34ecb", "firstName": "Ana", "lastName": "Jović", "unit": { "id": "uuid", "unitNumber": "a.1-1", "floor": 1 } },
+                "_count": { "replies": 1 },
+                "isUnread": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏘️ Complex Forum",
+      "item": [
+        {
+          "name": "Create Complex Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Zajednički parking za sve lamele\",\n  \"body\": \"Predlažem da organizujemo zajednički sistem parkinga između svih lamela kompleksa. Lamela 1 ima višak mesta noću, dok Lamela 3 nema dovoljno tokom dana. Ko podržava ideju?\",\n  \"category\": \"GENERAL\"\n}" },
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads"] },
+            "description": "## What this endpoint does\n\nCreates a new discussion thread in the **complex-level forum** — a shared communication space visible to all members across every lamela (building) within the same complex. This is distinct from the per-building forum: a resident in Lamela 1 can read and respond to a thread started by a resident in Lamela 3.\n\nThe complex forum should only be displayed in the UI when the authenticated user's building has a `complexId` — if the building has no complex, this forum does not exist and these endpoints must not be called.\n\n## Where to get complexId\n\n`complexId` is returned on each building object in `GET /auth/me` under `buildingMembers[].building`. Check if it is non-null before showing the complex forum tab. Pass it as the path parameter.\n\n## Who can call it\n\nAny authenticated user who is a member (RESIDENT, BOARD_MEMBER, or UPRAVNIK) of at least one building that belongs to this complex. Returns `403` if the user has no membership in any building of this complex.\n\n## Auth\n\nBearer token required — include `Authorization: Bearer {{authToken}}` header.\n\n## Path params\n\n- `complexId` (UUID, required) — the complex the thread belongs to\n\n## Body fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | string | yes | Short headline for the thread, shown in the list view |\n| `body` | string | yes | Full opening post body |\n| `category` | enum | yes | `GENERAL`, `MAINTENANCE`, `COMPLAINT`, or `QUESTION` |\n\n## Success response — 201\n\nReturns the created thread object. Fields:\n- `id` — UUID of the new thread (save this for navigation)\n- `complexId` — UUID of the complex\n- `authorId` — UUID of the user who created it\n- `title`, `body`, `category` — as submitted\n- `status` — always `OPEN` on creation\n- `createdAt`, `updatedAt` — ISO 8601 timestamps\n\n## Error responses\n\n- `400` — validation failed (missing or invalid field)\n- `401` — no token or token expired\n- `403` — authenticated user is not a member of any building in this complex",
+            "response_example": {
+              "id": "a3f8c120-1234-4abc-9def-000000000001",
+              "complexId": "a6106279-f589-4760-863e-6916aa9440cd",
+              "authorId": "e2dfa279-588d-4ec1-a912-b34f6adce0e6",
+              "title": "Zajednički parking za sve lamele",
+              "body": "Predlažem da organizujemo zajednički sistem parkinga između svih lamela kompleksa.",
+              "category": "GENERAL",
+              "status": "OPEN",
+              "createdAt": "2024-06-14T10:00:00Z",
+              "updatedAt": "2024-06-14T10:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Complex Threads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads"] },
+            "description": "## What this endpoint does\n\nReturns all discussion threads for the complex, ordered by `createdAt` descending (newest first). Use this to populate the complex forum thread list. Every member of every building in the complex sees the same list — there is no per-role filtering.\n\n## When to call it\n\nCall this when the user navigates to the complex forum tab. Only show the tab if `complexId` is non-null on the user's building (from `GET /auth/me`). Use the `_count.replies` field to render a reply count badge on each thread card.\n\n## Who can call it\n\nAny authenticated user who is a member of at least one building in this complex (RESIDENT, BOARD_MEMBER, UPRAVNIK, SUPER_ADMIN).\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n\n## Success response — 200\n\nArray of thread objects, ordered newest first. Each object includes:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Thread ID — use for navigation to detail view |\n| `complexId` | UUID | The complex this thread belongs to |\n| `authorId` | UUID | UUID of the author |\n| `title` | string | Thread headline |\n| `body` | string | Opening post body |\n| `category` | enum | `GENERAL` \\| `MAINTENANCE` \\| `COMPLAINT` \\| `QUESTION` |\n| `status` | enum | `OPEN` \\| `CLOSED` — show a visual indicator for closed threads |\n| `createdAt` | ISO 8601 | Creation timestamp |\n| `updatedAt` | ISO 8601 | Last update — reflects latest reply |\n| `author.id` | UUID | Author's user ID |\n| `author.firstName` | string | Author's first name |\n| `author.lastName` | string | Author's last name |\n| `_count.replies` | number | Total reply count — use for badge display |\n\n## Error responses\n\n- `401` — no token or token expired\n- `403` — user has no membership in any building of this complex",
+            "response_example": [
+              {
+                "id": "a3f8c120-1234-4abc-9def-000000000001",
+                "complexId": "a6106279-f589-4760-863e-6916aa9440cd",
+                "authorId": "e2dfa279-588d-4ec1-a912-b34f6adce0e6",
+                "title": "Zajednički parking za sve lamele",
+                "body": "Predlažem da organizujemo zajednički sistem parkinga između svih lamela kompleksa.",
+                "category": "GENERAL",
+                "status": "OPEN",
+                "createdAt": "2024-06-14T10:00:00Z",
+                "updatedAt": "2024-06-14T11:30:00Z",
+                "author": { "id": "e2dfa279-588d-4ec1-a912-b34f6adce0e6", "firstName": "Marko", "lastName": "Petrović", "unitNumber": null, "building": { "id": "08d05d03-75d9-4ecc-b040-773bf03afd06", "name": "Lamela 1" } },
+                "_count": { "replies": 4 }
+              },
+              {
+                "id": "b5e9d210-5678-4def-abcd-000000000002",
+                "complexId": "a6106279-f589-4760-863e-6916aa9440cd",
+                "authorId": "16bd48f5-a4c0-406f-80f8-67909b39fd58",
+                "title": "Buka sa parkinga noću",
+                "body": "Svake noći između 23h i 2h automobili prave veliku buku na zajedničkom parkingu.",
+                "category": "COMPLAINT",
+                "status": "OPEN",
+                "createdAt": "2024-06-13T18:45:00Z",
+                "updatedAt": "2024-06-13T20:10:00Z",
+                "author": { "id": "16bd48f5-a4c0-406f-80f8-67909b39fd58", "firstName": "Ana", "lastName": "Jović", "unitNumber": "l1.1-1", "building": { "id": "08d05d03-75d9-4ecc-b040-773bf03afd06", "name": "Lamela 1" } },
+                "_count": { "replies": 2 }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Complex Thread by ID (with replies)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}"] },
+            "description": "## What this endpoint does\n\nReturns a single complex thread with its full body and all replies, ordered oldest-first so the conversation reads naturally top-to-bottom. Call this when the user opens a thread from the list view.\n\n## Who can call it\n\nAny authenticated member of any building in this complex. No role-based filtering — all participants see the same full thread.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread ID, taken from the list response\n\n## Success response — 200\n\nSingle thread object with nested replies array:\n\n**Thread fields:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Thread ID |\n| `complexId` | UUID | Parent complex |\n| `authorId` | UUID | Author user ID |\n| `title` | string | Thread headline |\n| `body` | string | Opening post |\n| `category` | enum | `GENERAL` \\| `MAINTENANCE` \\| `COMPLAINT` \\| `QUESTION` |\n| `status` | enum | `OPEN` \\| `CLOSED` — disable the reply input when `CLOSED` |\n| `createdAt` | ISO 8601 | |\n| `updatedAt` | ISO 8601 | |\n| `author.id` | UUID | |\n| `author.firstName` | string | |\n| `author.lastName` | string | |\n| `replies` | array | All replies, oldest first |\n\n**Each reply in `replies[]`:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Reply ID |\n| `threadId` | UUID | Parent thread |\n| `authorId` | UUID | |\n| `body` | string | Reply text |\n| `createdAt` | ISO 8601 | |\n| `author.id` | UUID | |\n| `author.firstName` | string | Use to label the reply |\n| `author.lastName` | string | |\n\n## UI guidance\n\n- Render the opening post (`body`) above the replies list, with `author.firstName + lastName` and `createdAt`.\n- Each reply in `replies[]` is rendered the same way.\n- If `status === 'CLOSED'`, render a \"Tema je zatvorena\" banner and hide the reply input.\n- Show a Close button only for users who are UPRAVNIK, BOARD_MEMBER, or the thread author (`authorId === currentUser.id`).\n\n## Error responses\n\n- `401` — no token or token expired\n- `403` — user has no membership in any building of this complex\n- `404` — thread not found",
+            "response_example": {
+              "id": "a3f8c120-1234-4abc-9def-000000000001",
+              "complexId": "a6106279-f589-4760-863e-6916aa9440cd",
+              "authorId": "e2dfa279-588d-4ec1-a912-b34f6adce0e6",
+              "title": "Zajednički parking za sve lamele",
+              "body": "Predlažem da organizujemo zajednički sistem parkinga između svih lamela kompleksa. Lamela 1 ima višak mesta noću, dok Lamela 3 nema dovoljno tokom dana. Ko podržava ideju?",
+              "category": "GENERAL",
+              "status": "OPEN",
+              "createdAt": "2024-06-14T10:00:00Z",
+              "updatedAt": "2024-06-14T11:30:00Z",
+              "author": { "id": "e2dfa279-588d-4ec1-a912-b34f6adce0e6", "firstName": "Marko", "lastName": "Petrović", "unitNumber": null, "building": { "id": "08d05d03-75d9-4ecc-b040-773bf03afd06", "name": "Lamela 1" } },
+              "replies": [
+                {
+                  "id": "c7a1b300-0001-4aaa-bbbb-000000000010",
+                  "threadId": "a3f8c120-1234-4abc-9def-000000000001",
+                  "authorId": "16bd48f5-a4c0-406f-80f8-67909b39fd58",
+                  "body": "Podržavam ideju, i mi iz Lamele 2 smo zainteresovani.",
+                  "createdAt": "2024-06-14T10:45:00Z",
+                  "author": { "id": "16bd48f5-a4c0-406f-80f8-67909b39fd58", "firstName": "Ana", "lastName": "Jović", "unitNumber": "l1.1-1", "building": { "id": "08d05d03-75d9-4ecc-b040-773bf03afd06", "name": "Lamela 1" } }
+                },
+                {
+                  "id": "d8b2c400-0002-4bbb-cccc-000000000011",
+                  "threadId": "a3f8c120-1234-4abc-9def-000000000001",
+                  "authorId": "63ca6c56-448f-4a1a-878e-0676b6ba8f58",
+                  "body": "Odlična inicijativa! Javite kada treba glasati.",
+                  "createdAt": "2024-06-14T11:30:00Z",
+                  "author": { "id": "63ca6c56-448f-4a1a-878e-0676b6ba8f58", "firstName": "Dragan", "lastName": "Jovanović", "unitNumber": null, "building": { "id": "08d05d03-75d9-4ecc-b040-773bf03afd06", "name": "Lamela 1" } }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reply to Complex Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Podržavam ideju, i mi iz Lamele 2 smo zainteresovani.\"\n}" },
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}", "replies"] },
+            "description": "## What this endpoint does\n\nAdds a reply to an existing complex thread. Any member of any building in the complex can reply — there is no role restriction. After posting, append the returned reply object to the bottom of the local replies list and clear the input field without refetching the full thread.\n\n## Who can call it\n\nAny authenticated member of any building in this complex (RESIDENT, BOARD_MEMBER, UPRAVNIK). Note: you cannot reply to a CLOSED thread — the backend does not enforce this yet, but the frontend should disable the reply input and hide the submit button when `thread.status === 'CLOSED'`.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread to reply to\n\n## Body fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `body` | string | yes | The reply text. No minimum length enforced beyond non-empty. |\n\n## Success response — 201\n\nThe created reply object:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Reply ID |\n| `threadId` | UUID | Parent thread ID |\n| `authorId` | UUID | The replying user's ID |\n| `body` | string | Reply text |\n| `createdAt` | ISO 8601 | Timestamp |\n\nNote: the response does **not** include the nested `author` object. To display the author name immediately after posting, use the current user's name from your auth state — do not refetch.\n\n## Error responses\n\n- `400` — `body` is missing or empty\n- `401` — no token or token expired\n- `403` — user has no membership in any building of this complex\n- `404` — thread not found",
+            "response_example": {
+              "id": "e9c3d500-0003-4ccc-dddd-000000000012",
+              "threadId": "a3f8c120-1234-4abc-9def-000000000001",
+              "authorId": "16bd48f5-a4c0-406f-80f8-67909b39fd58",
+              "body": "Podržavam ideju, i mi iz Lamele 2 smo zainteresovani.",
+              "createdAt": "2024-06-14T10:45:00Z"
+            }
+          }
+        },
+        {
+          "name": "Close Complex Thread",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/close", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}", "close"] },
+            "description": "## What this endpoint does\n\nMarks a complex thread as `CLOSED`. A closed thread remains fully readable — the title, body, and all replies are still returned by the GET endpoints — but it signals that the discussion is resolved. There is no reopen endpoint.\n\n## Who can close a thread\n\nThree categories of users may close a thread:\n\n1. **UPRAVNIK** — can close any thread in the complex regardless of who authored it\n2. **BOARD_MEMBER** — any board member of any building in the complex can close any thread\n3. **Thread author** — the user who created the thread can close their own thread regardless of role\n\nAll other users receive `403`. On the frontend, only show the Close button to users who meet one of these conditions. Check: `thread.authorId === currentUser.id || currentUser.role === 'UPRAVNIK' || currentUser.role === 'BOARD_MEMBER'`.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread to close\n\n## Success response — 200\n\nThe full updated thread object with `status: 'CLOSED'`. Update the thread in local state with this response so the UI immediately reflects the closed status and hides the reply input.\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Thread ID |\n| `complexId` | UUID | |\n| `authorId` | UUID | |\n| `title` | string | |\n| `body` | string | |\n| `category` | enum | |\n| `status` | `\"CLOSED\"` | Will always be `CLOSED` in this response |\n| `createdAt` | ISO 8601 | |\n| `updatedAt` | ISO 8601 | Reflects the time of closing |\n\n## Error responses\n\n- `401` — no token or token expired\n- `403` — user is not UPRAVNIK, BOARD_MEMBER, or the thread author\n- `404` — thread not found",
+            "response_example": {
+              "id": "a3f8c120-1234-4abc-9def-000000000001",
+              "complexId": "a6106279-f589-4760-863e-6916aa9440cd",
+              "authorId": "e2dfa279-588d-4ec1-a912-b34f6adce0e6",
+              "title": "Zajednički parking za sve lamele",
+              "body": "Predlažem da organizujemo zajednički sistem parkinga između svih lamela kompleksa.",
+              "category": "GENERAL",
+              "status": "CLOSED",
+              "createdAt": "2024-06-14T10:00:00Z",
+              "updatedAt": "2024-06-14T14:22:00Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/notifications", "host": ["{{baseUrl}}"], "path": ["notifications"] },
+            "description": "Returns all notifications for the currently authenticated user, ordered by `createdAt` descending (newest first).\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response fields per notification:**\n- `id` — UUID\n- `userId` — the recipient user ID\n- `title` — short notification title\n- `body` — notification body text\n- `isRead` — boolean, whether the user has read it\n- `link` — optional deep-link URL (nullable)\n- `createdAt`\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": [
+              {
+                "id": "uuid",
+                "userId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+                "title": "Nova objava u zgradi",
+                "body": "Upravnik je objavio: Isključenje vode — subota 8–12h",
+                "isRead": false,
+                "link": "/buildings/1ce90703-648e-4c97-9e71-2a6f3f98d90c/announcements/448e7eee-d829-4841-a5e4-540ac327e69a",
+                "createdAt": "2024-06-14T09:00:00Z"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/notifications/{{notification1_id}}/read", "host": ["{{baseUrl}}"], "path": ["notifications", "{{notification1_id}}", "read"] },
+            "description": "Marks a single notification as read. Only the recipient of the notification may mark it as read.\n\n**Who can call it:** Any authenticated user, and only for notifications addressed to them.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `id` (UUID, required) — the notification ID\n\n**Response:** The updated notification object with `isRead: true`.\n\n**Errors:**\n- `401` — not authenticated\n- `404` — notification not found, or it does not belong to the authenticated user",
+            "response_example": {
+              "id": "uuid",
+              "userId": "dc4640a2-4b17-42d4-a807-f5297fd8d3ee",
+              "title": "Nova objava u zgradi",
+              "body": "Upravnik je objavio: Isključenje vode — subota 8–12h",
+              "isRead": true,
+              "link": "/buildings/1ce90703-648e-4c97-9e71-2a6f3f98d90c/announcements/448e7eee-d829-4841-a5e4-540ac327e69a",
+              "createdAt": "2024-06-14T09:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
+            "url": { "raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"] },
+            "description": "Marks all unread notifications for the current user as read. Returns the count of updated records.\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response:** `{ count: number }` — number of notifications marked as read.\n\n**Errors:**\n- `401` — not authenticated",
+            "response_example": { "count": 4 }
+          }
+        }
+      ]
+    }
+  ]
+}

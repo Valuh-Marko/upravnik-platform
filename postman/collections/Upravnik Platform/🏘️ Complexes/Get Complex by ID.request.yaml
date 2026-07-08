@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Returns a single complex by ID including its buildings.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `id` (UUID, required) — the complex ID
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — complex not found
+url: "{{baseUrl}}/complexes/{{complexId}}"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

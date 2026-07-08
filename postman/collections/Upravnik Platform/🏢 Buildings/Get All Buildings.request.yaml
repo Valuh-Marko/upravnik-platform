@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Returns all buildings with their parent complex.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Response:** Array of building objects, each including a `complex` object (nullable if not linked to a complex).
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/buildings"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

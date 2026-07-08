@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Adds a reply to an existing thread. Any authenticated user can reply.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the thread to reply to
+
+  **Body fields:**
+  - `body` (string, required) — the reply text
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — thread not found
+url: "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread1_id}}/replies"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "body": "Servis je obavešten i dolazi u petak."
+    }
+order: 4000

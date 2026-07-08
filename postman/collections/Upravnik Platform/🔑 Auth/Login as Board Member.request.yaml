@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Authenticates as BOARD_MEMBER of Lamela 1. Token is saved to {{authToken}}.
+
+  Board members are building-specific: board.l1@zgrada.rs (Lamela 1), board.l2@zgrada.rs (Lamela 2), board.l3@zgrada.rs (Lamela 3), board.l4@zgrada.rs (Lamela 4).
+
+  **Response:** `{ accessToken: string }`
+
+  **Errors:**
+  - `401` — invalid credentials
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "username": "board.l1@zgrada.rs",
+      "password": "Board123!"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const r = pm.response.json();
+      if (r.accessToken) pm.environment.set('authToken', r.accessToken);
+    language: text/javascript
+order: 3000

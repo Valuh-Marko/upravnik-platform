@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Uploads a document record for a building. The file itself must be hosted externally — this endpoint only stores the metadata and URL.
+
+  **Who can call it:** UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Body fields:**
+  - `title` (string, required)
+  - `fileUrl` (string, required) — publicly accessible URL to the file
+  - `fileType` (string, optional) — e.g. 'pdf', 'docx'
+  - `category` (string, required) — `CONTRACT`, `REPORT`, `DECISION`, or `OTHER`
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER
+url: "{{baseUrl}}/buildings/{{buildingId}}/documents"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "title": "Godišnji izveštaj 2025",
+      "fileUrl": "https://storage.example.com/docs/izvestaj-2025.pdf",
+      "fileType": "pdf",
+      "category": "REPORT"
+    }
+order: 1000

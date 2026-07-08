@@ -1,0 +1,50 @@
+name: Upravnik Local
+values:
+  - key: baseUrl
+    value: 'http://localhost:3000/api'
+  - key: authToken
+    value: ''
+  - key: complexId
+    value: a6106279-f589-4760-863e-6916aa9440cd
+  - key: buildingId
+    value: 08d05d03-75d9-4ecc-b040-773bf03afd06
+  - key: buildingB_id
+    value: 1b8f3439-418f-40e7-b4a8-7f8b0da5e2df
+  - key: buildingC_id
+    value: ff392a9d-33cb-46f5-9a01-4d42fc2342a4
+  - key: buildingD_id
+    value: 2c44174b-e5b3-4d7a-a8ee-a9aadcc2a66b
+  - key: unitId
+    value: 51937565-a37d-447c-8b4e-b062727f993a
+  - key: unit2_id
+    value: 07ff6213-550c-4322-a20d-317ed932dcfc
+  - key: user_admin
+    value: b4589e95-bc03-49ea-a57b-6d3a6acab929
+  - key: user_upravnik
+    value: e2dfa279-588d-4ec1-a912-b34f6adce0e6
+  - key: user_board_a
+    value: 63ca6c56-448f-4a1a-878e-0676b6ba8f58
+  - key: user_board_b
+    value: 53843a35-d253-451d-ad77-55675058c6ff
+  - key: user_board_c
+    value: fab05923-d874-4125-b0e3-b2d95a077956
+  - key: userId
+    value: 16bd48f5-a4c0-406f-80f8-67909b39fd58
+  - key: user2_id
+    value: 9d2856f0-fe3b-4c75-a56e-cf4dab426225
+  - key: announce1_id
+    value: 549624ed-bc83-478b-ace6-f04e0519bd98
+  - key: announce2_id
+    value: 6415366d-769c-450a-9af6-adceca6ea619
+  - key: doc1_id
+    value: 9345ed11-81f8-4466-ab62-338b738137e5
+  - key: thread1_id
+    value: 211048c5-6ed0-48e2-b80b-cda66a812e85
+  - key: thread2_id
+    value: 87ca9360-ba4d-4ed0-b99a-a0735e8213a4
+  - key: reply1_id
+    value: d5794a3a-f44a-400f-a38f-1f3b7652a35b
+  - key: ticket1_id
+    value: 0366855f-7b44-4a33-9ec9-f58a46bfff04
+  - key: ticket2_id
+    value: 2945a6bb-a183-4a9e-8048-5875d073a316

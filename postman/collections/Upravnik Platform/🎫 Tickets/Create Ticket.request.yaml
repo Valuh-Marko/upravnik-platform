@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  Opens a new private support ticket addressed to the Upravnik and Board Members of the building. Unlike forum threads, tickets are only visible to the resident who created them and to UPRAVNIK and BOARD_MEMBER roles — other residents cannot see them.
+
+  When a ticket is created, all UPRAVNIK and BOARD_MEMBER members of the building receive an in-app notification.
+
+  **Who can call it:** Any authenticated building member (RESIDENT, BOARD_MEMBER, UPRAVNIK).
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Body fields:**
+  - `title` (string, required) — brief summary of the issue
+  - `body` (string, required) — full description
+  - `category` (string, required) — `GENERAL`, `MAINTENANCE`, `COMPLAINT`, `PAYMENT`, or `REQUEST`
+
+  **Response:** The created ticket object.
+
+  **Side effects:** Sends an in-app notification to all UPRAVNIK and BOARD_MEMBER members in the building.
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — user is not a member of this building
+url: "{{baseUrl}}/buildings/{{buildingId}}/tickets"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "title": "Kvar na grejanju u stanu",
+      "body": "Od jutros nemam grejanje u dnevnoj sobi. Molim hitnu intervenciju.",
+      "category": "MAINTENANCE"
+    }
+order: 1000

@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Authenticates as RESIDENT (unit 1A). Token is saved to {{authToken}}.
+
+  **Response:** `{ accessToken: string }`
+
+  **Errors:**
+  - `401` — invalid credentials
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "username": "1A",
+      "password": "Resident123!"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const r = pm.response.json();
+      if (r.accessToken) pm.environment.set('authToken', r.accessToken);
+    language: text/javascript
+order: 4000

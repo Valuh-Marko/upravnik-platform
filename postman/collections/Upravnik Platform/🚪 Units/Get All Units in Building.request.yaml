@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Returns all units in a building, each including the associated user account (if one has been created for that unit).
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Response:** Array of unit objects, each with a `user` field (nullable).
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/buildings/{{buildingId}}/units"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

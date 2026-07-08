@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Creates a new unit (apartment, office, or commercial space) inside a building. Once created, use Create Unit Account to assign a resident login to this unit.
+
+  **Who can call it:** UPRAVNIK only.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Body fields:**
+  - `unitNumber` (string, required) — e.g. '1A', '3B'
+  - `floor` (integer, optional)
+  - `type` (string, required) — `APARTMENT`, `OFFICE`, or `COMMERCIAL`
+  - `areaSqm` (decimal, optional) — area in square meters
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK
+url: "{{baseUrl}}/buildings/{{buildingId}}/units"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "unitNumber": "5D",
+      "floor": 5,
+      "type": "APARTMENT",
+      "areaSqm": 72.5
+    }
+order: 1000

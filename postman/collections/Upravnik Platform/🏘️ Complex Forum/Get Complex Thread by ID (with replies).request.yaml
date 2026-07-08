@@ -1,0 +1,71 @@
+$kind: http-request
+description: |-
+  ## What this endpoint does
+
+  Returns a single complex thread with its full body and all replies, ordered oldest-first so the conversation reads naturally top-to-bottom. Call this when the user opens a thread from the list view.
+
+  ## Who can call it
+
+  Any authenticated member of any building in this complex. No role-based filtering — all participants see the same full thread.
+
+  ## Auth
+
+  Bearer token required.
+
+  ## Path params
+
+  - `complexId` (UUID, required)
+  - `id` (UUID, required) — the thread ID, taken from the list response
+
+  ## Success response — 200
+
+  Single thread object with nested replies array:
+
+  **Thread fields:**
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | `id` | UUID | Thread ID |
+  | `complexId` | UUID | Parent complex |
+  | `authorId` | UUID | Author user ID |
+  | `title` | string | Thread headline |
+  | `body` | string | Opening post |
+  | `category` | enum | `GENERAL` \| `MAINTENANCE` \| `COMPLAINT` \| `QUESTION` |
+  | `status` | enum | `OPEN` \| `CLOSED` — disable the reply input when `CLOSED` |
+  | `createdAt` | ISO 8601 | |
+  | `updatedAt` | ISO 8601 | |
+  | `author.id` | UUID | |
+  | `author.firstName` | string | |
+  | `author.lastName` | string | |
+  | `replies` | array | All replies, oldest first |
+
+  **Each reply in `replies[]`:**
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | `id` | UUID | Reply ID |
+  | `threadId` | UUID | Parent thread |
+  | `authorId` | UUID | |
+  | `body` | string | Reply text |
+  | `createdAt` | ISO 8601 | |
+  | `author.id` | UUID | |
+  | `author.firstName` | string | Use to label the reply |
+  | `author.lastName` | string | |
+
+  ## UI guidance
+
+  - Render the opening post (`body`) above the replies list, with `author.firstName + lastName` and `createdAt`.
+  - Each reply in `replies[]` is rendered the same way.
+  - If `status === 'CLOSED'`, render a "Tema je zatvorena" banner and hide the reply input.
+  - Show a Close button only for users who are UPRAVNIK, BOARD_MEMBER, or the thread author (`authorId === currentUser.id`).
+
+  ## Error responses
+
+  - `401` — no token or token expired
+  - `403` — user has no membership in any building of this complex
+  - `404` — thread not found
+url: "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

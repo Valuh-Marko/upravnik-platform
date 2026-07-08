@@ -1,0 +1,65 @@
+$kind: http-request
+description: |-
+  Creates a full property structure in a single atomic transaction: an optional complex, one or more buildings, and all units within each building. If any part fails, nothing is created.
+
+  **Who can call it:** SUPER_ADMIN only.
+
+  **Auth:** Bearer token required.
+
+  **Body fields:**
+  - `complex` (object, optional) — omit entirely for standalone buildings
+    - `name` (string, required)
+    - `address` (string, required)
+    - `city` (string, required)
+  - `buildings` (array, required, min 1)
+    - `name` (string, required)
+    - `address` (string, required)
+    - `city` (string, required)
+    - `units` (array, required, min 1)
+      - `unitNumber` (string, required) — unique within the building
+      - `floor` (integer, optional)
+      - `type` (string, required) — `APARTMENT` | `OFFICE` | `COMMERCIAL`
+      - `areaSqm` (decimal, optional)
+
+  **Errors:**
+  - `400` — validation error
+  - `401` — not authenticated
+  - `403` — authenticated user is not SUPER_ADMIN
+url: "{{baseUrl}}/setup/bulk"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "complex": {
+        "name": "Blok 23",
+        "address": "Bulevar Oslobođenja 12",
+        "city": "Novi Sad"
+      },
+      "buildings": [
+        {
+          "name": "Zgrada A",
+          "address": "Bulevar Oslobođenja 12",
+          "city": "Novi Sad",
+          "units": [
+            { "unitNumber": "1-1", "floor": 1, "type": "APARTMENT", "areaSqm": 52.5 },
+            { "unitNumber": "1-2", "floor": 1, "type": "APARTMENT", "areaSqm": 48.0 },
+            { "unitNumber": "2-1", "floor": 2, "type": "APARTMENT", "areaSqm": 52.5 },
+            { "unitNumber": "2-2", "floor": 2, "type": "APARTMENT", "areaSqm": 48.0 }
+          ]
+        },
+        {
+          "name": "Zgrada B",
+          "address": "Bulevar Oslobođenja 14",
+          "city": "Novi Sad",
+          "units": [
+            { "unitNumber": "1-1", "floor": 1, "type": "APARTMENT" },
+            { "unitNumber": "1-2", "floor": 1, "type": "OFFICE" }
+          ]
+        }
+      ]
+    }
+order: 1000

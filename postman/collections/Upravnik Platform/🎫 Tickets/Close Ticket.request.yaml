@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Marks a ticket as CLOSED. Closed tickets are still visible but indicate the issue has been resolved. There is no reopen endpoint.
+
+  Any of the three parties may close the ticket:
+  - The RESIDENT who opened it (e.g. the issue resolved itself)
+  - The UPRAVNIK
+  - A BOARD_MEMBER
+
+  **Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the ticket to close
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — RESIDENT trying to close another resident's ticket
+  - `404` — ticket not found or user not a member of this building
+url: "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}/close"
+method: PATCH
+headers:
+  Authorization: Bearer {{authToken}}
+order: 5000

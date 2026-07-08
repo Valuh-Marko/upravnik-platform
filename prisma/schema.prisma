@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum AccountType {
+  SYSTEM_USER
+  UNIT_ACCOUNT
+}
+
+enum SystemRole {
+  SUPER_ADMIN
+}
+
+enum Role {
+  UPRAVNIK
+  BOARD_MEMBER
+  RESIDENT
+}
+
+enum UnitType {
+  APARTMENT
+  OFFICE
+  COMMERCIAL
+}
+
+enum DocumentCategory {
+  CONTRACT
+  REPORT
+  DECISION
+  OTHER
+}
+
+enum ThreadCategory {
+  GENERAL
+  MAINTENANCE
+  COMPLAINT
+  QUESTION
+}
+
+enum ThreadStatus {
+  OPEN
+  CLOSED
+}
+
+enum TicketCategory {
+  GENERAL
+  MAINTENANCE
+  COMPLAINT
+  PAYMENT
+  REQUEST
+}
+
+enum TicketStatus {
+  OPEN
+  CLOSED
+}
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+// ─── Layer 1 — Identity ──────────────────────────────────────────────────────
+
+model User {
+  id           String      @id @default(uuid())
+  username     String      @unique
+  passwordHash String
+  email        String?
+  firstName    String?
+  lastName     String?
+  phone        String?
+  accountType  AccountType
+  systemRole   SystemRole?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  unit            Unit?            @relation("UnitAccount")
+  buildingMembers BuildingMember[]
+  announcements   Announcement[]
+  documents       Document[]
+  threads         Thread[]
+  threadReplies   ThreadReply[]
+  tickets              Ticket[]
+  ticketReplies        TicketReply[]
+  ticketReads          TicketRead[]
+  complexThreads       ComplexThread[]
+  complexThreadReplies ComplexThreadReply[]
+  chatMessages    ChatMessage[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+// ─── Layer 2 — Structure ─────────────────────────────────────────────────────
+
+model Complex {
+  id        String     @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  buildings      Building[]
+  complexThreads ComplexThread[]
+
+  @@map("complexes")
+}
+
+model Building {
+  id        String   @id @default(uuid())
+  complexId String?
+  name      String
+  address   String
+  city      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  complex       Complex?         @relation(fields: [complexId], references: [id])
+  units         Unit[]
+  members       BuildingMember[]
+  announcements Announcement[]
+  documents     Document[]
+  threads       Thread[]
+  tickets       Ticket[]
+  chatMessages  ChatMessage[]
+
+  @@map("buildings")
+}
+
+model Unit {
+  id         String   @id @default(uuid())
+  buildingId String
+  unitNumber String
+  floor         Int?
+  residentCount Int?
+  type          UnitType
+  areaSqm       Decimal?
+  userId     String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building       Building        @relation(fields: [buildingId], references: [id])
+  user           User?           @relation("UnitAccount", fields: [userId], references: [id])
+  buildingMember BuildingMember?
+
+  @@map("units")
+}
+
+// ─── Layer 3 — Membership ────────────────────────────────────────────────────
+
+model BuildingMember {
+  id         String   @id @default(uuid())
+  buildingId String
+  userId     String
+  role       Role
+  unitId     String?  @unique
+  joinedAt   DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  building Building @relation(fields: [buildingId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  unit     Unit?    @relation(fields: [unitId], references: [id])
+
+  @@unique([buildingId, userId])
+  @@map("building_members")
+}
+
+// ─── Layer 4 — Content ───────────────────────────────────────────────────────
+
+model Announcement {
+  id         String   @id @default(uuid())
+  buildingId String
+  authorId   String
+  title      String
+  body       String
+  isPinned   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building Building @relation(fields: [buildingId], references: [id])
+  author   User     @relation(fields: [authorId], references: [id])
+
+  @@map("announcements")
+}
+
+model Document {
+  id         String           @id @default(uuid())
+  buildingId String
+  uploadedBy String
+  title      String
+  fileUrl    String
+  fileType   String?
+  category   DocumentCategory
+  createdAt  DateTime         @default(now())
+
+  building Building @relation(fields: [buildingId], references: [id])
+  uploader User     @relation(fields: [uploadedBy], references: [id])
+
+  @@map("documents")
+}
+
+// ─── Layer 5 — Interaction ───────────────────────────────────────────────────
+
+model Thread {
+  id         String         @id @default(uuid())
+  buildingId String
+  authorId   String
+  title      String
+  body       String
+  category   ThreadCategory
+  status     ThreadStatus   @default(OPEN)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  building Building      @relation(fields: [buildingId], references: [id])
+  author   User          @relation(fields: [authorId], references: [id])
+  replies  ThreadReply[]
+
+  @@map("threads")
+}
+
+model ThreadReply {
+  id        String   @id @default(uuid())
+  threadId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  thread Thread @relation(fields: [threadId], references: [id])
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@map("thread_replies")
+}
+
+model Ticket {
+  id         String         @id @default(uuid())
+  buildingId String
+  authorId   String
+  title      String
+  body       String
+  category   TicketCategory
+  status     TicketStatus   @default(OPEN)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  building Building      @relation(fields: [buildingId], references: [id])
+  author   User          @relation(fields: [authorId], references: [id])
+  replies  TicketReply[]
+  reads    TicketRead[]
+
+  @@map("tickets")
+}
+
+model TicketReply {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@map("ticket_replies")
+}
+
+model TicketRead {
+  ticketId   String
+  userId     String
+  lastReadAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([ticketId, userId])
+  @@map("ticket_reads")
+}
+
+model ComplexThread {
+  id        String         @id @default(uuid())
+  complexId String
+  authorId  String
+  title     String
+  body      String
+  category  ThreadCategory
+  status    ThreadStatus   @default(OPEN)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  complex  Complex              @relation(fields: [complexId], references: [id])
+  author   User                 @relation(fields: [authorId], references: [id])
+  replies  ComplexThreadReply[]
+
+  @@map("complex_threads")
+}
+
+model ComplexThreadReply {
+  id        String   @id @default(uuid())
+  threadId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  thread ComplexThread @relation(fields: [threadId], references: [id])
+  author User          @relation(fields: [authorId], references: [id])
+
+  @@map("complex_thread_replies")
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  buildingId String
+  senderId   String
+  body       String
+  createdAt  DateTime @default(now())
+
+  building Building @relation(fields: [buildingId], references: [id])
+  sender   User     @relation(fields: [senderId], references: [id])
+
+  @@map("chat_messages")
+}
+
+// ─── Layer 6 — System ────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  entityType  String
+  entityId    String
+  action      AuditAction
+  performedBy String
+  snapshot    Json
+  createdAt   DateTime    @default(now())
+
+  performer User @relation(fields: [performedBy], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Returns all threads in a building ordered by `createdAt` descending. Each thread includes the author name and a reply count — replies themselves are not included here, use Get Thread by ID for those.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/buildings/{{buildingId}}/threads"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

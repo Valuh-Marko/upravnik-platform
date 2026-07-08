@@ -1,0 +1,36 @@
+$kind: collection
+description: |-
+  Full API collection for the Upravnik platform.
+
+  **Quick start:**
+  1. Send any Login request — token saves automatically to {{authToken}}
+  2. All other requests use it via Bearer auth
+
+  **Seeded accounts:**
+  - SUPER_ADMIN  → admin@upravnik.rs / Admin123!
+  - UPRAVNIK     → upravnik@zgrada.rs / Upravnik123!
+  - BOARD_MEMBER → board@zgrada.rs / Board123!
+  - RESIDENT     → 1A / 2A / 2B / 3A ... / Resident123!
+variables:
+  baseUrl: http://localhost:3000/api
+  authToken: ""
+  complexId: 90a2dc0b-5576-41f6-8a29-5d1a1dcca120
+  buildingId: 617eb395-f115-49d0-9862-e70076c49284
+  buildingB_id: 6303264a-6d98-4ae2-899f-6f3361e28c38
+  buildingC_id: 173c1f8d-3c5b-4663-a121-a376b2da97fb
+  unitId: 1ee6a762-750f-4cac-86a4-c841673fc150
+  unit2_id: 6d7aec5b-3c7d-47be-8708-b6fa8140849b
+  user_admin: c14c45bd-36c9-4d31-a9cf-52d54646a13e
+  user_upravnik: 563c55b3-55f2-4db4-90e5-c63d7b10cf88
+  user_board_a: 173f446b-70cc-4de8-b971-31d58bbe2d80
+  user_board_b: 37f93142-c146-4076-bda3-d5205d3de545
+  user_board_c: c774c127-b334-4e05-94f2-8a2e83dd3a00
+  userId: 3c4ac894-2055-4d84-8c90-f73f3bf34ecb
+  user2_id: cefe80f9-0416-4aa6-8a6b-2a5e43fc42a7
+  announce1_id: 1b659c0d-52f1-4c8f-8690-b29283c87978
+  announce2_id: a7e07983-55c2-40d2-905c-baf6e73aacaf
+  doc1_id: a8fd9758-afba-4524-97ba-d6acdb079569
+  thread1_id: fd8dab79-5f34-49eb-8bc1-5968b5a53539
+  thread2_id: 741fa718-2389-4609-9e73-d234c13ca0c7
+  reply1_id: d591f97b-2f0f-4623-a8bb-1cce9ade0af8
+  ticket1_id: ""

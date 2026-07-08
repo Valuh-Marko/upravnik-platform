@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Returns all documents for a building ordered by `createdAt` descending. Each document includes the uploader's name.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/buildings/{{buildingId}}/documents"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

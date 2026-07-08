@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Returns all announcements across every building the authenticated user manages. Pinned announcements appear first per the standard ordering rule, then by `createdAt` descending. Each result includes `building { id, name }` so the frontend can group or label by building.
+
+  **Who can call it:** SUPER_ADMIN, UPRAVNIK only. BOARD_MEMBER and RESIDENT must use `GET /buildings/:buildingId/announcements`.
+
+  **Auth:** Bearer token required.
+
+  **Query params (all optional):**
+  - `buildingId` (UUID) — narrow results to one building
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not SUPER_ADMIN or UPRAVNIK
+url: "{{baseUrl}}/announcements"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+queryParams:
+  - key: buildingId
+    value: ""
+    disabled: true
+    description: Optional. Filter to a specific building UUID.
+order: 1000

@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Returns all announcements for a building. Pinned announcements always appear first, then the rest ordered by `createdAt` descending.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Response:** Array of announcements each including `author { id, firstName, lastName }`.
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/buildings/{{buildingId}}/announcements"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

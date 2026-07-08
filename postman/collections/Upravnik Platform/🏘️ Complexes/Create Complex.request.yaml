@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Creates a new residential complex. A complex is a top-level grouping that can contain multiple buildings.
+
+  **Who can call it:** SUPER_ADMIN only.
+
+  **Auth:** Bearer token required.
+
+  **Body fields:**
+  - `name` (string, required) — name of the complex
+  - `address` (string, required) — street address
+  - `city` (string, required)
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not SUPER_ADMIN
+url: "{{baseUrl}}/complexes"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "name": "Kompleks Mir",
+      "address": "Bulevar Kralja Aleksandra 22",
+      "city": "Beograd"
+    }
+order: 1000

@@ -1,0 +1,40 @@
+$kind: http-request
+description: |-
+  Creates a board member (BOARD_MEMBER) account for a specific building. Board members are appointed by the upravnik to manage announcements — they are not tenants and have no unit. The account uses email/password login (SYSTEM_USER account type).
+
+  **Who can call it:** UPRAVNIK only (must be an UPRAVNIK of the specified building).
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required) — the building this board member will manage
+
+  **Body fields:**
+  - `email` (string, required) — used as the login username
+  - `password` (string, required) — set by the upravnik, given to the board member
+  - `firstName` (string, optional)
+  - `lastName` (string, optional)
+  - `phone` (string, optional)
+
+  **Side effects:** Creates a `BuildingMember` record with role `BOARD_MEMBER`. No unit is linked.
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK in this building
+  - `409` — email already in use
+url: "{{baseUrl}}/users/board-member/{{buildingId}}"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "email": "board.member@zgrada.rs",
+      "password": "Board123!",
+      "firstName": "Dragan",
+      "lastName": "Nikolić",
+      "phone": "+381611234567"
+    }
+order: 2000

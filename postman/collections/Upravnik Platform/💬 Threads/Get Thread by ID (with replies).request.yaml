@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Returns a single thread by ID with all replies included. Replies are ordered oldest first (ascending `createdAt`) so the conversation reads top-to-bottom. This is the only endpoint that returns reply bodies — there is no separate GET /replies endpoint.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the thread ID
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — thread not found
+url: "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread1_id}}"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

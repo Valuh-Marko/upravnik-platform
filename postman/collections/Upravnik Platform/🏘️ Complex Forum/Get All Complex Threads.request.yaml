@@ -1,0 +1,54 @@
+$kind: http-request
+name: Get All Complex Threads
+description: |-
+  ## What this endpoint does
+
+  Returns all discussion threads for the complex, ordered by `createdAt` descending (newest first). Use this to populate the complex forum thread list. Every member of every building in the complex sees the same list — there is no per-role filtering.
+
+  ## When to call it
+
+  Call this when the user navigates to the complex forum tab. Only show the tab if `complexId` is non-null on the user's building (from `GET /auth/me`). Use the `_count.replies` field to render a reply count badge on each thread card.
+
+  ## Who can call it
+
+  Any authenticated user who is a member of at least one building in this complex (RESIDENT, BOARD_MEMBER, UPRAVNIK, SUPER_ADMIN).
+
+  ## Auth
+
+  Bearer token required.
+
+  ## Path params
+
+  - `complexId` (UUID, required)
+      
+
+  ## Success response — 200
+
+  Array of thread objects, ordered newest first. Each object includes:
+
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | `id` | UUID | Thread ID — use for navigation to detail view |
+  | `complexId` | UUID | The complex this thread belongs to |
+  | `authorId` | UUID | UUID of the author |
+  | `title` | string | Thread headline |
+  | `body` | string | Opening post body |
+  | `category` | enum | `GENERAL` |
+  | `status` | enum | `OPEN` |
+  | `createdAt` | ISO 8601 | Creation timestamp |
+  | `updatedAt` | ISO 8601 | Last update — reflects latest reply |
+  | `author.id` | UUID | Author's user ID |
+  | `author.firstName` | string | Author's first name |
+  | `author.lastName` | string | Author's last name |
+  | `_count.replies` | number | Total reply count — use for badge display |
+
+  ## Error responses
+
+  - `401` — no token or token expired
+      
+  - `403` — user has no membership in any building of this complex
+url: "{{baseUrl}}/complexes/{{complexId}}/threads"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

@@ -1,0 +1,51 @@
+$kind: http-request
+description: |-
+  ## What this endpoint does
+
+  Marks a complex thread as `CLOSED`. A closed thread remains fully readable — the title, body, and all replies are still returned by the GET endpoints — but it signals that the discussion is resolved. There is no reopen endpoint.
+
+  ## Who can close a thread
+
+  Three categories of users may close a thread:
+
+  1. **UPRAVNIK** — can close any thread in the complex regardless of who authored it
+  2. **BOARD_MEMBER** — any board member of any building in the complex can close any thread
+  3. **Thread author** — the user who created the thread can close their own thread regardless of role
+
+  All other users receive `403`. On the frontend, only show the Close button to users who meet one of these conditions. Check: `thread.authorId === currentUser.id || currentUser.role === 'UPRAVNIK' || currentUser.role === 'BOARD_MEMBER'`.
+
+  ## Auth
+
+  Bearer token required.
+
+  ## Path params
+
+  - `complexId` (UUID, required)
+  - `id` (UUID, required) — the thread to close
+
+  ## Success response — 200
+
+  The full updated thread object with `status: 'CLOSED'`. Update the thread in local state with this response so the UI immediately reflects the closed status and hides the reply input.
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | `id` | UUID | Thread ID |
+  | `complexId` | UUID | |
+  | `authorId` | UUID | |
+  | `title` | string | |
+  | `body` | string | |
+  | `category` | enum | |
+  | `status` | `"CLOSED"` | Will always be `CLOSED` in this response |
+  | `createdAt` | ISO 8601 | |
+  | `updatedAt` | ISO 8601 | Reflects the time of closing |
+
+  ## Error responses
+
+  - `401` — no token or token expired
+  - `403` — user is not UPRAVNIK, BOARD_MEMBER, or the thread author
+  - `404` — thread not found
+url: "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/close"
+method: PATCH
+headers:
+  Authorization: Bearer {{authToken}}
+order: 5000

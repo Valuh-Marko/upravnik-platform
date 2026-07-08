@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Returns all notifications for the currently authenticated user, ordered by `createdAt` descending (newest first).
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Response fields per notification:**
+  - `id` — UUID
+  - `userId` — the recipient user ID
+  - `title` — short notification title
+  - `body` — notification body text
+  - `isRead` — boolean, whether the user has read it
+  - `link` — optional deep-link URL (nullable)
+  - `createdAt`
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/notifications"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 1000

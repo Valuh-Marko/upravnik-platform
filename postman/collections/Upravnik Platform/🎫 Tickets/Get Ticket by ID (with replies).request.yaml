@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Returns a single ticket with all replies. Replies are ordered oldest first so the conversation reads top-to-bottom.
+
+  Access rules:
+  - **RESIDENT** — can only fetch their own ticket. Returns `403` for any other ticket ID.
+  - **UPRAVNIK / BOARD_MEMBER** — can fetch any ticket in the building.
+
+  **Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the ticket ID
+
+  **Response:** Ticket object with `author { id, firstName, lastName }` and `replies[]`, each reply with `author { id, firstName, lastName }`.
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — RESIDENT trying to access another resident's ticket
+  - `404` — ticket not found or user not a member of this building
+url: "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

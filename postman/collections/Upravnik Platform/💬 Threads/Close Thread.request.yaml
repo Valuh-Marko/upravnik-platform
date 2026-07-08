@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Marks a thread as CLOSED. Closed threads are still visible but indicate the issue has been resolved. There is no reopen endpoint currently.
+
+  **Who can call it:** UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the thread to close
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER
+  - `404` — thread not found
+url: "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread2_id}}/close"
+method: PATCH
+headers:
+  Authorization: Bearer {{authToken}}
+order: 6000

@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Logs out the current user. Since auth is stateless JWT, the token is not invalidated server-side — the client must discard it. The Postman test script clears {{authToken}} automatically on success.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Response:** `{ message: 'Logged out' }`
+
+  **Errors:**
+  - `401` — no token or token expired
+url: "{{baseUrl}}/auth/logout"
+method: POST
+headers:
+  Authorization: Bearer {{authToken}}
+scripts:
+  - type: afterResponse
+    code: pm.environment.set('authToken', '');
+    language: text/javascript
+order: 7000

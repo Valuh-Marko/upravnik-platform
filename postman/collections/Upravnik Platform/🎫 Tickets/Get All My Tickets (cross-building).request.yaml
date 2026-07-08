@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Returns all tickets authored by the currently authenticated user across all their buildings. Useful for a resident dashboard showing all their open/closed tickets. Includes `building { id, name }` on each ticket so the frontend can group by building.
+
+  **Who can call it:** Any authenticated user (always scoped to own tickets regardless of role).
+
+  **Auth:** Bearer token required.
+
+  **Query params (all optional):**
+  - `buildingId` (UUID) — narrow results to one building
+  - `status` (`OPEN` | `CLOSED`) — filter by ticket status
+
+  **Response:** Array of ticket objects ordered by `createdAt` descending, each with:
+  - `author { id, firstName, lastName }`
+  - `building { id, name }`
+  - `_count.replies`
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/tickets"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+queryParams:
+  - key: buildingId
+    value: ""
+    disabled: true
+    description: Optional. Filter to a specific building UUID.
+  - key: status
+    value: OPEN
+    disabled: true
+    description: "Optional. Filter by status: OPEN or CLOSED."
+order: 6000

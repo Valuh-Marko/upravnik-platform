@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Returns all threads across every building the authenticated user belongs to. For an UPRAVNIK managing multiple buildings this returns threads from all of them in a single call. Includes `building { id, name }` on each thread so the frontend can group or label by building.
+
+  **Who can call it:** SUPER_ADMIN, UPRAVNIK only. BOARD_MEMBER and RESIDENT are restricted to the building-scoped `GET /buildings/:buildingId/threads` endpoint instead.
+
+  **Auth:** Bearer token required.
+
+  **Query params (all optional):**
+  - `buildingId` (UUID) — narrow results to one building
+  - `status` (`OPEN` | `CLOSED`) — filter by thread status
+
+  **Response:** Array of threads ordered by `createdAt` descending, each including:
+  - `author { id, firstName, lastName }`
+  - `building { id, name }` — which building the thread belongs to
+  - `_count.replies` — reply count
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/threads"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+queryParams:
+  - key: buildingId
+    value: ""
+    disabled: true
+    description: Optional. Filter to a specific building UUID.
+  - key: status
+    value: OPEN
+    disabled: true
+    description: "Optional. Filter by status: OPEN or CLOSED."
+order: 5000

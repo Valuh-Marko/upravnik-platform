@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Creates a new discussion thread in a building. Any authenticated member of the building can create a thread — this is intentional so residents can raise issues.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Body fields:**
+  - `title` (string, required)
+  - `body` (string, required) — the opening message of the thread
+  - `category` (string, required) — `GENERAL`, `MAINTENANCE`, `COMPLAINT`, or `QUESTION`
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/buildings/{{buildingId}}/threads"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "title": "Kvar na liftu",
+      "body": "Lift je van funkcije od jutros. Ko je kontaktirao servis?",
+      "category": "MAINTENANCE"
+    }
+order: 1000

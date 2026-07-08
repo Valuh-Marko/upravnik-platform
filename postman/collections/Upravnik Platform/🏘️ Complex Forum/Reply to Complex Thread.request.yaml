@@ -1,0 +1,57 @@
+$kind: http-request
+description: |-
+  ## What this endpoint does
+
+  Adds a reply to an existing complex thread. Any member of any building in the complex can reply — there is no role restriction. After posting, append the returned reply object to the bottom of the local replies list and clear the input field without refetching the full thread.
+
+  ## Who can call it
+
+  Any authenticated member of any building in this complex (RESIDENT, BOARD_MEMBER, UPRAVNIK). Note: you cannot reply to a CLOSED thread — the backend does not enforce this yet, but the frontend should disable the reply input and hide the submit button when `thread.status === 'CLOSED'`.
+
+  ## Auth
+
+  Bearer token required.
+
+  ## Path params
+
+  - `complexId` (UUID, required)
+  - `id` (UUID, required) — the thread to reply to
+
+  ## Body fields
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | `body` | string | yes | The reply text. No minimum length enforced beyond non-empty. |
+
+  ## Success response — 201
+
+  The created reply object:
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | `id` | UUID | Reply ID |
+  | `threadId` | UUID | Parent thread ID |
+  | `authorId` | UUID | The replying user's ID |
+  | `body` | string | Reply text |
+  | `createdAt` | ISO 8601 | Timestamp |
+
+  Note: the response does **not** include the nested `author` object. To display the author name immediately after posting, use the current user's name from your auth state — do not refetch.
+
+  ## Error responses
+
+  - `400` — `body` is missing or empty
+  - `401` — no token or token expired
+  - `403` — user has no membership in any building of this complex
+  - `404` — thread not found
+url: "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/replies"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "body": "Podržavam ideju, i mi iz Lamele 2 smo zainteresovani."
+    }
+order: 4000

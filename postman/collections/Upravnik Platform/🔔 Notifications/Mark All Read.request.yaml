@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Marks all unread notifications for the current user as read. Returns the count of updated records.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Response:** `{ count: number }` — number of notifications marked as read.
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/notifications/read-all"
+method: PATCH
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

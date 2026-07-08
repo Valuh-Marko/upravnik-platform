@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Returns all complexes with their associated buildings.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Response:** Array of complex objects, each including a `buildings` array.
+
+  **Errors:**
+  - `401` — not authenticated
+url: "{{baseUrl}}/complexes"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 2000

@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  Adds a reply to an existing ticket. Only the ticket author (RESIDENT) and staff (UPRAVNIK, BOARD_MEMBER) may reply.
+
+  Notification behavior:
+  - Reply by RESIDENT → all UPRAVNIK and BOARD_MEMBER in the building are notified
+  - Reply by UPRAVNIK or BOARD_MEMBER → the ticket author is notified
+
+  **Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the ticket to reply to
+
+  **Body fields:**
+  - `body` (string, required) — the reply text
+
+  **Side effects:** Sends an in-app notification to the other party (see above).
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — RESIDENT trying to reply to another resident's ticket
+  - `404` — ticket not found or user not a member of this building
+url: "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}/replies"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "body": "Servis je obavešten i dolazi sutra između 10 i 12h."
+    }
+order: 4000

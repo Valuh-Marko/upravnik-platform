@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Authenticates a user and returns a JWT access token. The token is valid for 7 days. Use any of the Login requests to switch between roles — the token is saved automatically to {{authToken}}.
+
+  **Who can call it:** Anyone (no auth required).
+
+  **Body fields:**
+  - `username` (string, required) — email for system users (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER); unit number (e.g. '1A') for residents
+  - `password` (string, required)
+
+  **Errors:**
+  - `401` — invalid credentials or account is inactive
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "username": "upravnik@zgrada.rs",
+      "password": "Upravnik123!"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const r = pm.response.json();
+      if (r.accessToken) {
+        pm.environment.set('authToken', r.accessToken);
+        console.log('Token saved for: upravnik@zgrada.rs');
+      }
+    language: text/javascript
+order: 1000

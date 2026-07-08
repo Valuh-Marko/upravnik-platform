@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Returns a single building by ID with full detail: complex, all units, and all members (with user data).
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `id` (UUID, required) — the building ID
+
+  **Response includes:**
+  - `complex` — parent complex (nullable)
+  - `units` — all units in the building
+  - `members` — all building members with their full user object and role
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — building not found
+url: "{{baseUrl}}/buildings/{{buildingId}}"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Returns a single unit by ID including the associated user account.
+
+  **Who can call it:** Any authenticated user.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the unit ID
+
+  **Errors:**
+  - `401` — not authenticated
+  - `404` — unit not found
+url: "{{baseUrl}}/buildings/{{buildingId}}/units/{{unitId}}"
+method: GET
+headers:
+  Authorization: Bearer {{authToken}}
+order: 3000

@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Partially updates an announcement. Currently supports toggling the pinned state. Pinned announcements always appear at the top of the list regardless of creation date.
+
+  **Who can call it:** UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+  - `id` (UUID, required) — the announcement to update
+
+  **Body fields (all optional):**
+  - `isPinned` (boolean) — `true` to pin, `false` to unpin
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER
+  - `404` — announcement not found
+url: "{{baseUrl}}/buildings/{{buildingId}}/announcements/{{announce1_id}}"
+method: PATCH
+headers:
+  Authorization: Bearer {{authToken}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "isPinned": true
+    }
+order: 5000

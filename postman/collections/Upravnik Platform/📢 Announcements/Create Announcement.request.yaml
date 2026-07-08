@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Creates a new announcement for a building. Pinned announcements always appear first in the list regardless of date.
+
+  **Who can call it:** UPRAVNIK, BOARD_MEMBER.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required)
+
+  **Body fields:**
+  - `title` (string, required)
+  - `body` (string, required) — full announcement text
+  - `isPinned` (boolean, optional, default: false)
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER in this building
+url: "{{baseUrl}}/buildings/{{buildingId}}/announcements"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "title": "Servisiranje lifta",
+      "body": "Lift će biti van funkcije u subotu od 8 do 14h zbog redovnog servisa.",
+      "isPinned": false
+    }
+order: 2000

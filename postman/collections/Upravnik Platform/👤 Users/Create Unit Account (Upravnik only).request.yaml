@@ -1,0 +1,41 @@
+$kind: http-request
+description: |-
+  Creates a unit account (RESIDENT) for a specific unit in a building. The username is the unit number (e.g. '2A') and the password is auto-generated. The plaintext password is returned only once in this response — store it and give it to the resident.
+
+  **Who can call it:** UPRAVNIK only.
+
+  **Auth:** Bearer token required.
+
+  **Path params:**
+  - `buildingId` (UUID, required) — the building the unit belongs to
+
+  **Body fields:**
+  - `unitId` (UUID, required) — the unit to associate the account with
+  - `unitNumber` (string, required) — becomes the login username
+  - `firstName` (string, optional)
+  - `lastName` (string, optional)
+  - `email` (string, optional)
+  - `phone` (string, optional)
+
+  **Side effects:** Creates a `BuildingMember` record with role RESIDENT and links the user to the unit.
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not UPRAVNIK in this building
+  - `409` — unit number already has an account
+url: "{{baseUrl}}/users/unit/{{buildingId}}"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "unitId": "{{unit2_id}}",
+      "unitNumber": "a.1-2",
+      "firstName": "Test",
+      "lastName": "Stanar",
+      "email": "stanar@email.com"
+    }
+order: 2000

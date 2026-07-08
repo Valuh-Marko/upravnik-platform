@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Creates a new building, optionally linked to a complex.
+
+  **Who can call it:** SUPER_ADMIN only.
+
+  **Auth:** Bearer token required.
+
+  **Body fields:**
+  - `name` (string, required)
+  - `address` (string, required)
+  - `city` (string, required)
+  - `complexId` (UUID, optional) — link to an existing complex
+
+  **Errors:**
+  - `401` — not authenticated
+  - `403` — authenticated user is not SUPER_ADMIN
+url: "{{baseUrl}}/buildings"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{authToken}}
+body:
+  type: text
+  content: |-
+    {
+      "complexId": "{{complexId}}",
+      "name": "Zgrada B",
+      "address": "Nemanjina 4",
+      "city": "Beograd"
+    }
+order: 1000
