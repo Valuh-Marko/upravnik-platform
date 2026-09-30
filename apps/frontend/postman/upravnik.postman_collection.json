@@ -1,0 +1,486 @@
+{
+  "info": {
+    "name": "Profesionalni Upravnik API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('token', data.accessToken);",
+                  "  console.log('Token saved.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complexes",
+      "item": [
+        {
+          "name": "Get All Complexes",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/complexes", "host": ["{{baseUrl}}"], "path": ["complexes"] }
+          }
+        },
+        {
+          "name": "Get One Complex",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}"] }
+          }
+        },
+        {
+          "name": "Create Complex",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kompleks A\",\n  \"address\": \"Bulevar Oslobođenja\",\n  \"city\": \"Novi Sad\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/complexes", "host": ["{{baseUrl}}"], "path": ["complexes"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Buildings",
+      "item": [
+        {
+          "name": "Get All Buildings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings", "host": ["{{baseUrl}}"], "path": ["buildings"] }
+          }
+        },
+        {
+          "name": "Get One Building",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}"] }
+          }
+        },
+        {
+          "name": "Create Building",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zgrada A\",\n  \"address\": \"Bulevar Oslobođenja 12\",\n  \"city\": \"Novi Sad\",\n  \"complexId\": \"{{complexId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings", "host": ["{{baseUrl}}"], "path": ["buildings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Units",
+      "item": [
+        {
+          "name": "Get All Units",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/units", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "units"] }
+          }
+        },
+        {
+          "name": "Get One Unit",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/units/{{unitId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "units", "{{unitId}}"] }
+          }
+        },
+        {
+          "name": "Create Unit",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitNumber\": \"1-1\",\n  \"type\": \"APARTMENT\",\n  \"floor\": 1,\n  \"areaSqm\": \"45.5\",\n  \"residentCount\": 2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/units", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "units"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create System User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"upravnik1\",\n  \"password\": \"password123\",\n  \"firstName\": \"Marko\",\n  \"lastName\": \"Petrović\",\n  \"role\": \"UPRAVNIK\",\n  \"buildingId\": \"{{buildingId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/system", "host": ["{{baseUrl}}"], "path": ["users", "system"] }
+          }
+        },
+        {
+          "name": "Create Unit Account",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitId\": \"{{unitId}}\",\n  \"password\": \"password123\",\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Marković\",\n  \"email\": \"ana@example.com\",\n  \"phone\": \"+38161000000\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/unit/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["users", "unit", "{{buildingId}}"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "reset-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "Get My Tickets (cross-building)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["tickets"],
+              "query": [
+                { "key": "buildingId", "value": "", "disabled": true },
+                { "key": "status", "value": "OPEN", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Building Tickets",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets"] }
+          }
+        },
+        {
+          "name": "Get One Ticket",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticketId}}"] }
+          }
+        },
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nefunkcionalan interfon\",\n  \"body\": \"Interfon u ulazu ne radi već nekoliko dana.\",\n  \"category\": \"MAINTENANCE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets"] }
+          }
+        },
+        {
+          "name": "Reply to Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Primili smo vaš zahtjev i radimo na rješavanju.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticketId}}/replies", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticketId}}", "replies"] }
+          }
+        },
+        {
+          "name": "Close Ticket",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticketId}}/close", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticketId}}", "close"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complex Forum (Threads)",
+      "item": [
+        {
+          "name": "Get Complex Threads",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads"] }
+          }
+        },
+        {
+          "name": "Get Complex Thread",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}"] }
+          }
+        },
+        {
+          "name": "Close Complex Thread",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/close", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}", "close"] }
+          }
+        },
+        {
+          "name": "Create Complex Thread Reply",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Ovo je test odgovor u forumu kompleksa.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}", "replies"] }
+          }
+        },
+        {
+          "name": "Create Complex Thread",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('thread1_id', data.id);",
+                  "  console.log('thread1_id saved:', data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test tema kompleksa\",\n  \"body\": \"Ovo je test poruka za forum kompleksa.\",\n  \"category\": \"GENERAL\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Forum (Threads)",
+      "item": [
+        {
+          "name": "Get All Threads (cross-building)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/threads",
+              "host": ["{{baseUrl}}"],
+              "path": ["threads"],
+              "query": [
+                { "key": "buildingId", "value": "", "disabled": true },
+                { "key": "status", "value": "OPEN", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Building Threads",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads"] }
+          }
+        },
+        {
+          "name": "Get One Thread",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{threadId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{threadId}}"] }
+          }
+        },
+        {
+          "name": "Create Thread",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Pitanje o parkiranju\",\n  \"body\": \"Da li postoji mogućnost dobijanja dodatnog parking mjesta?\",\n  \"category\": \"QUESTION\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads"] }
+          }
+        },
+        {
+          "name": "Reply to Thread",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Odgovor na temu.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{threadId}}/replies", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{threadId}}", "replies"] }
+          }
+        },
+        {
+          "name": "Close Thread",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{threadId}}/close", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{threadId}}", "close"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Get My Announcements (cross-building)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/announcements",
+              "host": ["{{baseUrl}}"],
+              "path": ["announcements"],
+              "query": [
+                { "key": "buildingId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Building Announcements",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements"] }
+          }
+        },
+        {
+          "name": "Get One Announcement",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements", "{{announcementId}}"] }
+          }
+        },
+        {
+          "name": "Create Announcement",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Isključenje vode\",\n  \"body\": \"Obavještavamo stanare da će sutra od 9 do 12h biti isključena topla voda.\",\n  \"isPinned\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements"] }
+          }
+        },
+        {
+          "name": "Pin / Unpin Announcement",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isPinned\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/announcements/{{announcementId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "announcements", "{{announcementId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "Get Building Documents",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents"] }
+          }
+        },
+        {
+          "name": "Get One Document",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents/{{documentId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents", "{{documentId}}"] }
+          }
+        },
+        {
+          "name": "Create Document",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kućni red\",\n  \"description\": \"Pravilnik o kućnom redu zgrade\",\n  \"fileUrl\": \"https://example.com/kucni-red.pdf\",\n  \"type\": \"PDF\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup (Super Admin)",
+      "item": [
+        {
+          "name": "Bulk Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"complex\": {\n    \"name\": \"Kompleks A\",\n    \"address\": \"Bulevar Oslobođenja\",\n    \"city\": \"Novi Sad\"\n  },\n  \"buildings\": [\n    {\n      \"name\": \"Zgrada A\",\n      \"address\": \"Bulevar Oslobođenja 12\",\n      \"city\": \"Novi Sad\",\n      \"units\": [\n        { \"unitNumber\": \"1-1\", \"type\": \"APARTMENT\", \"floor\": 1 },\n        { \"unitNumber\": \"1-2\", \"type\": \"APARTMENT\", \"floor\": 1 },\n        { \"unitNumber\": \"2-1\", \"type\": \"APARTMENT\", \"floor\": 2 }\n      ]\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/setup/bulk", "host": ["{{baseUrl}}"], "path": ["setup", "bulk"] }
+          }
+        }
+      ]
+    }
+  ]
+}
