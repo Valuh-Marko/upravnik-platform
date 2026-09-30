@@ -8,7 +8,10 @@ export class CreateComplexThreadDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'Predlažem da organizujemo zajednički parking sistem za sve lamele kompleksa.' })
+  @ApiProperty({
+    example:
+      'Predlažem da organizujemo zajednički parking sistem za sve lamele kompleksa.',
+  })
   @IsString()
   @IsNotEmpty()
   body: string;

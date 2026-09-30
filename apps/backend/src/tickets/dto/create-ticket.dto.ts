@@ -8,7 +8,10 @@ export class CreateTicketDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'Od jutros nemam grejanje u dnevnoj sobi. Molim hitnu intervenciju.' })
+  @ApiProperty({
+    example:
+      'Od jutros nemam grejanje u dnevnoj sobi. Molim hitnu intervenciju.',
+  })
   @IsString()
   @IsNotEmpty()
   body: string;

@@ -8,7 +8,9 @@ export class CreateThreadDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'Lift je van funkcije od jutros. Ko je kontaktirao servis?' })
+  @ApiProperty({
+    example: 'Lift je van funkcije od jutros. Ko je kontaktirao servis?',
+  })
   @IsString()
   @IsNotEmpty()
   body: string;

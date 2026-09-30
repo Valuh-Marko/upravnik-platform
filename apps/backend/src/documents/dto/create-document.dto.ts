@@ -8,7 +8,9 @@ export class CreateDocumentDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/docs/izvestaj-2025.pdf' })
+  @ApiProperty({
+    example: 'https://storage.example.com/docs/izvestaj-2025.pdf',
+  })
   @IsString()
   @IsNotEmpty()
   fileUrl: string;

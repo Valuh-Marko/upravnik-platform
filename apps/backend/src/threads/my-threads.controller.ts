@@ -18,6 +18,11 @@ export class MyThreadsController {
     @Query('buildingId') buildingId?: string,
     @Query('status') status?: string,
   ) {
-    return this.threadsService.findAllForUser(req.user.id, buildingId, status, req.user.systemRole);
+    return this.threadsService.findAllForUser(
+      req.user.id,
+      buildingId,
+      status,
+      req.user.systemRole,
+    );
   }
 }

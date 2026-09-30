@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -28,12 +37,25 @@ export class AnnouncementsController {
 
   @Get()
   findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.announcementsService.findByBuilding(buildingId, req.user.id, req.user.systemRole);
+    return this.announcementsService.findByBuilding(
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('buildingId') buildingId: string, @Param('id') id: string, @Request() req: any) {
-    return this.announcementsService.findOne(id, buildingId, req.user.id, req.user.systemRole);
+  findOne(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    return this.announcementsService.findOne(
+      id,
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Patch(':id')

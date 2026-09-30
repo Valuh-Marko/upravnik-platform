@@ -18,6 +18,11 @@ export class MyTicketsController {
     @Query('buildingId') buildingId?: string,
     @Query('status') status?: string,
   ) {
-    return this.ticketsService.findAllForUser(req.user.id, buildingId, status, req.user.systemRole);
+    return this.ticketsService.findAllForUser(
+      req.user.id,
+      buildingId,
+      status,
+      req.user.systemRole,
+    );
   }
 }

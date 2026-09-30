@@ -12,7 +12,11 @@ export class UnitsService {
     return this.prisma.unit.create({ data: { buildingId, ...dto } });
   }
 
-  async findByBuilding(buildingId: string, userId: string, systemRole?: string | null) {
+  async findByBuilding(
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
     return this.prisma.unit.findMany({
       where: { buildingId },
@@ -20,7 +24,12 @@ export class UnitsService {
     });
   }
 
-  async findOne(id: string, buildingId: string, userId: string, systemRole?: string | null) {
+  async findOne(
+    id: string,
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
     return this.prisma.unit.findFirstOrThrow({
       where: { id, buildingId },

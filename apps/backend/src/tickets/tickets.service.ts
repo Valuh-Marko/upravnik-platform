@@ -14,7 +14,11 @@ export class TicketsService {
     private notifications: NotificationsService,
   ) {}
 
-  private async getCallerRole(buildingId: string, userId: string, systemRole?: string | null) {
+  private async getCallerRole(
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     if (systemRole === SUPER_ADMIN) return Role.UPRAVNIK;
     const member = await this.prisma.buildingMember.findUniqueOrThrow({
       where: { buildingId_userId: { buildingId, userId } },
@@ -22,20 +26,40 @@ export class TicketsService {
     return member.role;
   }
 
-  private async notifyStaff(buildingId: string, title: string, body: string, link: string) {
+  private async notifyStaff(
+    buildingId: string,
+    title: string,
+    body: string,
+    link: string,
+  ) {
     const staff = await this.prisma.buildingMember.findMany({
-      where: { buildingId, role: { in: [Role.UPRAVNIK, Role.BOARD_MEMBER] }, isActive: true },
+      where: {
+        buildingId,
+        role: { in: [Role.UPRAVNIK, Role.BOARD_MEMBER] },
+        isActive: true,
+      },
       select: { userId: true },
     });
-    await Promise.all(staff.map((m) => this.notifications.create(m.userId, title, body, link)));
+    await Promise.all(
+      staff.map((m) => this.notifications.create(m.userId, title, body, link)),
+    );
   }
 
-  private isUnread(ticket: { updatedAt: Date; reads: { lastReadAt: Date }[] }): boolean {
+  private isUnread(ticket: {
+    updatedAt: Date;
+    reads: { lastReadAt: Date }[];
+  }): boolean {
     return !ticket.reads[0] || ticket.updatedAt > ticket.reads[0].lastReadAt;
   }
 
-  async createTicket(buildingId: string, authorId: string, dto: CreateTicketDto) {
-    const ticket = await this.prisma.ticket.create({ data: { buildingId, authorId, ...dto } });
+  async createTicket(
+    buildingId: string,
+    authorId: string,
+    dto: CreateTicketDto,
+  ) {
+    const ticket = await this.prisma.ticket.create({
+      data: { buildingId, authorId, ...dto },
+    });
     await this.notifyStaff(
       buildingId,
       'Nov tiket otvoren',
@@ -52,24 +76,40 @@ export class TicketsService {
       lastName: true,
       buildingMembers: {
         where: { buildingId },
-        select: { unit: { select: { id: true, unitNumber: true, floor: true } } },
+        select: {
+          unit: { select: { id: true, unitNumber: true, floor: true } },
+        },
       },
     };
   }
 
-  private flattenUnit<T extends { author: { buildingMembers: { unit: unknown }[] } }>(ticket: T) {
+  private flattenUnit<
+    T extends { author: { buildingMembers: { unit: unknown }[] } },
+  >(ticket: T) {
     const { buildingMembers, ...author } = ticket.author;
-    return { ...ticket, author: { ...author, unit: buildingMembers[0]?.unit ?? null } };
+    return {
+      ...ticket,
+      author: { ...author, unit: buildingMembers[0]?.unit ?? null },
+    };
   }
 
-  async findByBuilding(buildingId: string, userId: string, systemRole?: string | null) {
+  async findByBuilding(
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     const role = await this.getCallerRole(buildingId, userId, systemRole);
-    const where = role === Role.RESIDENT ? { buildingId, authorId: userId } : { buildingId };
+    const where =
+      role === Role.RESIDENT
+        ? { buildingId, authorId: userId }
+        : { buildingId };
 
     const tickets = await this.prisma.ticket.findMany({
       where,
       include: {
-        building: { select: { id: true, name: true, address: true, city: true } },
+        building: {
+          select: { id: true, name: true, address: true, city: true },
+        },
         author: { select: this.authorSelect(buildingId) },
         reads: { where: { userId }, select: { lastReadAt: true } },
         _count: { select: { replies: true } },
@@ -83,15 +123,24 @@ export class TicketsService {
     });
   }
 
-  async findOne(id: string, buildingId: string, userId: string, systemRole?: string | null) {
+  async findOne(
+    id: string,
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     const role = await this.getCallerRole(buildingId, userId, systemRole);
     const ticket = await this.prisma.ticket.findFirstOrThrow({
       where: { id, buildingId },
       include: {
-        building: { select: { id: true, name: true, address: true, city: true } },
+        building: {
+          select: { id: true, name: true, address: true, city: true },
+        },
         author: { select: this.authorSelect(buildingId) },
         replies: {
-          include: { author: { select: { id: true, firstName: true, lastName: true } } },
+          include: {
+            author: { select: { id: true, firstName: true, lastName: true } },
+          },
           orderBy: { createdAt: 'asc' },
         },
         reads: { where: { userId }, select: { lastReadAt: true } },
@@ -120,7 +169,9 @@ export class TicketsService {
     systemRole?: string | null,
   ) {
     const role = await this.getCallerRole(buildingId, authorId, systemRole);
-    const ticket = await this.prisma.ticket.findFirstOrThrow({ where: { id: ticketId, buildingId } });
+    const ticket = await this.prisma.ticket.findFirstOrThrow({
+      where: { id: ticketId, buildingId },
+    });
 
     if (role === Role.RESIDENT && ticket.authorId !== authorId) {
       throw new ForbiddenException();
@@ -130,7 +181,10 @@ export class TicketsService {
       data: { ticketId, authorId, ...dto },
     });
 
-    await this.prisma.ticket.update({ where: { id: ticketId }, data: { updatedAt: new Date() } });
+    await this.prisma.ticket.update({
+      where: { id: ticketId },
+      data: { updatedAt: new Date() },
+    });
 
     // Mark as read for the replier (they just wrote it)
     await this.prisma.ticketRead.upsert({
@@ -141,26 +195,51 @@ export class TicketsService {
 
     const link = `/buildings/${buildingId}/tickets/${ticketId}`;
     if (role === Role.RESIDENT) {
-      await this.notifyStaff(buildingId, 'Nova poruka na tiketu', ticket.title, link);
+      await this.notifyStaff(
+        buildingId,
+        'Nova poruka na tiketu',
+        ticket.title,
+        link,
+      );
     } else {
-      await this.notifications.create(ticket.authorId, 'Odgovor na vaš tiket', ticket.title, link);
+      await this.notifications.create(
+        ticket.authorId,
+        'Odgovor na vaš tiket',
+        ticket.title,
+        link,
+      );
     }
 
     return reply;
   }
 
-  async closeTicket(id: string, buildingId: string, userId: string, systemRole?: string | null) {
+  async closeTicket(
+    id: string,
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     const role = await this.getCallerRole(buildingId, userId, systemRole);
-    const ticket = await this.prisma.ticket.findFirstOrThrow({ where: { id, buildingId } });
+    const ticket = await this.prisma.ticket.findFirstOrThrow({
+      where: { id, buildingId },
+    });
 
     if (role === Role.RESIDENT && ticket.authorId !== userId) {
       throw new ForbiddenException();
     }
 
-    return this.prisma.ticket.update({ where: { id }, data: { status: TicketStatus.CLOSED } });
+    return this.prisma.ticket.update({
+      where: { id },
+      data: { status: TicketStatus.CLOSED },
+    });
   }
 
-  async findAllForUser(userId: string, buildingId?: string, status?: string, systemRole?: string | null) {
+  async findAllForUser(
+    userId: string,
+    buildingId?: string,
+    status?: string,
+    systemRole?: string | null,
+  ) {
     const statusFilter = status ? { status: status as TicketStatus } : {};
 
     if (systemRole === SUPER_ADMIN) {
@@ -173,11 +252,16 @@ export class TicketsService {
               firstName: true,
               lastName: true,
               buildingMembers: {
-                select: { buildingId: true, unit: { select: { id: true, unitNumber: true, floor: true } } },
+                select: {
+                  buildingId: true,
+                  unit: { select: { id: true, unitNumber: true, floor: true } },
+                },
               },
             },
           },
-          building: { select: { id: true, name: true, address: true, city: true } },
+          building: {
+            select: { id: true, name: true, address: true, city: true },
+          },
           reads: { where: { userId }, select: { lastReadAt: true } },
           _count: { select: { replies: true } },
         },
@@ -185,16 +269,26 @@ export class TicketsService {
       });
 
       return tickets.map((t) => {
-        const membership = t.author.buildingMembers.find((m) => m.buildingId === t.buildingId);
+        const membership = t.author.buildingMembers.find(
+          (m) => m.buildingId === t.buildingId,
+        );
         const { buildingMembers, ...author } = t.author;
         const { reads, ...rest } = t;
-        return { ...rest, author: { ...author, unit: membership?.unit ?? null }, isUnread: this.isUnread(t) };
+        return {
+          ...rest,
+          author: { ...author, unit: membership?.unit ?? null },
+          isUnread: this.isUnread(t),
+        };
       });
     }
 
     const memberships = await this.prisma.buildingMember.findMany({
       where: { userId },
-      select: { buildingId: true, role: true, unit: { select: { id: true, unitNumber: true, floor: true } } },
+      select: {
+        buildingId: true,
+        role: true,
+        unit: { select: { id: true, unitNumber: true, floor: true } },
+      },
     });
 
     const staffIds = memberships
@@ -206,11 +300,20 @@ export class TicketsService {
 
     const conditions: object[] = [];
 
-    const staffBuildings = buildingId ? staffIds.filter((id) => id === buildingId) : staffIds;
-    if (staffBuildings.length > 0) conditions.push({ buildingId: { in: staffBuildings } });
+    const staffBuildings = buildingId
+      ? staffIds.filter((id) => id === buildingId)
+      : staffIds;
+    if (staffBuildings.length > 0)
+      conditions.push({ buildingId: { in: staffBuildings } });
 
-    const residentBuildings = buildingId ? residentIds.filter((id) => id === buildingId) : residentIds;
-    if (residentBuildings.length > 0) conditions.push({ buildingId: { in: residentBuildings }, authorId: userId });
+    const residentBuildings = buildingId
+      ? residentIds.filter((id) => id === buildingId)
+      : residentIds;
+    if (residentBuildings.length > 0)
+      conditions.push({
+        buildingId: { in: residentBuildings },
+        authorId: userId,
+      });
 
     if (conditions.length === 0) return [];
 
@@ -223,11 +326,16 @@ export class TicketsService {
             firstName: true,
             lastName: true,
             buildingMembers: {
-              select: { buildingId: true, unit: { select: { id: true, unitNumber: true, floor: true } } },
+              select: {
+                buildingId: true,
+                unit: { select: { id: true, unitNumber: true, floor: true } },
+              },
             },
           },
         },
-        building: { select: { id: true, name: true, address: true, city: true } },
+        building: {
+          select: { id: true, name: true, address: true, city: true },
+        },
         reads: { where: { userId }, select: { lastReadAt: true } },
         _count: { select: { replies: true } },
       },
@@ -235,10 +343,16 @@ export class TicketsService {
     });
 
     return tickets.map((t) => {
-      const membership = t.author.buildingMembers.find((m) => m.buildingId === t.buildingId);
+      const membership = t.author.buildingMembers.find(
+        (m) => m.buildingId === t.buildingId,
+      );
       const { buildingMembers, ...author } = t.author;
       const { reads, ...rest } = t;
-      return { ...rest, author: { ...author, unit: membership?.unit ?? null }, isUnread: this.isUnread(t) };
+      return {
+        ...rest,
+        author: { ...author, unit: membership?.unit ?? null },
+        isUnread: this.isUnread(t),
+      };
     });
   }
 }

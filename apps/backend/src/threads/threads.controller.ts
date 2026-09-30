@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -21,17 +30,35 @@ export class ThreadsController {
     @Request() req: any,
     @Body() dto: CreateThreadDto,
   ) {
-    return this.threadsService.createThread(buildingId, req.user.id, dto, req.user.systemRole);
+    return this.threadsService.createThread(
+      buildingId,
+      req.user.id,
+      dto,
+      req.user.systemRole,
+    );
   }
 
   @Get()
   findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.threadsService.findByBuilding(buildingId, req.user.id, req.user.systemRole);
+    return this.threadsService.findByBuilding(
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('buildingId') buildingId: string, @Param('id') id: string, @Request() req: any) {
-    return this.threadsService.findOne(id, buildingId, req.user.id, req.user.systemRole);
+  findOne(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    return this.threadsService.findOne(
+      id,
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Post(':id/replies')
@@ -41,7 +68,13 @@ export class ThreadsController {
     @Request() req: any,
     @Body() dto: CreateReplyDto,
   ) {
-    return this.threadsService.createReply(id, buildingId, req.user.id, dto, req.user.systemRole);
+    return this.threadsService.createReply(
+      id,
+      buildingId,
+      req.user.id,
+      dto,
+      req.user.systemRole,
+    );
   }
 
   @Patch(':id/close')

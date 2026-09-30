@@ -6,7 +6,9 @@ export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
   create(userId: string, title: string, body: string, link?: string) {
-    return this.prisma.notification.create({ data: { userId, title, body, link } });
+    return this.prisma.notification.create({
+      data: { userId, title, body, link },
+    });
   }
 
   findForUser(userId: string) {
@@ -18,10 +20,16 @@ export class NotificationsService {
 
   async markRead(id: string, userId: string) {
     await this.prisma.notification.findFirstOrThrow({ where: { id, userId } });
-    return this.prisma.notification.update({ where: { id }, data: { isRead: true } });
+    return this.prisma.notification.update({
+      where: { id },
+      data: { isRead: true },
+    });
   }
 
   markAllRead(userId: string) {
-    return this.prisma.notification.updateMany({ where: { userId }, data: { isRead: true } });
+    return this.prisma.notification.updateMany({
+      where: { userId },
+      data: { isRead: true },
+    });
   }
 }

@@ -13,6 +13,10 @@ export class MyAnnouncementsController {
   @Get()
   @ApiQuery({ name: 'buildingId', required: false })
   findAll(@Request() req: any, @Query('buildingId') buildingId?: string) {
-    return this.announcementsService.findAllForUser(req.user.id, buildingId);
+    return this.announcementsService.findAllForUser(
+      req.user.id,
+      buildingId,
+      req.user.systemRole,
+    );
   }
 }

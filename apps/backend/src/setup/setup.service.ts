@@ -25,7 +25,11 @@ export class SetupService {
             data: units.map((u) => ({ ...u, buildingId: building.id })),
           });
 
-          return { id: building.id, name: building.name, unitCount: units.length };
+          return {
+            id: building.id,
+            name: building.name,
+            unitCount: units.length,
+          };
         }),
       );
 

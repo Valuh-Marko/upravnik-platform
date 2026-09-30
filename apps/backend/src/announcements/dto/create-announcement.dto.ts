@@ -7,7 +7,10 @@ export class CreateAnnouncementDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'Obaveštavamo stanare da će lift biti van funkcije u subotu od 8 do 14h.' })
+  @ApiProperty({
+    example:
+      'Obaveštavamo stanare da će lift biti van funkcije u subotu od 8 do 14h.',
+  })
   @IsString()
   @IsNotEmpty()
   body: string;

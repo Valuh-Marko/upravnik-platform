@@ -8,19 +8,32 @@ export class DocumentsService {
   constructor(private prisma: PrismaService) {}
 
   create(buildingId: string, uploadedBy: string, dto: CreateDocumentDto) {
-    return this.prisma.document.create({ data: { buildingId, uploadedBy, ...dto } });
+    return this.prisma.document.create({
+      data: { buildingId, uploadedBy, ...dto },
+    });
   }
 
-  async findByBuilding(buildingId: string, userId: string, systemRole?: string | null) {
+  async findByBuilding(
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
     return this.prisma.document.findMany({
       where: { buildingId },
-      include: { uploader: { select: { id: true, firstName: true, lastName: true } } },
+      include: {
+        uploader: { select: { id: true, firstName: true, lastName: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findOne(id: string, buildingId: string, userId: string, systemRole?: string | null) {
+  async findOne(
+    id: string,
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
     return this.prisma.document.findFirstOrThrow({ where: { id, buildingId } });
   }

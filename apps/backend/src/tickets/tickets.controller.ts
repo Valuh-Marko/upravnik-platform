@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TicketsService } from './tickets.service';
@@ -23,7 +32,11 @@ export class TicketsController {
 
   @Get()
   findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.ticketsService.findByBuilding(buildingId, req.user.id, req.user.systemRole);
+    return this.ticketsService.findByBuilding(
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Get(':id')
@@ -32,7 +45,12 @@ export class TicketsController {
     @Param('id') id: string,
     @Request() req: any,
   ) {
-    return this.ticketsService.findOne(id, buildingId, req.user.id, req.user.systemRole);
+    return this.ticketsService.findOne(
+      id,
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Post(':id/replies')
@@ -42,7 +60,13 @@ export class TicketsController {
     @Request() req: any,
     @Body() dto: CreateTicketReplyDto,
   ) {
-    return this.ticketsService.createReply(id, buildingId, req.user.id, dto, req.user.systemRole);
+    return this.ticketsService.createReply(
+      id,
+      buildingId,
+      req.user.id,
+      dto,
+      req.user.systemRole,
+    );
   }
 
   @Patch(':id/close')
@@ -51,6 +75,11 @@ export class TicketsController {
     @Param('id') id: string,
     @Request() req: any,
   ) {
-    return this.ticketsService.closeTicket(id, buildingId, req.user.id, req.user.systemRole);
+    return this.ticketsService.closeTicket(
+      id,
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 }

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -23,11 +31,24 @@ export class UnitsController {
 
   @Get()
   findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.unitsService.findByBuilding(buildingId, req.user.id, req.user.systemRole);
+    return this.unitsService.findByBuilding(
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('buildingId') buildingId: string, @Param('id') id: string, @Request() req: any) {
-    return this.unitsService.findOne(id, buildingId, req.user.id, req.user.systemRole);
+  findOne(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    return this.unitsService.findOne(
+      id,
+      buildingId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 }

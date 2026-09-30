@@ -31,12 +31,19 @@ export class ChatGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('join')
-  async handleJoin(@ConnectedSocket() client: Socket, @MessageBody() buildingId: string) {
+  async handleJoin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() buildingId: string,
+  ) {
     const user = client.data.user;
     if (!user?.sub) return;
 
     try {
-      await this.chatService.assertMember(buildingId, user.sub, user.systemRole);
+      await this.chatService.assertMember(
+        buildingId,
+        user.sub,
+        user.systemRole,
+      );
     } catch {
       return;
     }
@@ -53,12 +60,20 @@ export class ChatGateway implements OnGatewayConnection {
     if (!user?.sub) return;
 
     try {
-      await this.chatService.assertMember(data.buildingId, user.sub, user.systemRole);
+      await this.chatService.assertMember(
+        data.buildingId,
+        user.sub,
+        user.systemRole,
+      );
     } catch {
       return;
     }
 
-    const message = await this.chatService.saveMessage(data.buildingId, user.sub, data.body);
+    const message = await this.chatService.saveMessage(
+      data.buildingId,
+      user.sub,
+      data.body,
+    );
     this.server.to(data.buildingId).emit('message', message);
   }
 }

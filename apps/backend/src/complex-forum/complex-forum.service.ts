@@ -25,7 +25,12 @@ function flattenComplexAuthor<
     unit: { unitNumber: string } | null;
     buildingMembers: { building: { id: string; name: string } }[];
   },
->(author: T): Omit<T, 'unit' | 'buildingMembers'> & { unitNumber: string | null; building: { id: string; name: string } | null } {
+>(
+  author: T,
+): Omit<T, 'unit' | 'buildingMembers'> & {
+  unitNumber: string | null;
+  building: { id: string; name: string } | null;
+} {
   const { unit, buildingMembers, ...rest } = author;
   return {
     ...rest,
@@ -40,7 +45,11 @@ export class ComplexForumService {
 
   // Returns the highest role the user holds in any building of this complex.
   // Throws ForbiddenException if the user has no membership in the complex.
-  private async getCallerRole(complexId: string, userId: string, systemRole?: string | null) {
+  private async getCallerRole(
+    complexId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     if (systemRole === SUPER_ADMIN) return Role.UPRAVNIK;
 
     const memberships = await this.prisma.buildingMember.findMany({
@@ -51,16 +60,28 @@ export class ComplexForumService {
     if (memberships.length === 0) throw new ForbiddenException();
 
     if (memberships.some((m) => m.role === Role.UPRAVNIK)) return Role.UPRAVNIK;
-    if (memberships.some((m) => m.role === Role.BOARD_MEMBER)) return Role.BOARD_MEMBER;
+    if (memberships.some((m) => m.role === Role.BOARD_MEMBER))
+      return Role.BOARD_MEMBER;
     return Role.RESIDENT;
   }
 
-  async createThread(complexId: string, authorId: string, dto: CreateComplexThreadDto, systemRole?: string | null) {
+  async createThread(
+    complexId: string,
+    authorId: string,
+    dto: CreateComplexThreadDto,
+    systemRole?: string | null,
+  ) {
     await this.getCallerRole(complexId, authorId, systemRole);
-    return this.prisma.complexThread.create({ data: { complexId, authorId, ...dto } });
+    return this.prisma.complexThread.create({
+      data: { complexId, authorId, ...dto },
+    });
   }
 
-  async findByComplex(complexId: string, userId: string, systemRole?: string | null) {
+  async findByComplex(
+    complexId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await this.getCallerRole(complexId, userId, systemRole);
 
     const threads = await this.prisma.complexThread.findMany({
@@ -72,10 +93,18 @@ export class ComplexForumService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return threads.map(({ author, ...thread }) => ({ ...thread, author: flattenComplexAuthor(author) }));
+    return threads.map(({ author, ...thread }) => ({
+      ...thread,
+      author: flattenComplexAuthor(author),
+    }));
   }
 
-  async findOne(id: string, complexId: string, userId: string, systemRole?: string | null) {
+  async findOne(
+    id: string,
+    complexId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await this.getCallerRole(complexId, userId, systemRole);
 
     const thread = await this.prisma.complexThread.findFirstOrThrow({
@@ -93,26 +122,47 @@ export class ComplexForumService {
     return {
       ...rest,
       author: flattenComplexAuthor(author),
-      replies: replies.map(({ author: ra, ...reply }) => ({ ...reply, author: flattenComplexAuthor(ra) })),
+      replies: replies.map(({ author: ra, ...reply }) => ({
+        ...reply,
+        author: flattenComplexAuthor(ra),
+      })),
     };
   }
 
-  async createReply(threadId: string, complexId: string, authorId: string, dto: CreateComplexReplyDto, systemRole?: string | null) {
+  async createReply(
+    threadId: string,
+    complexId: string,
+    authorId: string,
+    dto: CreateComplexReplyDto,
+    systemRole?: string | null,
+  ) {
     await this.getCallerRole(complexId, authorId, systemRole);
-    await this.prisma.complexThread.findFirstOrThrow({ where: { id: threadId, complexId } });
+    await this.prisma.complexThread.findFirstOrThrow({
+      where: { id: threadId, complexId },
+    });
 
     return this.prisma.complexThreadReply.create({
       data: { threadId, authorId, body: dto.body },
     });
   }
 
-  async closeThread(id: string, complexId: string, userId: string, systemRole?: string | null) {
+  async closeThread(
+    id: string,
+    complexId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     const role = await this.getCallerRole(complexId, userId, systemRole);
-    const thread = await this.prisma.complexThread.findFirstOrThrow({ where: { id, complexId } });
+    const thread = await this.prisma.complexThread.findFirstOrThrow({
+      where: { id, complexId },
+    });
 
     const isStaff = role === Role.UPRAVNIK || role === Role.BOARD_MEMBER;
     if (!isStaff && thread.authorId !== userId) throw new ForbiddenException();
 
-    return this.prisma.complexThread.update({ where: { id }, data: { status: ThreadStatus.CLOSED } });
+    return this.prisma.complexThread.update({
+      where: { id },
+      data: { status: ThreadStatus.CLOSED },
+    });
   }
 }

@@ -30,10 +30,16 @@ export class ThreadsService {
     systemRole?: string | null,
   ) {
     await requireBuildingMember(this.prisma, buildingId, authorId, systemRole);
-    return this.prisma.thread.create({ data: { buildingId, authorId, ...dto } });
+    return this.prisma.thread.create({
+      data: { buildingId, authorId, ...dto },
+    });
   }
 
-  async findByBuilding(buildingId: string, userId: string, systemRole?: string | null) {
+  async findByBuilding(
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
     const threads = await this.prisma.thread.findMany({
       where: { buildingId },
@@ -43,10 +49,18 @@ export class ThreadsService {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return threads.map(({ author, ...thread }) => ({ ...thread, author: flattenAuthor(author) }));
+    return threads.map(({ author, ...thread }) => ({
+      ...thread,
+      author: flattenAuthor(author),
+    }));
   }
 
-  async findOne(id: string, buildingId: string, userId: string, systemRole?: string | null) {
+  async findOne(
+    id: string,
+    buildingId: string,
+    userId: string,
+    systemRole?: string | null,
+  ) {
     await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
     const thread = await this.prisma.thread.findFirstOrThrow({
       where: { id, buildingId },
@@ -62,7 +76,10 @@ export class ThreadsService {
     return {
       ...rest,
       author: flattenAuthor(author),
-      replies: replies.map(({ author: ra, ...reply }) => ({ ...reply, author: flattenAuthor(ra) })),
+      replies: replies.map(({ author: ra, ...reply }) => ({
+        ...reply,
+        author: flattenAuthor(ra),
+      })),
     };
   }
 
@@ -74,16 +91,28 @@ export class ThreadsService {
     systemRole?: string | null,
   ) {
     await requireBuildingMember(this.prisma, buildingId, authorId, systemRole);
-    await this.prisma.thread.findFirstOrThrow({ where: { id: threadId, buildingId } });
-    return this.prisma.threadReply.create({ data: { threadId, authorId, ...dto } });
+    await this.prisma.thread.findFirstOrThrow({
+      where: { id: threadId, buildingId },
+    });
+    return this.prisma.threadReply.create({
+      data: { threadId, authorId, ...dto },
+    });
   }
 
   async closeThread(id: string, buildingId: string) {
     await this.prisma.thread.findFirstOrThrow({ where: { id, buildingId } });
-    return this.prisma.thread.update({ where: { id }, data: { status: ThreadStatus.CLOSED } });
+    return this.prisma.thread.update({
+      where: { id },
+      data: { status: ThreadStatus.CLOSED },
+    });
   }
 
-  async findAllForUser(userId: string, buildingId?: string, status?: string, systemRole?: string | null) {
+  async findAllForUser(
+    userId: string,
+    buildingId?: string,
+    status?: string,
+    systemRole?: string | null,
+  ) {
     const statusFilter = status ? { status: status as ThreadStatus } : {};
 
     if (systemRole === 'SUPER_ADMIN') {
@@ -96,7 +125,10 @@ export class ThreadsService {
         },
         orderBy: { createdAt: 'desc' },
       });
-      return threads.map(({ author, ...thread }) => ({ ...thread, author: flattenAuthor(author) }));
+      return threads.map(({ author, ...thread }) => ({
+        ...thread,
+        author: flattenAuthor(author),
+      }));
     }
 
     const memberships = await this.prisma.buildingMember.findMany({
@@ -108,7 +140,10 @@ export class ThreadsService {
     if (buildingId && !buildingIds.includes(buildingId)) return [];
 
     const threads = await this.prisma.thread.findMany({
-      where: { buildingId: buildingId ? buildingId : { in: buildingIds }, ...statusFilter },
+      where: {
+        buildingId: buildingId ? buildingId : { in: buildingIds },
+        ...statusFilter,
+      },
       include: {
         author: { select: AUTHOR_SELECT },
         building: { select: { id: true, name: true } },
@@ -116,6 +151,9 @@ export class ThreadsService {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return threads.map(({ author, ...thread }) => ({ ...thread, author: flattenAuthor(author) }));
+    return threads.map(({ author, ...thread }) => ({
+      ...thread,
+      author: flattenAuthor(author),
+    }));
   }
 }

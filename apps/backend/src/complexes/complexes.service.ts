@@ -29,6 +29,9 @@ export class ComplexesService {
       });
       if (!membership) throw new ForbiddenException();
     }
-    return this.prisma.complex.findUniqueOrThrow({ where: { id }, include: { buildings: true } });
+    return this.prisma.complex.findUniqueOrThrow({
+      where: { id },
+      include: { buildings: true },
+    });
   }
 }

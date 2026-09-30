@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ComplexForumService } from './complex-forum.service';
@@ -18,12 +27,21 @@ export class ComplexForumController {
     @Request() req: any,
     @Body() dto: CreateComplexThreadDto,
   ) {
-    return this.complexForumService.createThread(complexId, req.user.id, dto, req.user.systemRole);
+    return this.complexForumService.createThread(
+      complexId,
+      req.user.id,
+      dto,
+      req.user.systemRole,
+    );
   }
 
   @Get()
   findAll(@Param('complexId') complexId: string, @Request() req: any) {
-    return this.complexForumService.findByComplex(complexId, req.user.id, req.user.systemRole);
+    return this.complexForumService.findByComplex(
+      complexId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Get(':id')
@@ -32,7 +50,12 @@ export class ComplexForumController {
     @Param('id') id: string,
     @Request() req: any,
   ) {
-    return this.complexForumService.findOne(id, complexId, req.user.id, req.user.systemRole);
+    return this.complexForumService.findOne(
+      id,
+      complexId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 
   @Post(':id/replies')
@@ -42,7 +65,13 @@ export class ComplexForumController {
     @Request() req: any,
     @Body() dto: CreateComplexReplyDto,
   ) {
-    return this.complexForumService.createReply(id, complexId, req.user.id, dto, req.user.systemRole);
+    return this.complexForumService.createReply(
+      id,
+      complexId,
+      req.user.id,
+      dto,
+      req.user.systemRole,
+    );
   }
 
   @Patch(':id/close')
@@ -51,6 +80,11 @@ export class ComplexForumController {
     @Param('id') id: string,
     @Request() req: any,
   ) {
-    return this.complexForumService.closeThread(id, complexId, req.user.id, req.user.systemRole);
+    return this.complexForumService.closeThread(
+      id,
+      complexId,
+      req.user.id,
+      req.user.systemRole,
+    );
   }
 }

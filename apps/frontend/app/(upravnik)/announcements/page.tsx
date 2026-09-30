@@ -15,7 +15,8 @@ export default function AnnouncementsPage() {
   const { data: announcements, isLoading } = useAllAnnouncements()
   const { mutate: updateAnnouncement } = useUpdateAnnouncement()
 
-  const canManage = user?.role === 'UPRAVNIK' || user?.role === 'BOARD_MEMBER'
+  const canManage =
+    user?.role === 'UPRAVNIK' || user?.role === 'BOARD_MEMBER' || user?.role === 'SUPER_ADMIN'
 
   const grouped = useMemo(() => {
     if (!announcements) return []
