@@ -3,7 +3,8 @@ import { ThreadStatus } from '../prisma';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateThreadDto } from './dto/create-thread.dto';
 import { CreateReplyDto } from './dto/create-reply.dto';
-import { requireBuildingMember } from '../auth/building-membership.util';
+import { Access, AuthUser, isSuperAdmin } from '../auth/access/auth-user';
+import { assertCanClose, assertOpen } from '../auth/access/policies';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -23,24 +24,13 @@ function flattenAuthor<T extends { unit: { unitNumber: string } | null }>(
 export class ThreadsService {
   constructor(private prisma: PrismaService) {}
 
-  async createThread(
-    buildingId: string,
-    authorId: string,
-    dto: CreateThreadDto,
-    systemRole?: string | null,
-  ) {
-    await requireBuildingMember(this.prisma, buildingId, authorId, systemRole);
+  createThread(buildingId: string, authorId: string, dto: CreateThreadDto) {
     return this.prisma.thread.create({
       data: { buildingId, authorId, ...dto },
     });
   }
 
-  async findByBuilding(
-    buildingId: string,
-    userId: string,
-    systemRole?: string | null,
-  ) {
-    await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
+  async findByBuilding(buildingId: string) {
     const threads = await this.prisma.thread.findMany({
       where: { buildingId },
       include: {
@@ -55,13 +45,7 @@ export class ThreadsService {
     }));
   }
 
-  async findOne(
-    id: string,
-    buildingId: string,
-    userId: string,
-    systemRole?: string | null,
-  ) {
-    await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
+  async findOne(id: string, buildingId: string) {
     const thread = await this.prisma.thread.findFirstOrThrow({
       where: { id, buildingId },
       include: {
@@ -88,19 +72,26 @@ export class ThreadsService {
     buildingId: string,
     authorId: string,
     dto: CreateReplyDto,
-    systemRole?: string | null,
   ) {
-    await requireBuildingMember(this.prisma, buildingId, authorId, systemRole);
-    await this.prisma.thread.findFirstOrThrow({
+    const thread = await this.prisma.thread.findFirstOrThrow({
       where: { id: threadId, buildingId },
     });
+    assertOpen(thread);
     return this.prisma.threadReply.create({
       data: { threadId, authorId, ...dto },
     });
   }
 
-  async closeThread(id: string, buildingId: string) {
-    await this.prisma.thread.findFirstOrThrow({ where: { id, buildingId } });
+  async closeThread(
+    id: string,
+    buildingId: string,
+    userId: string,
+    access: Access,
+  ) {
+    const thread = await this.prisma.thread.findFirstOrThrow({
+      where: { id, buildingId },
+    });
+    assertCanClose(access, thread, userId);
     return this.prisma.thread.update({
       where: { id },
       data: { status: ThreadStatus.CLOSED },
@@ -108,14 +99,13 @@ export class ThreadsService {
   }
 
   async findAllForUser(
-    userId: string,
+    user: AuthUser,
     buildingId?: string,
-    status?: string,
-    systemRole?: string | null,
+    status?: ThreadStatus,
   ) {
-    const statusFilter = status ? { status: status as ThreadStatus } : {};
+    const statusFilter = status ? { status } : {};
 
-    if (systemRole === 'SUPER_ADMIN') {
+    if (isSuperAdmin(user)) {
       const threads = await this.prisma.thread.findMany({
         where: { ...(buildingId ? { buildingId } : {}), ...statusFilter },
         include: {
@@ -132,7 +122,7 @@ export class ThreadsService {
     }
 
     const memberships = await this.prisma.buildingMember.findMany({
-      where: { userId },
+      where: { userId: user.id, isActive: true },
       select: { buildingId: true },
     });
     const buildingIds = memberships.map((m) => m.buildingId);

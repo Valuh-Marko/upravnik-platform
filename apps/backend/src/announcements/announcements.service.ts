@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuthUser, isSuperAdmin } from '../auth/access/auth-user';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
-import { requireBuildingMember } from '../auth/building-membership.util';
 
 @Injectable()
 export class AnnouncementsService {
@@ -13,12 +13,7 @@ export class AnnouncementsService {
     });
   }
 
-  async findByBuilding(
-    buildingId: string,
-    userId: string,
-    systemRole?: string | null,
-  ) {
-    await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
+  findByBuilding(buildingId: string) {
     return this.prisma.announcement.findMany({
       where: { buildingId },
       include: {
@@ -28,13 +23,7 @@ export class AnnouncementsService {
     });
   }
 
-  async findOne(
-    id: string,
-    buildingId: string,
-    userId: string,
-    systemRole?: string | null,
-  ) {
-    await requireBuildingMember(this.prisma, buildingId, userId, systemRole);
+  findOne(id: string, buildingId: string) {
     return this.prisma.announcement.findFirstOrThrow({
       where: { id, buildingId },
       include: {
@@ -50,12 +39,8 @@ export class AnnouncementsService {
     return this.prisma.announcement.update({ where: { id }, data });
   }
 
-  async findAllForUser(
-    userId: string,
-    buildingId?: string,
-    systemRole?: string | null,
-  ) {
-    if (systemRole === 'SUPER_ADMIN') {
+  async findAllForUser(user: AuthUser, buildingId?: string) {
+    if (isSuperAdmin(user)) {
       return this.prisma.announcement.findMany({
         where: buildingId ? { buildingId } : {},
         include: {
@@ -67,7 +52,7 @@ export class AnnouncementsService {
     }
 
     const memberships = await this.prisma.buildingMember.findMany({
-      where: { userId },
+      where: { userId: user.id, isActive: true },
       select: { buildingId: true },
     });
     const buildingIds = memberships.map((m) => m.buildingId);

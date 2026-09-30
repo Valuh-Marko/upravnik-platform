@@ -1,8 +1,7 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuthUser, isSuperAdmin } from '../auth/access/auth-user';
 import { CreateComplexDto } from './dto/create-complex.dto';
-
-const SUPER_ADMIN = 'SUPER_ADMIN';
 
 @Injectable()
 export class ComplexesService {
@@ -12,23 +11,21 @@ export class ComplexesService {
     return this.prisma.complex.create({ data: dto });
   }
 
-  findAll(userId: string, systemRole?: string | null) {
-    if (systemRole === SUPER_ADMIN) {
+  findAll(user: AuthUser) {
+    if (isSuperAdmin(user)) {
       return this.prisma.complex.findMany({ include: { buildings: true } });
     }
     return this.prisma.complex.findMany({
-      where: { buildings: { some: { members: { some: { userId } } } } },
+      where: {
+        buildings: {
+          some: { members: { some: { userId: user.id, isActive: true } } },
+        },
+      },
       include: { buildings: true },
     });
   }
 
-  async findOne(id: string, userId: string, systemRole?: string | null) {
-    if (systemRole !== SUPER_ADMIN) {
-      const membership = await this.prisma.buildingMember.findFirst({
-        where: { userId, building: { complexId: id } },
-      });
-      if (!membership) throw new ForbiddenException();
-    }
+  findOne(id: string) {
     return this.prisma.complex.findUniqueOrThrow({
       where: { id },
       include: { buildings: true },

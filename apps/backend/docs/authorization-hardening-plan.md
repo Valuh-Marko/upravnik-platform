@@ -1,10 +1,26 @@
 # Authorization hardening plan
 
-Status: **draft for review** · Written 2026-09-30 · Scope: `apps/backend`
+Status: **implemented** 2026-09-30 (D1–D4 settled the same day) · Written 2026-09-30 · Scope: `apps/backend`
 
-This plan fixes the security bugs and the structural problems in how the backend handles roles and permissions. We will go through it item by item before implementing. Each item has an ID so it can be referenced in commits and PRs.
+This plan fixes the security bugs and the structural problems in how the backend handles roles and permissions. Each item has an ID so it can be referenced in commits and PRs. The resulting design is described in [authorization-overview.md](./authorization-overview.md).
 
-All paths are relative to `apps/backend/`. Line numbers reflect the working tree on 2026-09-30.
+All paths are relative to `apps/backend/`. Line numbers in §4 point to the code **before** the rework.
+
+### Implementation status
+
+| Items | Status |
+|---|---|
+| S1–S5, P1–P6, H1–H4, H6–H9, R1, T1 | Done |
+| H5 | Done as decided in D4: 7-day tokens kept, revoked on password reset via `User.passwordChangedAt` (H4). No refresh tokens. |
+| R2 (change a member's role) | Out of scope, not requested |
+| §7 related findings | Open, except that `docs/case-study.md` has been updated |
+
+Differences from the plan:
+
+- **No phased PRs.** The work landed as one change, and the startup coverage check was in *fail* mode from the start.
+- **Unit tests.** They cover `AccessService`, `policies.ts`, env validation and password generation. The e2e suites (`test/access.e2e-spec.ts`, `test/accounts.e2e-spec.ts`, `test/chat.e2e-spec.ts`) use their own fixtures in `test/fixtures.ts` instead of `prisma/factories`.
+- **`@nestjs/config` is pinned to `^4.0.4`.** Version 12 is ESM-only, targets Nest 12, and breaks Jest.
+- **WebSocket errors.** `join`/`message` failures arrive on the socket.io `exception` event, and a rejected handshake gets `connect_error`. There are no ack callbacks.
 
 ---
 
@@ -24,12 +40,12 @@ Two endpoints already got this wrong: ticket creation and password reset (S1, S2
 |---|---|---|
 | D0 | May residents see neighbours' contact details (email, phone) via `GET /buildings/:id` and the units list? | **Yes, intended.** Keep as is. |
 | D0b | May a BOARD_MEMBER pin/unpin the upravnik's announcements? | **Yes.** BOARD_MEMBER is an extension of the upravnik. Keep as is. |
-| D1 | What does `BuildingMember.isActive` / `User.isActive` mean? | **Open.** See below. |
-| D2 | Who may close a thread / ticket / complex-forum thread? | **Open.** See P5. |
-| D3 | Should replies be accepted on CLOSED threads/tickets? | **Open.** See P5. |
-| D4 | Keep 7-day access tokens, or move to short access + refresh tokens? | **Open.** See H5. |
+| D1 | What does `BuildingMember.isActive` / `User.isActive` mean? | **Option A: access revoked, history kept.** Deactivate endpoints added (R1). |
+| D2 | Who may close a thread / ticket / complex-forum thread? | **The author or staff**, for all three kinds. |
+| D3 | Should replies be accepted on CLOSED threads/tickets? | **No.** Replies to CLOSED items return 409. |
+| D4 | Keep 7-day access tokens, or move to short access + refresh tokens? | **Keep 7d**, plus revoke on password reset (H4). No refresh tokens. |
 
-### D1: meaning of `isActive` (needs a decision)
+### D1: meaning of `isActive` (decided: Option A)
 
 Today `BuildingMember.isActive` exists but no API ever sets it to `false`, and almost nothing reads it. We need to pick one meaning.
 

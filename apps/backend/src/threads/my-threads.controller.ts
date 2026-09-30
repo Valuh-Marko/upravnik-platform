@@ -1,28 +1,23 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Controller, Get, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AnyUser, CurrentUser } from '../auth/access/access.decorators';
+import type { AuthUser } from '../auth/access/auth-user';
+import { StatusFilterQueryDto } from '../common/dto/my-list-query.dto';
 import { ThreadsService } from './threads.service';
 
 @ApiTags('threads')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('threads')
 export class MyThreadsController {
   constructor(private threadsService: ThreadsService) {}
 
   @Get()
-  @ApiQuery({ name: 'buildingId', required: false })
-  @ApiQuery({ name: 'status', required: false, enum: ['OPEN', 'CLOSED'] })
-  findAll(
-    @Request() req: any,
-    @Query('buildingId') buildingId?: string,
-    @Query('status') status?: string,
-  ) {
+  @AnyUser()
+  findAll(@CurrentUser() user: AuthUser, @Query() query: StatusFilterQueryDto) {
     return this.threadsService.findAllForUser(
-      req.user.id,
-      buildingId,
-      status,
-      req.user.systemRole,
+      user,
+      query.buildingId,
+      query.status,
     );
   }
 }

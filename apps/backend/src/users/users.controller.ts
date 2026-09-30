@@ -1,31 +1,42 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { SystemAdminGuard } from '../auth/guards/system-admin.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import {
+  CurrentUser,
+  InBuilding,
+  SuperAdmin,
+} from '../auth/access/access.decorators';
+import type { AuthUser } from '../auth/access/auth-user';
 import { Role } from '../prisma';
 import { UsersService } from './users.service';
 import { CreateSystemUserDto } from './dto/create-system-user.dto';
 import { CreateBoardMemberDto } from './dto/create-board-member.dto';
 import { CreateUnitAccountDto } from './dto/create-unit-account.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Post('system')
-  @UseGuards(SystemAdminGuard)
+  @SuperAdmin()
   createSystemUser(@Body() dto: CreateSystemUserDto) {
     return this.usersService.createSystemUser(dto);
   }
 
+  @Patch(':id')
+  @SuperAdmin()
+  updateUser(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return this.usersService.updateUser(id, user.id, dto);
+  }
+
   @Post('board-member/:buildingId')
-  @UseGuards(RolesGuard)
-  @Roles(Role.UPRAVNIK)
+  @InBuilding(Role.UPRAVNIK)
   createBoardMember(
     @Param('buildingId') buildingId: string,
     @Body() dto: CreateBoardMemberDto,
@@ -34,8 +45,7 @@ export class UsersController {
   }
 
   @Post('unit/:buildingId')
-  @UseGuards(RolesGuard)
-  @Roles(Role.UPRAVNIK)
+  @InBuilding(Role.UPRAVNIK)
   createUnitAccount(
     @Param('buildingId') buildingId: string,
     @Body() dto: CreateUnitAccountDto,
@@ -44,8 +54,7 @@ export class UsersController {
   }
 
   @Post(':buildingId/members/:userId/reset-password')
-  @UseGuards(RolesGuard)
-  @Roles(Role.UPRAVNIK)
+  @InBuilding(Role.UPRAVNIK)
   resetPassword(
     @Param('buildingId') buildingId: string,
     @Param('userId') userId: string,

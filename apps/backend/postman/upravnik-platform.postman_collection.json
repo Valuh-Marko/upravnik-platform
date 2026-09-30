@@ -2,7 +2,7 @@
   "info": {
     "name": "Upravnik Platform",
     "_postman_id": "upravnik-platform-v1",
-    "description": "Full API collection for the Upravnik platform.\n\n**Quick start:**\n1. Send any Login request — token saves automatically to {{authToken}}\n2. All other requests use it via Bearer auth\n\n**Seeded accounts:**\n- SUPER_ADMIN  → admin@upravnik.rs / Admin123!\n- UPRAVNIK     → upravnik@zgrada.rs / Upravnik123!\n- BOARD_MEMBER → board@zgrada.rs / Board123!\n- RESIDENT     → 1A / 2A / 2B / 3A ... / Resident123!",
+    "description": "Full API collection for the Upravnik platform.\n\n**Quick start:**\n1. Send any Login request — token saves automatically to {{authToken}}\n2. All other requests use it via Bearer auth\n\n**Seeded accounts:**\n- SUPER_ADMIN  → admin@upravnik.rs / Admin123!\n- UPRAVNIK     → upravnik@zgrada.rs / Upravnik123!\n- BOARD_MEMBER → board@zgrada.rs / Board123!\n- RESIDENT     → 1A / 2A / 2B / 3A ... / Resident123!\n\n**Access rules (all endpoints):**\n- Every endpoint requires a Bearer token except the Login requests.\n- `401` — no token, bad/expired token, the account is disabled, or the token was issued before the user's last password reset. Send the user back to login.\n- Building routes (`/buildings/:buildingId/...`) require an *active* membership in that building; complex routes (`/complexes/:complexId/...`) require an active membership in any building of the complex. Non-members get `403` — this check runs before any lookup, so a non-member gets `403` even for a building that doesn't exist. SUPER_ADMIN passes every membership check.\n- `404` — an unknown or malformed id (previously some of these were `500`).\n- `409` — unique conflict (e.g. email or unit number already in use), or a reply to a CLOSED thread/ticket.\n- `400` — invalid body or query params, including unknown query params.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -48,7 +48,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"username\": \"upravnik@zgrada.rs\",\n  \"password\": \"Upravnik123!\"\n}" },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-            "description": "Authenticates a user and returns a JWT access token. The token is valid for 7 days. Use any of the Login requests to switch between roles — the token is saved automatically to {{authToken}}.\n\n**Who can call it:** Anyone (no auth required).\n\n**Body fields:**\n- `username` (string, required) — email for system users (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER); unit number (e.g. '1A') for residents\n- `password` (string, required)\n\n**Errors:**\n- `401` — invalid credentials or account is inactive"
+            "description": "Authenticates a user and returns a JWT access token. The token is valid for 7 days. Use any of the Login requests to switch between roles — the token is saved automatically to {{authToken}}.\n\n**Who can call it:** Anyone (no auth required).\n\n**Body fields:**\n- `username` (string, required) — email for system users (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER); unit number (e.g. '1A') for residents\n- `password` (string, required)\n\n**Errors:**\n- `401` — invalid credentials or account is disabled\n- `429` — too many attempts: max 5 login requests per minute per IP + username. Show \"Too many attempts, try again in a minute\"."
           }
         },
         {
@@ -62,7 +62,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin@upravnik.rs\",\n  \"password\": \"Admin123!\"\n}" },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-            "description": "Authenticates as SUPER_ADMIN. Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+            "description": "Authenticates as SUPER_ADMIN. Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials or account is disabled\n- `429` — too many attempts: max 5 login requests per minute per IP + username. Show \"Too many attempts, try again in a minute\"."
           }
         },
         {
@@ -76,7 +76,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"username\": \"board.l1@zgrada.rs\",\n  \"password\": \"Board123!\"\n}" },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-            "description": "Authenticates as BOARD_MEMBER of Lamela 1. Token is saved to {{authToken}}.\n\nBoard members are building-specific: board.l1@zgrada.rs (Lamela 1), board.l2@zgrada.rs (Lamela 2), board.l3@zgrada.rs (Lamela 3), board.l4@zgrada.rs (Lamela 4).\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+            "description": "Authenticates as BOARD_MEMBER of Lamela 1. Token is saved to {{authToken}}.\n\nBoard members are building-specific: board.l1@zgrada.rs (Lamela 1), board.l2@zgrada.rs (Lamela 2), board.l3@zgrada.rs (Lamela 3), board.l4@zgrada.rs (Lamela 4).\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials or account is disabled\n- `429` — too many attempts: max 5 login requests per minute per IP + username. Show \"Too many attempts, try again in a minute\"."
           }
         },
         {
@@ -90,7 +90,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"username\": \"1A\",\n  \"password\": \"Resident123!\"\n}" },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-            "description": "Authenticates as RESIDENT (unit 1A). Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+            "description": "Authenticates as RESIDENT (unit 1A). Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials or account is disabled\n- `429` — too many attempts: max 5 login requests per minute per IP + username. Show \"Too many attempts, try again in a minute\"."
           }
         },
         {
@@ -104,7 +104,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"username\": \"1B\",\n  \"password\": \"Resident123!\"\n}" },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
-            "description": "Authenticates as RESIDENT (unit 1B). Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials"
+            "description": "Authenticates as RESIDENT (unit 1B). Token is saved to {{authToken}}.\n\n**Response:** `{ accessToken: string }`\n\n**Errors:**\n- `401` — invalid credentials or account is disabled\n- `429` — too many attempts: max 5 login requests per minute per IP + username. Show \"Too many attempts, try again in a minute\"."
           }
         },
         {
@@ -148,60 +148,6 @@
             "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
             "description": "Logs out the current user. Since auth is stateless JWT, the token is not invalidated server-side — the client must discard it. The Postman test script clears {{authToken}} automatically on success.\n\n**Who can call it:** Any authenticated user.\n\n**Auth:** Bearer token required.\n\n**Response:** `{ message: 'Logged out' }`\n\n**Errors:**\n- `401` — no token or token expired",
             "response_example": { "message": "Logged out" }
-          }
-        }
-      ]
-    },
-    {
-      "name": "👤 Users",
-      "item": [
-        {
-          "name": "Create System User (Admin only)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"novi.upravnik@zgrada.rs\",\n  \"password\": \"Password123!\",\n  \"role\": \"UPRAVNIK\",\n  \"firstName\": \"Novi\",\n  \"lastName\": \"Upravnik\",\n  \"phone\": \"+381601234567\"\n}" },
-            "url": { "raw": "{{baseUrl}}/users/system", "host": ["{{baseUrl}}"], "path": ["users", "system"] },
-            "description": "Creates a new system user (UPRAVNIK or BOARD_MEMBER). These are named accounts with email/password login. Only SUPER_ADMIN can call this.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Body fields:**\n- `email` (string, required) — used as the username for login\n- `password` (string, required) — plaintext, hashed on the server\n- `role` (string, required) — `UPRAVNIK` or `BOARD_MEMBER`\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `phone` (string, optional)\n\n**Response:** Created user object (password hash is never returned).\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not SUPER_ADMIN\n- `409` — email already in use",
-            "response_example": {
-              "id": "uuid",
-              "username": "novi.upravnik@zgrada.rs",
-              "email": "novi.upravnik@zgrada.rs",
-              "accountType": "SYSTEM_USER",
-              "createdAt": "2024-06-14T09:00:00Z"
-            }
-          }
-        },
-        {
-          "name": "Create Unit Account (Upravnik only)",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": { "mode": "raw", "raw": "{\n  \"unitId\": \"{{unit2_id}}\",\n  \"unitNumber\": \"a.1-2\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"Stanar\",\n  \"email\": \"stanar@email.com\"\n}" },
-            "url": { "raw": "{{baseUrl}}/users/unit/{{buildingId}}", "host": ["{{baseUrl}}"], "path": ["users", "unit", "{{buildingId}}"] },
-            "description": "Creates a unit account (RESIDENT) for a specific unit in a building. The username is the unit number (e.g. '2A') and the password is auto-generated. The plaintext password is returned only once in this response — store it and give it to the resident.\n\n**Who can call it:** UPRAVNIK only.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required) — the building the unit belongs to\n\n**Body fields:**\n- `unitId` (UUID, required) — the unit to associate the account with\n- `unitNumber` (string, required) — becomes the login username\n- `firstName` (string, optional)\n- `lastName` (string, optional)\n- `email` (string, optional)\n- `phone` (string, optional)\n\n**Side effects:** Creates a `BuildingMember` record with role RESIDENT and links the user to the unit.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `404` — `unitId` does not exist or does not belong to `buildingId`\n- `409` — unit number already has an account",
-            "response_example": {
-              "id": "uuid",
-              "username": "2A",
-              "accountType": "UNIT_ACCOUNT",
-              "plainPassword": "XK92MNQ1"
-            }
-          }
-        },
-        {
-          "name": "Reset Unit Account Password",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
-            "url": { "raw": "{{baseUrl}}/users/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}", "reset-password"] },
-            "description": "Generates a new random password for a unit account and returns it in plaintext. Use this when a resident forgets their password. The new password is returned only once — give it to the resident immediately.\n\n**Who can call it:** UPRAVNIK only.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `userId` (UUID, required) — the unit account to reset\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK\n- `404` — user not found",
-            "response_example": { "plainPassword": "A7BX92PQ" }
           }
         }
       ]
@@ -300,8 +246,29 @@
             "method": "POST",
             "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
             "url": { "raw": "{{baseUrl}}/users/{{buildingId}}/members/{{userId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["users", "{{buildingId}}", "members", "{{userId}}", "reset-password"] },
-            "description": "Generates a new random password for a unit account and returns it in plaintext. Use this when a resident or board member forgets their password. The new password is returned only once — give it to the user immediately.\n\n**Who can call it:** UPRAVNIK only (must be an UPRAVNIK of the specified building).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required) — the building the user belongs to (used to verify UPRAVNIK access)\n- `userId` (UUID, required) — the unit account to reset\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `404` — user not found",
-            "response_example": { "plainPassword": "N2J8QRST" }
+            "description": "Generates a new random 12-character password (letters A–Z and digits 2–9, no look-alike characters) for a resident unit account and returns it in plaintext. The new password is returned only once — give it to the user immediately.\n\nOnly **active RESIDENT unit accounts of this building** can be reset. Board members, other UPRAVNIKs, deactivated members and users of other buildings get `404`.\n\n**Side effects:** every token issued to that user before the reset stops working (`401`), so they are logged out everywhere.\n\n**Who can call it:** UPRAVNIK only (must be an UPRAVNIK of the specified building).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required) — the building the user belongs to (used to verify UPRAVNIK access)\n- `userId` (UUID, required) — the unit account to reset\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK in this building\n- `404` — user is not an active resident unit account of this building",
+            "response_example": { "plainPassword": "K7MXQ2PA9RTW" }
+          }
+        },
+        {
+          "name": "Update User (enable/disable account)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" },
+            "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] },
+            "description": "Enables or disables a whole account. A disabled account can't log in, all its existing tokens get `401` immediately, and its chat sockets are disconnected. Its history (posts, replies, tickets) is kept. Setting `isActive: true` re-enables it.\n\n**Who can call it:** SUPER_ADMIN only.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `userId` (UUID, required) — the account to change\n\n**Body fields:**\n- `isActive` (boolean, required) — `false` disables, `true` enables\n\n**Response:** the updated user: `id`, `username`, `email`, `accountType`, `isActive`, `updatedAt`.\n\n**Errors:**\n- `400` — `isActive` missing or not a boolean, or trying to disable your own account\n- `401` — not authenticated\n- `403` — caller is not SUPER_ADMIN\n- `404` — user not found",
+            "response_example": {
+              "id": "b1c2d3e4-0000-4000-8000-000000000001",
+              "username": "1A",
+              "email": null,
+              "accountType": "UNIT_ACCOUNT",
+              "isActive": false,
+              "updatedAt": "2026-09-30T10:15:00.000Z"
+            }
           }
         }
       ]
@@ -440,6 +407,28 @@
               "members": [{ "id": "uuid", "role": "UPRAVNIK", "joinedAt": "2024-06-14T09:00:00Z", "user": { "id": "uuid", "username": "upravnik@zgrada.rs", "firstName": "Marko", "lastName": "Petrović" } }]
             }
           }
+        },
+        {
+          "name": "Update Building Member (activate/deactivate)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" },
+            "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/members/{{userId}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "members", "{{userId}}"] },
+            "description": "Activates or deactivates one user's membership in this building. A deactivated member loses access to the building immediately (`403` on its routes, removed from its chat room, no longer included in `GET /buildings`, `/threads`, `/tickets`, `/announcements` lists). The account itself stays active and their history is kept. Setting `isActive: true` restores access.\n\n**Who can call it:** UPRAVNIK of this building (or SUPER_ADMIN). Only SUPER_ADMIN may change another UPRAVNIK's membership.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `userId` (UUID, required) — the member to change\n\n**Body fields:**\n- `isActive` (boolean, required)\n\n**Response:** the membership: `id`, `buildingId`, `userId`, `role`, `unitId` (null for staff), `isActive`, `joinedAt`.\n\n**Side effects:** on deactivation, the user's open chat sockets leave this building's room.\n\n**Errors:**\n- `400` — `isActive` missing or not a boolean\n- `401` — not authenticated\n- `403` — caller is not UPRAVNIK of this building, or the target is an UPRAVNIK and the caller is not SUPER_ADMIN\n- `404` — the user is not a member of this building",
+            "response_example": {
+              "id": "c1d2e3f4-0000-4000-8000-000000000001",
+              "buildingId": "a1b2c3d4-0000-4000-8000-000000000001",
+              "userId": "b1c2d3e4-0000-4000-8000-000000000001",
+              "role": "RESIDENT",
+              "unitId": "d1e2f3a4-0000-4000-8000-000000000001",
+              "isActive": false,
+              "joinedAt": "2026-06-12T19:16:39.000Z"
+            }
+          }
         }
       ]
     },
@@ -532,7 +521,7 @@
                 { "key": "buildingId", "value": "", "description": "Optional. Filter to a specific building UUID.", "disabled": true }
               ]
             },
-            "description": "Returns all announcements across every building the authenticated user belongs to (or across ALL buildings for SUPER_ADMIN). Pinned announcements appear first per the standard ordering rule, then by `createdAt` descending. Each result includes `building { id, name }` so the frontend can group or label by building.\n\n**Who can call it:** Any authenticated user (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER, RESIDENT). SUPER_ADMIN sees announcements from every building in the system (no membership required). Everyone else is scoped to their own building memberships; if `buildingId` is passed and the caller is not a member of that building, an empty array is returned (not an error).\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building (any building for SUPER_ADMIN; one you are a member of otherwise)\n\n**Errors:**\n- `401` — not authenticated",
+            "description": "Returns all announcements across every building the authenticated user belongs to (or across ALL buildings for SUPER_ADMIN). Pinned announcements appear first per the standard ordering rule, then by `createdAt` descending. Each result includes `building { id, name }` so the frontend can group or label by building.\n\n**Who can call it:** Any authenticated user (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER, RESIDENT). SUPER_ADMIN sees announcements from every building in the system (no membership required). Everyone else is scoped to their own building memberships; if `buildingId` is passed and the caller is not a member of that building, an empty array is returned (not an error).\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building (any building for SUPER_ADMIN; one you are a member of otherwise)\n\n**Errors:**\n- `401` — not authenticated\n\n**Validation:** `buildingId` must be a UUID and `status` (where supported) must be `OPEN` or `CLOSED`; unknown query params are rejected. Invalid params return `400`. For everyone except SUPER_ADMIN, only buildings where the caller has an *active* membership are included.",
             "response_example": [
               {
                 "id": "448e7eee-d829-4841-a5e4-540ac327e69a",
@@ -652,7 +641,7 @@
             ],
             "body": { "mode": "raw", "raw": "{\n  \"title\": \"Godišnji izveštaj 2025\",\n  \"fileUrl\": \"https://storage.example.com/docs/izvestaj-2025.pdf\",\n  \"fileType\": \"pdf\",\n  \"category\": \"REPORT\"\n}" },
             "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/documents", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "documents"] },
-            "description": "Uploads a document record for a building. The file itself must be hosted externally — this endpoint only stores the metadata and URL.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `title` (string, required)\n- `fileUrl` (string, required) — publicly accessible URL to the file\n- `fileType` (string, optional) — e.g. 'pdf', 'docx'\n- `category` (string, required) — `CONTRACT`, `REPORT`, `DECISION`, or `OTHER`\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER",
+            "description": "Uploads a document record for a building. The file itself must be hosted externally — this endpoint only stores the metadata and URL.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n\n**Body fields:**\n- `title` (string, required)\n- `fileUrl` (string, required) — publicly accessible **https** URL to the file (`http:`, `javascript:` etc. are rejected)\n- `fileType` (string, optional) — e.g. 'pdf', 'docx'\n- `category` (string, required) — `CONTRACT`, `REPORT`, `DECISION`, or `OTHER`\n\n**Errors:**\n- `400` — missing/invalid fields, or `fileUrl` is not an https URL\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER",
             "response_example": {
               "id": "uuid",
               "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
@@ -800,7 +789,7 @@
             ],
             "body": { "mode": "raw", "raw": "{\n  \"body\": \"Servis je obavešten i dolazi u petak.\"\n}" },
             "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{thread1_id}}", "replies"] },
-            "description": "Adds a reply to an existing thread. Any authenticated member of the building can reply.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread to reply to\n\n**Body fields:**\n- `body` (string, required) — the reply text\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — thread not found, or the thread does not belong to this building",
+            "description": "Adds a reply to an existing thread. Any authenticated member of the building can reply.\n\n**Who can call it:** Any authenticated member of this building (UPRAVNIK, BOARD_MEMBER, RESIDENT, or SUPER_ADMIN).\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread to reply to\n\n**Body fields:**\n- `body` (string, required) — the reply text\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not a member of this building\n- `404` — thread not found, or the thread does not belong to this building\n- `409` — the thread is CLOSED (disable the reply input when `status === \"CLOSED\"`)",
             "response_example": {
               "id": "uuid",
               "threadId": "be7e1cde-9850-428f-998a-36b6c83f73f9",
@@ -824,7 +813,7 @@
                 { "key": "status", "value": "OPEN", "description": "Optional. Filter by status: OPEN or CLOSED.", "disabled": true }
               ]
             },
-            "description": "Returns all threads across every building the authenticated user belongs to. For an UPRAVNIK managing multiple buildings this returns threads from all of them in a single call. Includes `building { id, name }` on each thread so the frontend can group or label by building.\n\n**Who can call it:** Any authenticated user (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER, RESIDENT). Results are always scoped to the caller's own building memberships — SUPER_ADMIN sees every thread across all buildings, everyone else only sees threads from buildings they belong to. If `buildingId` is passed and the caller is not a member of that building, an empty array is returned (not an error) — this prevents probing for buildings you don't belong to.\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building you are a member of\n- `status` (`OPEN` | `CLOSED`) — filter by thread status\n\n**Response:** Array of threads ordered by `createdAt` descending, each including:\n- `author { id, firstName, lastName }`\n- `building { id, name }` — which building the thread belongs to\n- `_count.replies` — reply count\n\n**Errors:**\n- `401` — not authenticated",
+            "description": "Returns all threads across every building the authenticated user belongs to. For an UPRAVNIK managing multiple buildings this returns threads from all of them in a single call. Includes `building { id, name }` on each thread so the frontend can group or label by building.\n\n**Who can call it:** Any authenticated user (SUPER_ADMIN, UPRAVNIK, BOARD_MEMBER, RESIDENT). Results are always scoped to the caller's own building memberships — SUPER_ADMIN sees every thread across all buildings, everyone else only sees threads from buildings they belong to. If `buildingId` is passed and the caller is not a member of that building, an empty array is returned (not an error) — this prevents probing for buildings you don't belong to.\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building you are a member of\n- `status` (`OPEN` | `CLOSED`) — filter by thread status\n\n**Response:** Array of threads ordered by `createdAt` descending, each including:\n- `author { id, firstName, lastName }`\n- `building { id, name }` — which building the thread belongs to\n- `_count.replies` — reply count\n\n**Errors:**\n- `401` — not authenticated\n\n**Validation:** `buildingId` must be a UUID and `status` (where supported) must be `OPEN` or `CLOSED`; unknown query params are rejected. Invalid params return `400`. For everyone except SUPER_ADMIN, only buildings where the caller has an *active* membership are included.",
             "response_example": [
               {
                 "id": "be7e1cde-9850-428f-998a-36b6c83f73f9",
@@ -849,7 +838,7 @@
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
             "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/threads/{{thread2_id}}/close", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "threads", "{{thread2_id}}", "close"] },
-            "description": "Marks a thread as CLOSED. Closed threads are still visible but indicate the issue has been resolved. There is no reopen endpoint currently.\n\n**Who can call it:** UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread to close\n\n**Errors:**\n- `401` — not authenticated\n- `403` — authenticated user is not UPRAVNIK or BOARD_MEMBER\n- `404` — thread not found",
+            "description": "Marks a thread as CLOSED. Closed threads are still visible but indicate the issue has been resolved; replies to them are rejected with `409`. There is no reopen endpoint currently.\n\n**Who can call it:** the thread's author, or UPRAVNIK / BOARD_MEMBER of this building. Show the Close button when `thread.authorId === currentUser.id` or the user is staff in this building.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the thread to close\n\n**Errors:**\n- `401` — not authenticated\n- `403` — not a member of this building, or neither the author nor UPRAVNIK/BOARD_MEMBER\n- `404` — thread not found",
             "response_example": {
               "id": "0c14dba2-c5f0-4d11-a03a-a9db90960a19",
               "buildingId": "1ce90703-648e-4c97-9e71-2a6f3f98d90c",
@@ -924,7 +913,7 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
             "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticket1_id}}"] },
-            "description": "Returns a single ticket with all replies. Replies are ordered oldest first so the conversation reads top-to-bottom.\n\nAccess rules:\n- **RESIDENT** — can only fetch their own ticket. Returns `403` for any other ticket ID.\n- **UPRAVNIK / BOARD_MEMBER** — can fetch any ticket in the building.\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket ID\n\n**Response:** Ticket object with `author { id, firstName, lastName }` and `replies[]`, each reply with `author { id, firstName, lastName }`.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to access another resident's ticket\n- `404` — ticket not found or user not a member of this building",
+            "description": "Returns a single ticket with all replies. Replies are ordered oldest first so the conversation reads top-to-bottom.\n\nAccess rules:\n- **RESIDENT** — can only fetch their own ticket. Returns `403` for any other ticket ID.\n- **UPRAVNIK / BOARD_MEMBER** — can fetch any ticket in the building.\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket ID\n\n**Response:** Ticket object with `author { id, firstName, lastName }` and `replies[]`, each reply with `author { id, firstName, lastName }`.\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to access another resident's ticket\n- `403` — not a member of this building\n- `404` — ticket not found in this building",
             "response_example": {
               "id": "uuid",
               "buildingId": "e8309e5e-3526-43c2-b426-fc02db425764",
@@ -961,7 +950,7 @@
             ],
             "body": { "mode": "raw", "raw": "{\n  \"body\": \"Servis je obavešten i dolazi sutra između 10 i 12h.\"\n}" },
             "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticket1_id}}", "replies"] },
-            "description": "Adds a reply to an existing ticket. Only the ticket author (RESIDENT) and staff (UPRAVNIK, BOARD_MEMBER) may reply.\n\nNotification behavior:\n- Reply by RESIDENT → all UPRAVNIK and BOARD_MEMBER in the building are notified\n- Reply by UPRAVNIK or BOARD_MEMBER → the ticket author is notified\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket to reply to\n\n**Body fields:**\n- `body` (string, required) — the reply text\n\n**Side effects:** Sends an in-app notification to the other party (see above).\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to reply to another resident's ticket\n- `404` — ticket not found or user not a member of this building",
+            "description": "Adds a reply to an existing ticket. Only the ticket author (RESIDENT) and staff (UPRAVNIK, BOARD_MEMBER) may reply.\n\nNotification behavior:\n- Reply by RESIDENT → all UPRAVNIK and BOARD_MEMBER in the building are notified\n- Reply by UPRAVNIK or BOARD_MEMBER → the ticket author is notified\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket to reply to\n\n**Body fields:**\n- `body` (string, required) — the reply text\n\n**Side effects:** Sends an in-app notification to the other party (see above).\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to reply to another resident's ticket\n- `403` — not a member of this building\n- `404` — ticket not found in this building\n- `409` — the ticket is CLOSED",
             "response_example": {
               "id": "uuid",
               "ticketId": "uuid",
@@ -977,7 +966,7 @@
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
             "url": { "raw": "{{baseUrl}}/buildings/{{buildingId}}/tickets/{{ticket1_id}}/close", "host": ["{{baseUrl}}"], "path": ["buildings", "{{buildingId}}", "tickets", "{{ticket1_id}}", "close"] },
-            "description": "Marks a ticket as CLOSED. Closed tickets are still visible but indicate the issue has been resolved. There is no reopen endpoint.\n\nAny of the three parties may close the ticket:\n- The RESIDENT who opened it (e.g. the issue resolved itself)\n- The UPRAVNIK\n- A BOARD_MEMBER\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket to close\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to close another resident's ticket\n- `404` — ticket not found or user not a member of this building",
+            "description": "Marks a ticket as CLOSED. Closed tickets are still visible but indicate the issue has been resolved; replies to them are rejected with `409`. There is no reopen endpoint.\n\nAny of the three parties may close the ticket:\n- The RESIDENT who opened it (e.g. the issue resolved itself)\n- The UPRAVNIK\n- A BOARD_MEMBER\n\n**Who can call it:** RESIDENT (own ticket only), UPRAVNIK, BOARD_MEMBER.\n\n**Auth:** Bearer token required.\n\n**Path params:**\n- `buildingId` (UUID, required)\n- `id` (UUID, required) — the ticket to close\n\n**Errors:**\n- `401` — not authenticated\n- `403` — RESIDENT trying to close another resident's ticket\n- `403` — not a member of this building\n- `404` — ticket not found in this building",
             "response_example": {
               "id": "uuid",
               "buildingId": "aa405297-333e-493d-b0f2-9d54a6e9bac6",
@@ -1005,7 +994,7 @@
                 { "key": "status", "value": "OPEN", "description": "Optional. Filter by status: OPEN or CLOSED.", "disabled": true }
               ]
             },
-            "description": "Returns all tickets authored by the currently authenticated user across all their buildings. Useful for a resident dashboard showing all their open/closed tickets. Includes `building { id, name }` on each ticket so the frontend can group by building.\n\n**Who can call it:** Any authenticated user (always scoped to own tickets regardless of role).\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building\n- `status` (`OPEN` | `CLOSED`) — filter by ticket status\n\n**Response:** Array of ticket objects ordered by `createdAt` descending, each with:\n- `author { id, firstName, lastName }`\n- `building { id, name }`\n- `_count.replies`\n\n**Errors:**\n- `401` — not authenticated",
+            "description": "Returns all tickets authored by the currently authenticated user across all their buildings. Useful for a resident dashboard showing all their open/closed tickets. Includes `building { id, name }` on each ticket so the frontend can group by building.\n\n**Who can call it:** Any authenticated user (always scoped to own tickets regardless of role).\n\n**Auth:** Bearer token required.\n\n**Query params (all optional):**\n- `buildingId` (UUID) — narrow results to one building\n- `status` (`OPEN` | `CLOSED`) — filter by ticket status\n\n**Response:** Array of ticket objects ordered by `createdAt` descending, each with:\n- `author { id, firstName, lastName }`\n- `building { id, name }`\n- `_count.replies`\n\n**Errors:**\n- `401` — not authenticated\n\n**Validation:** `buildingId` must be a UUID and `status` (where supported) must be `OPEN` or `CLOSED`; unknown query params are rejected. Invalid params return `400`. For everyone except SUPER_ADMIN, only buildings where the caller has an *active* membership are included.",
             "response_example": [
               {
                 "id": "uuid",
@@ -1140,7 +1129,7 @@
             ],
             "body": { "mode": "raw", "raw": "{\n  \"body\": \"Podržavam ideju, i mi iz Lamele 2 smo zainteresovani.\"\n}" },
             "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/replies", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}", "replies"] },
-            "description": "## What this endpoint does\n\nAdds a reply to an existing complex thread. Any member of any building in the complex can reply — there is no role restriction. After posting, append the returned reply object to the bottom of the local replies list and clear the input field without refetching the full thread.\n\n## Who can call it\n\nAny authenticated member of any building in this complex (RESIDENT, BOARD_MEMBER, UPRAVNIK). Note: you cannot reply to a CLOSED thread — the backend does not enforce this yet, but the frontend should disable the reply input and hide the submit button when `thread.status === 'CLOSED'`.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread to reply to\n\n## Body fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `body` | string | yes | The reply text. No minimum length enforced beyond non-empty. |\n\n## Success response — 201\n\nThe created reply object:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Reply ID |\n| `threadId` | UUID | Parent thread ID |\n| `authorId` | UUID | The replying user's ID |\n| `body` | string | Reply text |\n| `createdAt` | ISO 8601 | Timestamp |\n\nNote: the response does **not** include the nested `author` object. To display the author name immediately after posting, use the current user's name from your auth state — do not refetch.\n\n## Error responses\n\n- `400` — `body` is missing or empty\n- `401` — no token or token expired\n- `403` — user has no membership in any building of this complex\n- `404` — thread not found",
+            "description": "## What this endpoint does\n\nAdds a reply to an existing complex thread. Any member of any building in the complex can reply — there is no role restriction. After posting, append the returned reply object to the bottom of the local replies list and clear the input field without refetching the full thread.\n\n## Who can call it\n\nAny authenticated member of any building in this complex (RESIDENT, BOARD_MEMBER, UPRAVNIK). Replies to a CLOSED thread are rejected with `409` — disable the reply input and hide the submit button when `thread.status === 'CLOSED'`.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread to reply to\n\n## Body fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `body` | string | yes | The reply text. No minimum length enforced beyond non-empty. |\n\n## Success response — 201\n\nThe created reply object:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Reply ID |\n| `threadId` | UUID | Parent thread ID |\n| `authorId` | UUID | The replying user's ID |\n| `body` | string | Reply text |\n| `createdAt` | ISO 8601 | Timestamp |\n\nNote: the response does **not** include the nested `author` object. To display the author name immediately after posting, use the current user's name from your auth state — do not refetch.\n\n## Error responses\n\n- `400` — `body` is missing or empty\n- `401` — no token or token expired\n- `403` — user has no membership in any building of this complex\n- `404` — thread not found\n- `409` — the thread is CLOSED",
             "response_example": {
               "id": "e9c3d500-0003-4ccc-dddd-000000000012",
               "threadId": "a3f8c120-1234-4abc-9def-000000000001",
@@ -1156,7 +1145,7 @@
             "method": "PATCH",
             "header": [{ "key": "Authorization", "value": "Bearer {{authToken}}" }],
             "url": { "raw": "{{baseUrl}}/complexes/{{complexId}}/threads/{{thread1_id}}/close", "host": ["{{baseUrl}}"], "path": ["complexes", "{{complexId}}", "threads", "{{thread1_id}}", "close"] },
-            "description": "## What this endpoint does\n\nMarks a complex thread as `CLOSED`. A closed thread remains fully readable — the title, body, and all replies are still returned by the GET endpoints — but it signals that the discussion is resolved. There is no reopen endpoint.\n\n## Who can close a thread\n\nThree categories of users may close a thread:\n\n1. **UPRAVNIK** — can close any thread in the complex regardless of who authored it\n2. **BOARD_MEMBER** — any board member of any building in the complex can close any thread\n3. **Thread author** — the user who created the thread can close their own thread regardless of role\n\nAll other users receive `403`. On the frontend, only show the Close button to users who meet one of these conditions. Check: `thread.authorId === currentUser.id || currentUser.role === 'UPRAVNIK' || currentUser.role === 'BOARD_MEMBER'`.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread to close\n\n## Success response — 200\n\nThe full updated thread object with `status: 'CLOSED'`. Update the thread in local state with this response so the UI immediately reflects the closed status and hides the reply input.\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Thread ID |\n| `complexId` | UUID | |\n| `authorId` | UUID | |\n| `title` | string | |\n| `body` | string | |\n| `category` | enum | |\n| `status` | `\"CLOSED\"` | Will always be `CLOSED` in this response |\n| `createdAt` | ISO 8601 | |\n| `updatedAt` | ISO 8601 | Reflects the time of closing |\n\n## Error responses\n\n- `401` — no token or token expired\n- `403` — user is not UPRAVNIK, BOARD_MEMBER, or the thread author\n- `404` — thread not found",
+            "description": "## What this endpoint does\n\nMarks a complex thread as `CLOSED`. A closed thread remains fully readable — the title, body, and all replies are still returned by the GET endpoints — but it signals that the discussion is resolved. There is no reopen endpoint.\n\n## Who can close a thread\n\nThree categories of users may close a thread:\n\n1. **UPRAVNIK** — can close any thread in the complex regardless of who authored it\n2. **BOARD_MEMBER** — any board member of any building in the complex can close any thread (the caller's highest role across the complex counts)\n3. **Thread author** — the user who created the thread can close their own thread regardless of role\n\nAll other users receive `403`. On the frontend, only show the Close button to users who meet one of these conditions. Check: `thread.authorId === currentUser.id || currentUser.role === 'UPRAVNIK' || currentUser.role === 'BOARD_MEMBER'`.\n\n## Auth\n\nBearer token required.\n\n## Path params\n\n- `complexId` (UUID, required)\n- `id` (UUID, required) — the thread to close\n\n## Success response — 200\n\nThe full updated thread object with `status: 'CLOSED'`. Update the thread in local state with this response so the UI immediately reflects the closed status and hides the reply input.\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | UUID | Thread ID |\n| `complexId` | UUID | |\n| `authorId` | UUID | |\n| `title` | string | |\n| `body` | string | |\n| `category` | enum | |\n| `status` | `\"CLOSED\"` | Will always be `CLOSED` in this response |\n| `createdAt` | ISO 8601 | |\n| `updatedAt` | ISO 8601 | Reflects the time of closing |\n\n## Error responses\n\n- `401` — no token or token expired\n- `403` — user is not UPRAVNIK, BOARD_MEMBER, or the thread author\n- `404` — thread not found",
             "response_example": {
               "id": "a3f8c120-1234-4abc-9def-000000000001",
               "complexId": "a6106279-f589-4760-863e-6916aa9440cd",

@@ -4,6 +4,9 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 
+// bcrypt hash (cost 12) of a random string; compared against when the user doesn't exist.
+const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', 12);
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -56,11 +59,13 @@ export class AuthService {
       where: { username: dto.username },
     });
 
-    if (!user || !user.isActive)
+    // Always run bcrypt so response time doesn't reveal whether the username exists.
+    const valid = await bcrypt.compare(
+      dto.password,
+      user?.passwordHash ?? DUMMY_HASH,
+    );
+    if (!user || !user.isActive || !valid)
       throw new UnauthorizedException('Invalid credentials');
-
-    const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const token = this.jwt.sign({
       sub: user.id,

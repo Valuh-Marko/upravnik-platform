@@ -1,36 +1,37 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PrismaService } from '../../prisma/prisma.service';
+import { AccessService } from '../access/access.service';
+import { AuthUser } from '../access/auth-user';
 
 export interface JwtPayload {
   sub: string;
   username: string;
   accountType: string;
   systemRole?: string;
+  iat?: number;
+  exp?: number;
 }
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private prisma: PrismaService) {
+  constructor(
+    config: ConfigService,
+    private access: AccessService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? 'change-me',
+      secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
     });
   }
 
-  async validate(payload: JwtPayload) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-    });
-    if (!user || !user.isActive) throw new UnauthorizedException();
-
-    return {
-      id: user.id,
-      username: user.username,
-      accountType: user.accountType,
-      systemRole: user.systemRole ?? null,
-    };
+  // Reloads the user on every request: disabled accounts and tokens issued
+  // before the last password change get 401.
+  async validate(payload: JwtPayload): Promise<AuthUser> {
+    const user = await this.access.loadUser(payload.sub, payload.iat);
+    if (!user) throw new UnauthorizedException();
+    return user;
   }
 }

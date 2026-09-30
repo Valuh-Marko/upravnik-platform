@@ -1,38 +1,36 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { SystemAdminGuard } from '../auth/guards/system-admin.guard';
+import {
+  AnyUser,
+  CurrentUser,
+  InComplex,
+  SuperAdmin,
+} from '../auth/access/access.decorators';
+import type { AuthUser } from '../auth/access/auth-user';
 import { ComplexesService } from './complexes.service';
 import { CreateComplexDto } from './dto/create-complex.dto';
 
 @ApiTags('complexes')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('complexes')
 export class ComplexesController {
   constructor(private complexesService: ComplexesService) {}
 
   @Post()
-  @UseGuards(SystemAdminGuard)
+  @SuperAdmin()
   create(@Body() dto: CreateComplexDto) {
     return this.complexesService.create(dto);
   }
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.complexesService.findAll(req.user.id, req.user.systemRole);
+  @AnyUser()
+  findAll(@CurrentUser() user: AuthUser) {
+    return this.complexesService.findAll(user);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: any) {
-    return this.complexesService.findOne(id, req.user.id, req.user.systemRole);
+  @Get(':complexId')
+  @InComplex()
+  findOne(@Param('complexId') complexId: string) {
+    return this.complexesService.findOne(complexId);
   }
 }
