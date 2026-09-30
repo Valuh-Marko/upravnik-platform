@@ -1,0 +1,32 @@
+{
+  "name": "upravnik-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "nx run-many -t dev",
+    "build": "nx run-many -t build",
+    "lint": "nx run-many -t lint",
+    "test": "nx run-many -t test",
+    "affected:build": "nx affected -t build",
+    "affected:test": "nx affected -t lint test build",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@nx/eslint": "^23.2.1",
+    "@nx/jest": "^23.2.1",
+    "@nx/js": "^23.2.1",
+    "@nx/next": "^23.2.1",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.18.0",
+    "nx": "^23.2.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}

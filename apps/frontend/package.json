@@ -1,11 +1,11 @@
 {
-  "name": "upravnik-platform-frontend",
+  "name": "@upravnik/frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "eslint"
   },
   "dependencies": {
@@ -27,12 +27,19 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.1",
-    "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
     "eslint-config-next": "16.2.9",
-    "tailwindcss": "^4.3.1",
-    "typescript": "^5"
+    "tailwindcss": "^4.3.1"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/.next/!(cache)/**/*",
+          "{projectRoot}/.next/!(cache)"
+        ]
+      }
+    }
   }
 }
