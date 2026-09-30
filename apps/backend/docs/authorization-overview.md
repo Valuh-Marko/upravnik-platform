@@ -1,8 +1,8 @@
-# How authorization works (current state)
+# How authorization works
 
-Written 2026-09-30 · Scope: `apps/backend` · Paths are relative to `apps/backend/`.
+Updated 2026-09-30 · Scope: `apps/backend` · Paths are relative to `apps/backend/`.
 
-This describes the code **as it is today, before the rework**. For known problems and the fix plan, see [authorization-hardening-plan.md](./authorization-hardening-plan.md). Update or replace this doc once Phase 3 of that plan lands.
+This describes the design introduced by [authorization-hardening-plan.md](./authorization-hardening-plan.md). The plan also lists what was wrong before and why each change was made.
 
 ---
 
@@ -13,37 +13,41 @@ Permissions work at two levels.
 **Platform level** lives on `User`:
 - `accountType`: `SYSTEM_USER` or `UNIT_ACCOUNT`.
 - An optional `systemRole`. Its only value is `SUPER_ADMIN`.
+- `isActive`: `false` disables the whole account.
 
 **Building level** lives only on `BuildingMember`:
 - The roles are `UPRAVNIK`, `BOARD_MEMBER` and `RESIDENT`.
 - There is one membership row per building and user.
-- Complexes have no role table. Complex access comes from the user's memberships in the buildings of that complex.
+- `isActive = false` revokes access to that building but keeps the user's history (decision D1).
+- Complexes have no role table. Complex access comes from the user's active memberships in the buildings of that complex.
 
 The JWT carries only the platform-level identity. Building roles are looked up in the database on every request.
 
-Checks are enforced in two ways:
-
-1. **Guards attached per controller:** `JwtAuthGuard`, `SystemAdminGuard`, and `RolesGuard` together with `@Roles(...)`.
-2. **Hand-written checks inside services:** four near-duplicate helpers that each resolve the caller's role.
-
-Nothing is global. There is no app-wide guard, no exception filter and no central policy layer.
+**Access is denied by default.** Every HTTP handler must declare an access policy with a decorator. Two global guards enforce it, and the app refuses to start if a handler has no policy.
 
 ## Key concepts
 
-- **`SUPER_ADMIN`** (`prisma/schema.prisma:16-18`, `User.systemRole`): the platform operator.
-  - Every role resolver treats a SUPER_ADMIN as UPRAVNIK of every building.
-  - The seed (`prisma/seed.ts:156-162`) is the only way to create one. No API endpoint grants it.
-- **`BuildingMember`** (`schema.prisma:162-177`): the only place building roles live.
-  - `@@unique([buildingId, userId])`, so a user has at most one role per building.
-  - `unitId` is optional and `@unique`.
-  - It has an `isActive` flag, but most checks ignore it.
-- **`UNIT_ACCOUNT`**: a user linked 1:1 to a `Unit` (`Unit.userId @unique`). Its username is the unit number, which must be unique across the platform.
-- **Complex scope**: `Complex → Building.complexId? → Unit`.
-  - A complex-forum user is any active member of any building in the complex.
-  - Their role there is the highest role they hold across those buildings.
-- **`req.user`** is `{ id, username, accountType, systemRole }`.
-  - `JwtStrategy.validate()` reloads it from the database on every request.
-  - Controllers access it as an untyped `@Request() req: any`.
+- **Policy decorators** (`src/auth/access/access.decorators.ts`): exactly one per handler, or on the controller class.
+
+  | Decorator | Who may call |
+  |---|---|
+  | `@Public()` | anyone, no token (`POST /auth/login` only) |
+  | `@AnyUser()` | any logged-in user; the service scopes results to the caller |
+  | `@SuperAdmin()` | `systemRole = SUPER_ADMIN` |
+  | `@InBuilding(...roles)` | active member of `:buildingId`; with roles, only those roles |
+  | `@InComplex(...roles)` | active member of any building in `:complexId`; the highest role across the complex counts |
+
+- **`AccessService`** (`src/auth/access/access.service.ts`) is the only code that turns `(user, buildingId | complexId)` into a role. HTTP and WebSocket both use it.
+  - It ignores inactive memberships.
+  - A SUPER_ADMIN counts as UPRAVNIK everywhere.
+  - `loadUser(id, iat)` returns `null` for a missing or disabled account, or for a token issued before `User.passwordChangedAt`.
+- **`AuthUser`** is `{ id, username, accountType, systemRole }`. Handlers receive it with `@CurrentUser()`.
+- **`Access`** is `{ role, isSuperAdmin, buildingId? , complexId? }`. It is resolved once by the guard and handed to services with `@CurrentAccess()`. Services never query membership again.
+- **Ownership rules** (`src/auth/access/policies.ts`) are plain functions:
+  - `isStaff`: an allowlist, `UPRAVNIK | BOARD_MEMBER`. Any other role only sees and manages its own items.
+  - `canViewTicket`: tickets are private to their author and the building's staff.
+  - `assertCanClose`: the author or staff may close threads, tickets and complex-forum threads (D2).
+  - `assertOpen`: a reply to a CLOSED item gets `409` (D3).
 
 ### Product rules (confirmed)
 
@@ -54,112 +58,109 @@ Nothing is global. There is no app-wide guard, no exception filter and no centra
 
 ### Authentication
 
-1. `AuthService.login()` (`src/auth/auth.service.ts:54-73`) checks `isActive` and the bcrypt hash.
+1. `AuthService.login()` (`src/auth/auth.service.ts`) checks `isActive` and the bcrypt hash.
+   - When the user doesn't exist, it still compares against a dummy hash, so response timing doesn't reveal which usernames exist.
+   - `LoginThrottlerGuard` allows 5 attempts per minute per IP + username. The 6th gets `429`.
 2. It signs `{ sub, username, accountType, systemRole }` with HS256.
-3. The token is valid for 7 days (`src/auth/auth.module.ts:11-14`). There is no refresh token.
-4. On every HTTP request, `JwtStrategy.validate()` (`src/auth/strategies/jwt.strategy.ts:23-35`) reloads the user. It returns 401 if the user is missing or inactive.
-5. `/auth/logout` does nothing on the server.
+   - The token is valid for 7 days (D4). There is no refresh token.
+   - `JWT_SECRET` is validated at startup (`src/config/env.validation.ts`, at least 32 characters). There is no fallback.
+3. On every HTTP request, `JwtStrategy.validate()` calls `AccessService.loadUser`, which returns `401` for:
+   - a disabled account;
+   - a token issued before the user's last password reset.
+4. `/auth/logout` does nothing on the server.
 
-Because of step 4, deactivation and `systemRole` changes take effect immediately over HTTP.
+### Request pipeline
 
-### Guards: the coarse check
+Global guards are registered in `AuthModule` as `APP_GUARD`s. Order matters: they run in registration order.
 
-Every controller except `AuthController` has `@UseGuards(JwtAuthGuard)` at class level. Class guards run before method guards, so `req.user` is always set before any role guard runs.
+1. **`JwtAuthGuard`** (`src/auth/guards/jwt-auth.guard.ts`): skips `@Public()` routes. Otherwise it requires a valid token, or returns `401`.
+2. **`AccessGuard`** (`src/auth/access/access.guard.ts`):
+   - It reads the route's policy. With no policy, the answer is `403`.
+   - For `@InBuilding` / `@InComplex`, it resolves the role through `AccessService` and returns `403` for non-members and wrong roles.
+   - This runs **before** any lookup. A non-member therefore gets `403` even for an id that doesn't exist, so ids can't be probed.
+   - Finally it attaches `req.access`.
+3. The **controller** receives `@CurrentUser()` / `@CurrentAccess()`.
+4. The **service** fetches child records scoped to their parent, for example `findFirstOrThrow({ where: { id, buildingId } })`. It then applies the `policies.ts` rules.
 
-**`SystemAdminGuard`** (`src/auth/guards/system-admin.guard.ts`) just checks `systemRole === 'SUPER_ADMIN'`.
+`AccessCoverageCheck` (`src/auth/access/access-coverage.check.ts`) runs at bootstrap. It fails startup when:
 
-**`RolesGuard`** (`src/auth/guards/roles.guard.ts:14-36`) works in four steps:
+- any HTTP handler has no policy;
+- an `@InBuilding` route has no `:buildingId` in its path;
+- an `@InComplex` route has no `:complexId` in its path.
 
-1. If the route has no `@Roles` metadata, it allows the request.
-2. A SUPER_ADMIN is always allowed.
-3. It reads `params.buildingId`. If the route has no such parameter, it returns 403.
-4. It looks up the `BuildingMember` row and checks that its role is in the required list.
+### Errors
 
-Two things to know about `RolesGuard`:
+| Status | Meaning | Source |
+|---|---|---|
+| `400` | invalid body or query params, including unknown fields | global `ValidationPipe({ whitelist, forbidNonWhitelisted, transform })` and query DTOs (`src/common/dto/my-list-query.dto.ts`) |
+| `401` | no or bad token, disabled account, token issued before password reset | `JwtAuthGuard` / `JwtStrategy` |
+| `403` | no policy, not a member, wrong role, or not the owner | `AccessGuard`, `policies.ts` |
+| `404` | resource not found in a scope you can access, including malformed ids | `PrismaExceptionFilter`: `P2025` / `P2003` |
+| `409` | unique conflict, or a reply to a CLOSED item | `PrismaExceptionFilter`: `P2002`; `assertOpen` |
+| `429` | too many login attempts | `LoginThrottlerGuard` |
 
-- It ignores `isActive`.
-- It discards the role it found, so services look it up again.
+### Account lifecycle
 
-Where each guard is used:
-
-| Guard | Routes |
-|---|---|
-| `SystemAdminGuard` | `POST /complexes`, `POST /buildings`, `POST /users/system`, `/setup/*` |
-| `RolesGuard` + `@Roles(UPRAVNIK)` | `POST /buildings/:buildingId/units`, `POST /users/board-member/:buildingId`, `POST /users/unit/:buildingId`, `POST /users/:buildingId/members/:userId/reset-password` |
-| `RolesGuard` + `@Roles(UPRAVNIK, BOARD_MEMBER)` | announcements POST/PATCH, documents POST, `PATCH threads/:id/close` |
-| No role guard (service-level checks only) | all GETs, tickets, complex-forum, notifications, the `my-*` controllers |
-
-### Services: the detailed check
-
-Reading data and ownership rules are handled in the services, through one of four helpers:
-
-| Helper | Where | Used by | Non-member gets | Checks `isActive` |
-|---|---|---|---|---|
-| `requireBuildingMember` | `src/auth/building-membership.util.ts:8-22` | buildings, units, announcements, documents, threads, chat | 403 | no |
-| `TicketsService.getCallerRole` | `src/tickets/tickets.service.ts:17-27` | tickets | 500 (`findUniqueOrThrow`) | no |
-| `ComplexForumService.getCallerRole` | `src/complex-forum/complex-forum.service.ts:48-66` | complex forum | 403 | yes |
-| inline `findFirst` | `src/complexes/complexes.service.ts:26-31` | `GET /complexes/:id` | 403 | no |
-
-Once membership is confirmed, child records are fetched with `findFirstOrThrow({ where: { id, buildingId } })`, or with `{ id, complexId }` for the forum. This ties the `:id` in the URL to its parent, so a valid ID from another building cannot be used.
-
-Ownership rules are applied after the fetch. For example, a RESIDENT sees only their own tickets (`tickets.service.ts:101-105`, `150-152`).
-
-List endpoints (`GET /buildings`, `GET /complexes` and the `my-*` controllers) filter by the caller's memberships in the Prisma `where` clause.
-
-### Input validation
-
-The global `ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })` (`src/main.ts:10-12`) rejects fields the DTOs don't declare. Services spread `...dto` into Prisma, and that is safe only because of this pipe.
-
-Server-controlled fields always come from `req.user` or from the path: `authorId`, `buildingId`, `status`, `role`.
-
-Query parameters have no DTOs.
+- **`PATCH /buildings/:buildingId/members/:userId`** `{ isActive }`
+  - Called by UPRAVNIK. Only a SUPER_ADMIN may change another UPRAVNIK.
+  - Deactivation cuts access to that building immediately and removes the user's sockets from its chat room.
+- **`PATCH /users/:id`** `{ isActive }`
+  - SUPER_ADMIN only, and not on themselves.
+  - Disabling cuts every request (`401`) and disconnects the user's sockets.
+- **`POST /users/:buildingId/members/:userId/reset-password`**
+  - UPRAVNIK only, and only for active RESIDENT unit accounts of that building. Any other target gets `404`.
+  - Generates a 12-character password with `crypto.randomInt`.
+  - Sets `passwordChangedAt`, which revokes every older token.
+- User creation (system user, board member, unit account) runs in one `prisma.$transaction`.
 
 ### WebSocket chat
 
-`ChatGateway` (`src/chat/chat.gateway.ts`) authenticates differently from HTTP:
+`ChatGateway` (`src/chat/chat.gateway.ts`, namespace `/chat`):
 
-- `handleConnection` only checks the token's signature and stores its contents as the user.
-- It does not reload the user from the database, so `isActive` is never checked and `systemRole` comes from the token.
-- The token is checked only when the socket connects.
-
-`join` and `message` call `requireBuildingMember`. If that check fails, the request is silently dropped. Once a socket joins a room, it is never removed from it.
+- **Handshake:** namespace middleware verifies the token and calls `AccessService.loadUser`. A bad token, disabled account or revoked token gets `connect_error` "Unauthorized".
+- **Connection:** each socket joins a personal `user:<id>` room and is disconnected when its token expires.
+- **Events:** `join` and `message` resolve the building role through `AccessService` on **every** event.
+  - Failures arrive on the `exception` event: `Unauthorized`, `Forbidden`, or `{ status: 'error', message: [...] }` for payloads that fail validation (`SendMessageDto`, body 1–2000 chars).
+- **Revocation hooks** used by the HTTP services:
+  - `leaveBuilding(userId, buildingId)` when a membership is deactivated;
+  - `disconnectUser(userId)` when an account is disabled.
+- **CORS:** HTTP and socket.io share one allowlist from `CORS_ORIGIN` (`src/app.setup.ts`).
 
 ### Flow
 
 ```
-HTTP:  Bearer JWT → JwtAuthGuard (reloads user, 401 if inactive)
-                  → [SystemAdminGuard | RolesGuard(params.buildingId) | none]
-                  → service helper (403, or 500 for tickets)
-                  → findFirstOrThrow({id, buildingId}) + ownership check
-                  → not found → 500 (no exception filter)
+HTTP:  Bearer JWT → JwtAuthGuard (skips @Public; loadUser → 401 if disabled / revoked)
+                  → AccessGuard (policy → AccessService → 403 | req.access)
+                  → controller (@CurrentUser, @CurrentAccess)
+                  → service: findFirstOrThrow({ id, buildingId }) + policies.ts
+                  → Prisma not-found / conflict → PrismaExceptionFilter → 404 / 409
 
-WS:    handshake token → jwtService.verify only (no DB reload, checked once)
-                       → join/message → requireBuildingMember (failure silently dropped)
-                       → socket.join(buildingId), never removed
+WS:    handshake → verify + loadUser (connect_error if rejected)
+                 → join/message → AccessService.resolveBuildingRole on every event
+                 → disconnected at token exp, on account disable; removed from room on deactivation
 ```
 
 ## Where things live
 
 | What | Where |
 |---|---|
-| Data model | `prisma/schema.prisma` (enums L11-24, `User` L72-102, `BuildingMember` L162-177) |
+| Data model | `prisma/schema.prisma` (`User.isActive`, `User.passwordChangedAt`, `BuildingMember.isActive`) |
 | First SUPER_ADMIN | `prisma/seed.ts`, `prisma/factories/user.factory.ts` |
-| Auth | `src/auth/auth.module.ts`, `auth.service.ts`, `auth.controller.ts`, `strategies/jwt.strategy.ts` |
-| Guards and decorator | `src/auth/guards/{jwt-auth,roles,system-admin}.guard.ts`, `src/auth/decorators/roles.decorator.ts` |
-| Shared helpers | `src/auth/building-membership.util.ts`, `src/auth/safe-user-select.util.ts` |
-| Module-local role resolvers | `src/tickets/tickets.service.ts`, `src/complex-forum/complex-forum.service.ts`, `src/complexes/complexes.service.ts` |
-| Account management | `src/users/users.controller.ts`, `src/users/users.service.ts` |
-| WebSocket chat | `src/chat/chat.gateway.ts`, `src/chat/chat.service.ts` |
-| Global setup | `src/main.ts` (validation pipe, CORS, `api` prefix, Swagger) |
-| Tests | none cover authorization yet (see T1 in the plan) |
+| Access layer | `src/auth/access/` (decorators, guard, service, coverage check, policies, types) |
+| Authentication | `src/auth/auth.module.ts` (global guards, throttler), `auth.service.ts`, `strategies/jwt.strategy.ts`, `guards/jwt-auth.guard.ts`, `guards/login-throttler.guard.ts` |
+| Error mapping | `src/common/prisma-exception.filter.ts` |
+| Global pipeline | `src/app.setup.ts` (helmet, validation, filter, CORS, WS adapter), shared by `main.ts` and the e2e tests |
+| Config validation | `src/config/env.validation.ts` |
+| Account management | `src/users/`, `src/buildings/` (member PATCH) |
+| WebSocket chat | `src/chat/chat.gateway.ts` |
+| Tests | unit: `src/auth/access/*.spec.ts`, `src/config/env.validation.spec.ts`, `src/users/generate-password.spec.ts`; e2e: `test/access.e2e-spec.ts`, `test/accounts.e2e-spec.ts`, `test/chat.e2e-spec.ts` |
 
-## What's already good
+## Adding an endpoint
 
-- Building roles are never put in the JWT; they are resolved from the database on every request.
-- `validate()` reloads the user and checks `isActive`, so HTTP access can be revoked immediately.
-- Child records are consistently tied to their parent, with `{ id, buildingId }` or `{ id, complexId }`.
-- DTOs contain only content fields, and the whitelist ValidationPipe stops clients from setting server-controlled fields.
-- Guards run in the correct order, and every `@Roles` has a matching `RolesGuard`.
-- `SAFE_USER_SELECT` keeps `passwordHash` out of responses.
+1. Put exactly one policy decorator on the handler. If the route is building- or complex-scoped, the path must contain `:buildingId` / `:complexId`.
+2. Take `@CurrentUser()` / `@CurrentAccess()`. Don't write `@Request() req`.
+3. In the service, fetch child records with their parent id, and use `policies.ts` for ownership and state rules.
+4. Add the endpoint to the matrix in `test/access.e2e-spec.ts`.
+5. Update the Postman collection and `postman/CHANGES.md`.
 
-The known gaps are listed in [authorization-hardening-plan.md](./authorization-hardening-plan.md).
+Run the e2e suite from `apps/backend` with `npx jest --config ./test/jest-e2e.json`. It needs the docker Postgres (`npm run db:up`) and uses the `upravnik_test` database, which it creates and migrates automatically.

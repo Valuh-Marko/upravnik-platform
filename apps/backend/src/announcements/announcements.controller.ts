@@ -1,17 +1,7 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser, InBuilding } from '../auth/access/access.decorators';
+import type { AuthUser } from '../auth/access/auth-user';
 import { Role } from '../prisma';
 import { AnnouncementsService } from './announcements.service';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
@@ -19,48 +9,34 @@ import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
 @ApiTags('announcements')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('buildings/:buildingId/announcements')
 export class AnnouncementsController {
   constructor(private announcementsService: AnnouncementsService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(Role.UPRAVNIK, Role.BOARD_MEMBER)
+  @InBuilding(Role.UPRAVNIK, Role.BOARD_MEMBER)
   create(
     @Param('buildingId') buildingId: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: CreateAnnouncementDto,
   ) {
-    return this.announcementsService.create(buildingId, req.user.id, dto);
+    return this.announcementsService.create(buildingId, user.id, dto);
   }
 
   @Get()
-  findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.announcementsService.findByBuilding(
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InBuilding()
+  findAll(@Param('buildingId') buildingId: string) {
+    return this.announcementsService.findByBuilding(buildingId);
   }
 
   @Get(':id')
-  findOne(
-    @Param('buildingId') buildingId: string,
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
-    return this.announcementsService.findOne(
-      id,
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InBuilding()
+  findOne(@Param('buildingId') buildingId: string, @Param('id') id: string) {
+    return this.announcementsService.findOne(id, buildingId);
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
-  @Roles(Role.UPRAVNIK, Role.BOARD_MEMBER)
+  @InBuilding(Role.UPRAVNIK, Role.BOARD_MEMBER)
   update(
     @Param('buildingId') buildingId: string,
     @Param('id') id: string,

@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsUrl,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DocumentCategory } from '../../prisma';
 
@@ -11,8 +17,7 @@ export class CreateDocumentDto {
   @ApiProperty({
     example: 'https://storage.example.com/docs/izvestaj-2025.pdf',
   })
-  @IsString()
-  @IsNotEmpty()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
   fileUrl: string;
 
   @ApiPropertyOptional({ example: 'pdf' })

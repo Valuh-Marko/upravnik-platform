@@ -1,85 +1,78 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  CurrentAccess,
+  CurrentUser,
+  InBuilding,
+} from '../auth/access/access.decorators';
+import type { Access, AuthUser } from '../auth/access/auth-user';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateTicketReplyDto } from './dto/create-ticket-reply.dto';
 
 @ApiTags('tickets')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('buildings/:buildingId/tickets')
 export class TicketsController {
   constructor(private ticketsService: TicketsService) {}
 
   @Post()
+  @InBuilding()
   create(
     @Param('buildingId') buildingId: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: CreateTicketDto,
   ) {
-    return this.ticketsService.createTicket(buildingId, req.user.id, dto);
+    return this.ticketsService.createTicket(buildingId, user.id, dto);
   }
 
   @Get()
-  findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.ticketsService.findByBuilding(
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InBuilding()
+  findAll(
+    @Param('buildingId') buildingId: string,
+    @CurrentUser() user: AuthUser,
+    @CurrentAccess() access: Access,
+  ) {
+    return this.ticketsService.findByBuilding(buildingId, user.id, access);
   }
 
   @Get(':id')
+  @InBuilding()
   findOne(
     @Param('buildingId') buildingId: string,
     @Param('id') id: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
+    @CurrentAccess() access: Access,
   ) {
-    return this.ticketsService.findOne(
-      id,
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+    return this.ticketsService.findOne(id, buildingId, user.id, access);
   }
 
   @Post(':id/replies')
+  @InBuilding()
   createReply(
     @Param('buildingId') buildingId: string,
     @Param('id') id: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
+    @CurrentAccess() access: Access,
     @Body() dto: CreateTicketReplyDto,
   ) {
     return this.ticketsService.createReply(
       id,
       buildingId,
-      req.user.id,
+      user.id,
       dto,
-      req.user.systemRole,
+      access,
     );
   }
 
   @Patch(':id/close')
+  @InBuilding()
   close(
     @Param('buildingId') buildingId: string,
     @Param('id') id: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
+    @CurrentAccess() access: Access,
   ) {
-    return this.ticketsService.closeTicket(
-      id,
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+    return this.ticketsService.closeTicket(id, buildingId, user.id, access);
   }
 }

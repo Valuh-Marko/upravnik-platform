@@ -1,11 +1,16 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Role, TicketStatus } from '../prisma';
+import { Access, AuthUser, isSuperAdmin } from '../auth/access/auth-user';
+import {
+  assertCanClose,
+  assertOpen,
+  canViewTicket,
+  isStaff,
+} from '../auth/access/policies';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateTicketReplyDto } from './dto/create-ticket-reply.dto';
-
-const SUPER_ADMIN = 'SUPER_ADMIN';
 
 @Injectable()
 export class TicketsService {
@@ -13,18 +18,6 @@ export class TicketsService {
     private prisma: PrismaService,
     private notifications: NotificationsService,
   ) {}
-
-  private async getCallerRole(
-    buildingId: string,
-    userId: string,
-    systemRole?: string | null,
-  ) {
-    if (systemRole === SUPER_ADMIN) return Role.UPRAVNIK;
-    const member = await this.prisma.buildingMember.findUniqueOrThrow({
-      where: { buildingId_userId: { buildingId, userId } },
-    });
-    return member.role;
-  }
 
   private async notifyStaff(
     buildingId: string,
@@ -93,16 +86,10 @@ export class TicketsService {
     };
   }
 
-  async findByBuilding(
-    buildingId: string,
-    userId: string,
-    systemRole?: string | null,
-  ) {
-    const role = await this.getCallerRole(buildingId, userId, systemRole);
-    const where =
-      role === Role.RESIDENT
-        ? { buildingId, authorId: userId }
-        : { buildingId };
+  async findByBuilding(buildingId: string, userId: string, access: Access) {
+    const where = isStaff(access)
+      ? { buildingId }
+      : { buildingId, authorId: userId };
 
     const tickets = await this.prisma.ticket.findMany({
       where,
@@ -127,9 +114,8 @@ export class TicketsService {
     id: string,
     buildingId: string,
     userId: string,
-    systemRole?: string | null,
+    access: Access,
   ) {
-    const role = await this.getCallerRole(buildingId, userId, systemRole);
     const ticket = await this.prisma.ticket.findFirstOrThrow({
       where: { id, buildingId },
       include: {
@@ -147,9 +133,7 @@ export class TicketsService {
       },
     });
 
-    if (role === Role.RESIDENT && ticket.authorId !== userId) {
-      throw new ForbiddenException();
-    }
+    if (!canViewTicket(access, ticket, userId)) throw new ForbiddenException();
 
     await this.prisma.ticketRead.upsert({
       where: { ticketId_userId: { ticketId: id, userId } },
@@ -166,16 +150,16 @@ export class TicketsService {
     buildingId: string,
     authorId: string,
     dto: CreateTicketReplyDto,
-    systemRole?: string | null,
+    access: Access,
   ) {
-    const role = await this.getCallerRole(buildingId, authorId, systemRole);
     const ticket = await this.prisma.ticket.findFirstOrThrow({
       where: { id: ticketId, buildingId },
     });
 
-    if (role === Role.RESIDENT && ticket.authorId !== authorId) {
+    if (!canViewTicket(access, ticket, authorId)) {
       throw new ForbiddenException();
     }
+    assertOpen(ticket);
 
     const reply = await this.prisma.ticketReply.create({
       data: { ticketId, authorId, ...dto },
@@ -194,7 +178,7 @@ export class TicketsService {
     });
 
     const link = `/buildings/${buildingId}/tickets/${ticketId}`;
-    if (role === Role.RESIDENT) {
+    if (!isStaff(access)) {
       await this.notifyStaff(
         buildingId,
         'Nova poruka na tiketu',
@@ -217,16 +201,13 @@ export class TicketsService {
     id: string,
     buildingId: string,
     userId: string,
-    systemRole?: string | null,
+    access: Access,
   ) {
-    const role = await this.getCallerRole(buildingId, userId, systemRole);
     const ticket = await this.prisma.ticket.findFirstOrThrow({
       where: { id, buildingId },
     });
 
-    if (role === Role.RESIDENT && ticket.authorId !== userId) {
-      throw new ForbiddenException();
-    }
+    assertCanClose(access, ticket, userId);
 
     return this.prisma.ticket.update({
       where: { id },
@@ -235,14 +216,14 @@ export class TicketsService {
   }
 
   async findAllForUser(
-    userId: string,
+    user: AuthUser,
     buildingId?: string,
-    status?: string,
-    systemRole?: string | null,
+    status?: TicketStatus,
   ) {
-    const statusFilter = status ? { status: status as TicketStatus } : {};
+    const userId = user.id;
+    const statusFilter = status ? { status } : {};
 
-    if (systemRole === SUPER_ADMIN) {
+    if (isSuperAdmin(user)) {
       const tickets = await this.prisma.ticket.findMany({
         where: { ...(buildingId ? { buildingId } : {}), ...statusFilter },
         include: {
@@ -283,7 +264,7 @@ export class TicketsService {
     }
 
     const memberships = await this.prisma.buildingMember.findMany({
-      where: { userId },
+      where: { userId, isActive: true },
       select: {
         buildingId: true,
         role: true,
@@ -292,10 +273,10 @@ export class TicketsService {
     });
 
     const staffIds = memberships
-      .filter((m) => m.role === Role.UPRAVNIK || m.role === Role.BOARD_MEMBER)
+      .filter((m) => isStaff(m))
       .map((m) => m.buildingId);
     const residentIds = memberships
-      .filter((m) => m.role === Role.RESIDENT)
+      .filter((m) => !isStaff(m))
       .map((m) => m.buildingId);
 
     const conditions: object[] = [];

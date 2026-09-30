@@ -1,13 +1,12 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { SystemAdminGuard } from '../auth/guards/system-admin.guard';
+import { SuperAdmin } from '../auth/access/access.decorators';
 import { SetupService } from './setup.service';
 import { BulkCreateDto } from './dto/bulk-create.dto';
 
 @ApiTags('setup')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, SystemAdminGuard)
+@SuperAdmin()
 @Controller('setup')
 export class SetupController {
   constructor(private setupService: SetupService) {}

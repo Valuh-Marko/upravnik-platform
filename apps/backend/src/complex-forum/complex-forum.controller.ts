@@ -1,90 +1,62 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  CurrentAccess,
+  CurrentUser,
+  InComplex,
+} from '../auth/access/access.decorators';
+import type { Access, AuthUser } from '../auth/access/auth-user';
 import { ComplexForumService } from './complex-forum.service';
 import { CreateComplexThreadDto } from './dto/create-complex-thread.dto';
 import { CreateComplexReplyDto } from './dto/create-complex-reply.dto';
 
 @ApiTags('complex-forum')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('complexes/:complexId/threads')
 export class ComplexForumController {
   constructor(private complexForumService: ComplexForumService) {}
 
   @Post()
+  @InComplex()
   create(
     @Param('complexId') complexId: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: CreateComplexThreadDto,
   ) {
-    return this.complexForumService.createThread(
-      complexId,
-      req.user.id,
-      dto,
-      req.user.systemRole,
-    );
+    return this.complexForumService.createThread(complexId, user.id, dto);
   }
 
   @Get()
-  findAll(@Param('complexId') complexId: string, @Request() req: any) {
-    return this.complexForumService.findByComplex(
-      complexId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InComplex()
+  findAll(@Param('complexId') complexId: string) {
+    return this.complexForumService.findByComplex(complexId);
   }
 
   @Get(':id')
-  findOne(
-    @Param('complexId') complexId: string,
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
-    return this.complexForumService.findOne(
-      id,
-      complexId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InComplex()
+  findOne(@Param('complexId') complexId: string, @Param('id') id: string) {
+    return this.complexForumService.findOne(id, complexId);
   }
 
   @Post(':id/replies')
+  @InComplex()
   createReply(
     @Param('complexId') complexId: string,
     @Param('id') id: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: CreateComplexReplyDto,
   ) {
-    return this.complexForumService.createReply(
-      id,
-      complexId,
-      req.user.id,
-      dto,
-      req.user.systemRole,
-    );
+    return this.complexForumService.createReply(id, complexId, user.id, dto);
   }
 
   @Patch(':id/close')
+  @InComplex()
   close(
     @Param('complexId') complexId: string,
     @Param('id') id: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
+    @CurrentAccess() access: Access,
   ) {
-    return this.complexForumService.closeThread(
-      id,
-      complexId,
-      req.user.id,
-      req.user.systemRole,
-    );
+    return this.complexForumService.closeThread(id, complexId, user.id, access);
   }
 }

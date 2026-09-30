@@ -1,86 +1,62 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../prisma';
+import {
+  CurrentAccess,
+  CurrentUser,
+  InBuilding,
+} from '../auth/access/access.decorators';
+import type { Access, AuthUser } from '../auth/access/auth-user';
 import { ThreadsService } from './threads.service';
 import { CreateThreadDto } from './dto/create-thread.dto';
 import { CreateReplyDto } from './dto/create-reply.dto';
 
 @ApiTags('threads')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('buildings/:buildingId/threads')
 export class ThreadsController {
   constructor(private threadsService: ThreadsService) {}
 
   @Post()
+  @InBuilding()
   create(
     @Param('buildingId') buildingId: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: CreateThreadDto,
   ) {
-    return this.threadsService.createThread(
-      buildingId,
-      req.user.id,
-      dto,
-      req.user.systemRole,
-    );
+    return this.threadsService.createThread(buildingId, user.id, dto);
   }
 
   @Get()
-  findAll(@Param('buildingId') buildingId: string, @Request() req: any) {
-    return this.threadsService.findByBuilding(
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InBuilding()
+  findAll(@Param('buildingId') buildingId: string) {
+    return this.threadsService.findByBuilding(buildingId);
   }
 
   @Get(':id')
-  findOne(
-    @Param('buildingId') buildingId: string,
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
-    return this.threadsService.findOne(
-      id,
-      buildingId,
-      req.user.id,
-      req.user.systemRole,
-    );
+  @InBuilding()
+  findOne(@Param('buildingId') buildingId: string, @Param('id') id: string) {
+    return this.threadsService.findOne(id, buildingId);
   }
 
   @Post(':id/replies')
+  @InBuilding()
   createReply(
     @Param('buildingId') buildingId: string,
     @Param('id') id: string,
-    @Request() req: any,
+    @CurrentUser() user: AuthUser,
     @Body() dto: CreateReplyDto,
   ) {
-    return this.threadsService.createReply(
-      id,
-      buildingId,
-      req.user.id,
-      dto,
-      req.user.systemRole,
-    );
+    return this.threadsService.createReply(id, buildingId, user.id, dto);
   }
 
   @Patch(':id/close')
-  @UseGuards(RolesGuard)
-  @Roles(Role.UPRAVNIK, Role.BOARD_MEMBER)
-  close(@Param('buildingId') buildingId: string, @Param('id') id: string) {
-    return this.threadsService.closeThread(id, buildingId);
+  @InBuilding()
+  close(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+    @CurrentAccess() access: Access,
+  ) {
+    return this.threadsService.closeThread(id, buildingId, user.id, access);
   }
 }

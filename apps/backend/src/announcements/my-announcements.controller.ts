@@ -1,22 +1,22 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Controller, Get, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AnyUser, CurrentUser } from '../auth/access/access.decorators';
+import type { AuthUser } from '../auth/access/auth-user';
+import { BuildingFilterQueryDto } from '../common/dto/my-list-query.dto';
 import { AnnouncementsService } from './announcements.service';
 
 @ApiTags('announcements')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('announcements')
 export class MyAnnouncementsController {
   constructor(private announcementsService: AnnouncementsService) {}
 
   @Get()
-  @ApiQuery({ name: 'buildingId', required: false })
-  findAll(@Request() req: any, @Query('buildingId') buildingId?: string) {
-    return this.announcementsService.findAllForUser(
-      req.user.id,
-      buildingId,
-      req.user.systemRole,
-    );
+  @AnyUser()
+  findAll(
+    @CurrentUser() user: AuthUser,
+    @Query() query: BuildingFilterQueryDto,
+  ) {
+    return this.announcementsService.findAllForUser(user, query.buildingId);
   }
 }
