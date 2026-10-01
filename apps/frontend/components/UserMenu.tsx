@@ -9,11 +9,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, ChevronUp, PlusCircle, Ticket } from 'lucide-react'
+import { themeOptions } from '@/components/ThemeSwitcher'
+import { useTheme } from 'next-themes'
+import { LogOut, ChevronUp, PlusCircle, Ticket, SunMoon } from 'lucide-react'
 
 function getInitials(username: string, firstName?: string | null, lastName?: string | null) {
   if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase()
@@ -30,6 +36,7 @@ export function UserMenu() {
   const router = useRouter()
   const { data: buildings } = useBuildings()
   const [ticketOpen, setTicketOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   const initials = user ? getInitials(user.username, user.firstName, user.lastName) : '??'
   const displayName = user ? getDisplayName(user.username, user.firstName, user.lastName) : ''
@@ -44,7 +51,7 @@ export function UserMenu() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-3 w-full p-3 rounded-[var(--radius-lg)] bg-[var(--surface)] border border-[var(--border)] shadow-sm hover:border-[var(--border-strong)] hover:shadow-md transition-[border-color,box-shadow] duration-150 text-left cursor-pointer">
+        <DropdownMenuTrigger className="flex items-center gap-3 w-full p-2 rounded-[var(--radius-md)] hover:bg-[var(--surface-hover)] aria-expanded:bg-[var(--surface-hover)] transition-colors duration-150 text-left cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Avatar className="w-9 h-9 flex-shrink-0">
             <AvatarFallback className="bg-pine-50 text-pine-700 text-xs font-semibold">
               {initials}
@@ -82,12 +89,37 @@ export function UserMenu() {
               <div className="p-1">
                 <DropdownMenuItem onClick={() => setTicketOpen(true)}>
                   <Ticket />
-                  Novi zahtjev
+                  Novi zahtev
                 </DropdownMenuItem>
               </div>
               <DropdownMenuSeparator />
             </>
           )}
+
+          <DropdownMenuGroup className="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-3">
+            <DropdownMenuLabel className="flex items-center gap-2 p-0 text-sm font-normal text-popover-foreground">
+              <SunMoon className="size-4" aria-hidden="true" />
+              Tema
+            </DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={theme}
+              onValueChange={setTheme}
+              className="flex gap-0.5 rounded-lg bg-muted p-0.5"
+            >
+              {themeOptions.map(({ value, label, icon: Icon }) => (
+                <DropdownMenuRadioItem
+                  key={value}
+                  value={value}
+                  aria-label={label}
+                  title={label}
+                  className="size-7 justify-center rounded-md p-0 text-muted-foreground data-checked:bg-card data-checked:text-foreground data-checked:shadow-xs *:data-[slot=dropdown-menu-radio-item-indicator]:hidden"
+                >
+                  <Icon className="size-3.5" />
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
 
           <div className="p-1">
             <DropdownMenuItem variant="destructive" onClick={logout}>

@@ -21,7 +21,7 @@ const categories: { value: TicketCategory; label: string }[] = [
   { value: 'MAINTENANCE', label: 'Održavanje' },
   { value: 'COMPLAINT', label: 'Žalba' },
   { value: 'PAYMENT', label: 'Plaćanje' },
-  { value: 'REQUEST', label: 'Zahtjev' },
+  { value: 'REQUEST', label: 'Zahtev' },
 ]
 
 interface Props {
@@ -65,13 +65,13 @@ export function CreateTicketDialog({ buildingId, open: externalOpen, onOpenChang
       {!isControlled && (
         <Button size="sm" onClick={() => setOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Novi zahtjev
+          Novi zahtev
         </Button>
       )}
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Novi zahtjev</DialogTitle>
+          <DialogTitle>Novi zahtev</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
@@ -79,7 +79,7 @@ export function CreateTicketDialog({ buildingId, open: externalOpen, onOpenChang
             <Label htmlFor="ticket-title">Naslov</Label>
             <Input
               id="ticket-title"
-              placeholder="Kratki opis zahtjeva…"
+              placeholder="Kratki opis zahteva…"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               autoFocus

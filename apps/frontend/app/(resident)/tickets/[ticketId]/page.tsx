@@ -1,43 +1,18 @@
 'use client'
 
 import { useState, use } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useBuildings } from '@/hooks/useBuildings'
 import { useTicket, useCreateTicketReply, useCloseTicket } from '@/hooks/useTickets'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, MessageSquare } from 'lucide-react'
+import { MessageSquare } from 'lucide-react'
 import { formatTimestamp } from '@/lib/format'
-import type { TicketCategory, TicketStatus, TicketAuthor } from '@/lib/types'
-
-const categoryLabel: Record<TicketCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  PAYMENT: 'Plaćanje',
-  REQUEST: 'Zahtjev',
-}
-
-const categoryClass: Record<TicketCategory, string> = {
-  GENERAL: 'border-border text-foreground',
-  MAINTENANCE: 'bg-amber-100 text-amber-800 border-amber-200',
-  COMPLAINT: 'bg-red-100 text-red-700 border-red-200',
-  PAYMENT: 'bg-blue-100 text-blue-700 border-blue-200',
-  REQUEST: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-}
-
-const statusClass: Record<TicketStatus, string> = {
-  OPEN: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  CLOSED: 'bg-stone-100 text-stone-500 border-stone-200',
-}
-
-const statusLabel: Record<TicketStatus, string> = {
-  OPEN: 'Otvoreno',
-  CLOSED: 'Zatvoreno',
-}
+import type { TicketAuthor } from '@/lib/types'
+import { ChipBadge } from '@/components/ChipBadge'
+import { ticketCategory, ticketStatus } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 function authorName(a?: TicketAuthor | null) {
   if (!a) return 'Nepoznat'
@@ -69,23 +44,23 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
     const status = (error as { response?: { status?: number } }).response?.status
     if (status === 403) {
       return (
-        <div className="py-6">
-          <Link href="/tickets" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-6">
-            <ArrowLeft className="w-4 h-4" />
-            Zahtjevi
-          </Link>
+        <div className="pb-6">
+          <PageHeader
+            back={{ href: '/tickets', label: 'Zahtevi' }}
+            title="Zahtev"
+          />
           <p className="text-base text-muted-foreground">Pristup odbijen.</p>
         </div>
       )
     }
     if (status === 404) {
       return (
-        <div className="py-6">
-          <Link href="/tickets" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-6">
-            <ArrowLeft className="w-4 h-4" />
-            Zahtjevi
-          </Link>
-          <p className="text-base text-muted-foreground">Zahtjev nije pronađen.</p>
+        <div className="pb-6">
+          <PageHeader
+            back={{ href: '/tickets', label: 'Zahtevi' }}
+            title="Zahtev"
+          />
+          <p className="text-base text-muted-foreground">Zahtev nije pronađen.</p>
         </div>
       )
     }
@@ -102,18 +77,22 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
   }
 
   return (
-    <div className="py-6">
-      <Link
-        href="/tickets"
-        className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Zahtjevi
-      </Link>
+    <div className="pb-6">
+      <PageHeader
+        back={{ href: '/tickets', label: 'Zahtevi' }}
+        title={ticket?.title ?? 'Zahtev'}
+        loading={isLoading}
+        actions={
+          ticket?.status === 'OPEN' && (
+            <Button variant="outline" size="sm" onClick={handleClose} disabled={closePending}>
+              {closePending ? 'Zatvaranje…' : 'Zatvori zahtev'}
+            </Button>
+          )
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-3">
-          <Skeleton className="h-7 w-2/3" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-5/6" />
         </div>
@@ -122,26 +101,8 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
           {/* Ticket header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${categoryClass[ticket.category]}`}>
-                {categoryLabel[ticket.category]}
-              </Badge>
-              <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${statusClass[ticket.status]}`}>
-                {statusLabel[ticket.status]}
-              </Badge>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">{ticket.title}</h1>
-              {ticket.status === 'OPEN' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClose}
-                  disabled={closePending}
-                  className="flex-shrink-0"
-                >
-                  {closePending ? 'Zatvaranje…' : 'Zatvori zahtjev'}
-                </Button>
-              )}
+              <ChipBadge chip={ticketCategory[ticket.category]} />
+              <ChipBadge chip={ticketStatus[ticket.status]} />
             </div>
             <p className="text-xs text-muted-foreground mb-4">
               {authorName(ticket.author)}{ticket.author?.unit?.unitNumber && ` · Stan ${ticket.author.unit.unitNumber}`} · <span className="font-mono">{formatTimestamp(ticket.createdAt)}</span>
@@ -202,7 +163,7 @@ export default function TicketPage({ params }: { params: Promise<{ ticketId: str
           </div>
         </>
       ) : (
-        <p className="text-base text-muted-foreground">Zahtjev nije pronađen.</p>
+        <p className="text-base text-muted-foreground">Zahtev nije pronađen.</p>
       )}
     </div>
   )

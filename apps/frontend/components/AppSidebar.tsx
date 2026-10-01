@@ -27,7 +27,7 @@ const residentNav = [
   { href: "/home", label: "Početna", icon: Home },
   { href: "/board", label: "Oglasna tabla", icon: Megaphone },
   { href: "/forum", label: "Forum", icon: MessagesSquare },
-  { href: "/tickets", label: "Zahtjevi", icon: Ticket },
+  { href: "/tickets", label: "Zahtevi", icon: Ticket },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/documents", label: "Dokumenta", icon: FileText },
 ];
@@ -35,7 +35,7 @@ const residentNav = [
 const buildingSubNav = [
   { key: "board", label: "Oglasna tabla", icon: Megaphone },
   { key: "forum", label: "Forum", icon: MessagesSquare },
-  { key: "tickets", label: "Zahtjevi", icon: Ticket },
+  { key: "tickets", label: "Zahtevi", icon: Ticket },
   { key: "members", label: "Stanari", icon: Users },
   { key: "documents", label: "Dokumenta", icon: FileText },
 ];
@@ -43,7 +43,7 @@ const buildingSubNav = [
 const aggregateNav = [
   { href: "/announcements", label: "Oglasna tabla", icon: Megaphone },
   { href: "/threads", label: "Forum", icon: MessagesSquare },
-  { href: "/tickets", label: "Zahtjevi", icon: Ticket },
+  { href: "/tickets", label: "Zahtevi", icon: Ticket },
   { href: "/files", label: "Dokumenta", icon: FileText },
 ];
 
@@ -61,7 +61,7 @@ function BrandMark() {
         <rect x="2" y="2" width="44" height="44" rx="12" fill="var(--brand)" />
         <g
           fill="none"
-          stroke="var(--stone-0)"
+          stroke="var(--on-brand)"
           strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -132,7 +132,7 @@ function NavItemLink({
         <span
           className={cn(
             "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold leading-none",
-            active ? "bg-pine-600 text-white" : "bg-stone-200 text-stone-600",
+            active ? "bg-pine-600 text-primary-foreground" : "bg-stone-200 text-stone-600",
           )}
         >
           {badge}

@@ -4,36 +4,12 @@ import { use } from 'react'
 import Link from 'next/link'
 import { useTickets } from '@/hooks/useTickets'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, Ticket as TicketIcon } from 'lucide-react'
 import { formatTimestamp } from '@/lib/format'
-import type { TicketCategory, TicketStatus, TicketAuthor } from '@/lib/types'
-
-const categoryLabel: Record<TicketCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  PAYMENT: 'Plaćanje',
-  REQUEST: 'Zahtjev',
-}
-
-const categoryClass: Record<TicketCategory, string> = {
-  GENERAL: 'border-border text-foreground',
-  MAINTENANCE: 'bg-amber-100 text-amber-800 border-amber-200',
-  COMPLAINT: 'bg-red-100 text-red-700 border-red-200',
-  PAYMENT: 'bg-blue-100 text-blue-700 border-blue-200',
-  REQUEST: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-}
-
-const statusClass: Record<TicketStatus, string> = {
-  OPEN: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  CLOSED: 'bg-stone-100 text-stone-500 border-stone-200',
-}
-
-const statusLabel: Record<TicketStatus, string> = {
-  OPEN: 'Otvoreno',
-  CLOSED: 'Zatvoreno',
-}
+import type { TicketAuthor } from '@/lib/types'
+import { ChipBadge } from '@/components/ChipBadge'
+import { ticketCategory, ticketStatus } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 function authorName(a?: TicketAuthor | null) {
   if (!a) return 'Nepoznat'
@@ -54,11 +30,8 @@ export default function BuildingTicketsPage({
   )
 
   return (
-    <div className="py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Zahtjevi</h1>
-        <p className="text-base text-muted-foreground">Privatni zahtjevi stanara</p>
-      </div>
+    <div className="pb-6">
+      <PageHeader icon={<TicketIcon />} title="Zahtevi" description="Privatni zahtevi stanara" />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -75,7 +48,7 @@ export default function BuildingTicketsPage({
           ))}
         </div>
       ) : sorted.length === 0 ? (
-        <p className="text-base text-muted-foreground text-center py-12">Nema zahtjeva.</p>
+        <p className="text-base text-muted-foreground text-center py-12">Nema zahteva.</p>
       ) : (
         <div className="space-y-2">
           {sorted.map((t) => (
@@ -83,12 +56,8 @@ export default function BuildingTicketsPage({
               <div className={`rounded-lg border bg-card p-4 hover:bg-stone-100 transition-colors ${t.isUnread ? 'border-primary/40' : 'border-border'}`}>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${categoryClass[t.category]}`}>
-                      {categoryLabel[t.category]}
-                    </Badge>
-                    <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${statusClass[t.status]}`}>
-                      {statusLabel[t.status]}
-                    </Badge>
+                    <ChipBadge chip={ticketCategory[t.category]} />
+                    <ChipBadge chip={ticketStatus[t.status]} />
                     <p className="font-semibold text-base text-foreground leading-snug">{t.title}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">

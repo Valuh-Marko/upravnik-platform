@@ -1,0 +1,543 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T00:00:00Z",
+  "title": "Design System: Profesionalni Upravnik",
+  "extensions": {
+    "colorMeta": {
+      "stairwell-pine": {
+        "role": "primary",
+        "displayName": "Stairwell Pine",
+        "canonical": "oklch(52.0% 0.090 185)",
+        "tonalRamp": [
+          "oklch(21.0% 0.035 185)",
+          "oklch(28.5% 0.048 185)",
+          "oklch(36.0% 0.062 185)",
+          "oklch(44.0% 0.078 185)",
+          "oklch(52.0% 0.090 185)",
+          "oklch(60.5% 0.094 185)",
+          "oklch(80.5% 0.066 185)",
+          "oklch(94.5% 0.025 185)"
+        ]
+      },
+      "stairwell-pine-deep": {
+        "role": "primary",
+        "displayName": "Stairwell Pine Deep",
+        "canonical": "oklch(44.0% 0.078 185)"
+      },
+      "stairwell-pine-pressed": {
+        "role": "primary",
+        "displayName": "Stairwell Pine Pressed",
+        "canonical": "oklch(36.0% 0.062 185)"
+      },
+      "stairwell-pine-mist": {
+        "role": "primary",
+        "displayName": "Stairwell Pine Mist",
+        "canonical": "oklch(97.5% 0.012 185)"
+      },
+      "stairwell-pine-mist-hover": {
+        "role": "primary",
+        "displayName": "Pine Mist Hover",
+        "canonical": "oklch(94.5% 0.025 185)"
+      },
+      "stairwell-pine-edge": {
+        "role": "primary",
+        "displayName": "Pine Edge",
+        "canonical": "oklch(89.0% 0.045 185)"
+      },
+      "focus-pine": {
+        "role": "primary",
+        "displayName": "Focus Pine",
+        "canonical": "oklch(60.5% 0.094 185)"
+      },
+      "plaster-white": {
+        "role": "neutral",
+        "displayName": "Plaster White",
+        "canonical": "oklch(100% 0 75)",
+        "tonalRamp": [
+          "oklch(14.5% 0.004 75)",
+          "oklch(20.5% 0.005 75)",
+          "oklch(37.5% 0.007 75)",
+          "oklch(46.5% 0.008 75)",
+          "oklch(54.0% 0.008 75)",
+          "oklch(84.5% 0.007 75)",
+          "oklch(94.2% 0.005 75)",
+          "oklch(98.6% 0.003 75)"
+        ]
+      },
+      "plaster-ground": {
+        "role": "neutral",
+        "displayName": "Plaster Ground",
+        "canonical": "oklch(98.6% 0.003 75)"
+      },
+      "plaster-sunken": {
+        "role": "neutral",
+        "displayName": "Plaster Sunken",
+        "canonical": "oklch(96.6% 0.004 75)"
+      },
+      "plaster-line": {
+        "role": "neutral",
+        "displayName": "Plaster Line",
+        "canonical": "oklch(91.0% 0.006 75)"
+      },
+      "plaster-line-strong": {
+        "role": "neutral",
+        "displayName": "Plaster Line Strong",
+        "canonical": "oklch(84.5% 0.007 75)"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(20.5% 0.005 75)"
+      },
+      "ink-secondary": {
+        "role": "neutral",
+        "displayName": "Ink Secondary",
+        "canonical": "oklch(46.5% 0.008 75)"
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "oklch(54.0% 0.008 75)"
+      },
+      "ink-disabled": {
+        "role": "neutral",
+        "displayName": "Ink Disabled",
+        "canonical": "oklch(71.0% 0.008 75)"
+      },
+      "forum-amber": {
+        "role": "secondary",
+        "displayName": "Forum Amber",
+        "canonical": "oklch(45.0% 0.090 48)",
+        "tonalRamp": [
+          "oklch(36.5% 0.070 48)",
+          "oklch(45.0% 0.090 48)",
+          "oklch(55.0% 0.112 50)",
+          "oklch(66.0% 0.132 55)",
+          "oklch(74.0% 0.142 62)",
+          "oklch(82.5% 0.105 68)",
+          "oklch(93.5% 0.042 73)",
+          "oklch(97.5% 0.020 75)"
+        ]
+      },
+      "forum-amber-wash": {
+        "role": "secondary",
+        "displayName": "Forum Amber Wash",
+        "canonical": "oklch(97.5% 0.020 75)"
+      },
+      "forum-amber-edge": {
+        "role": "secondary",
+        "displayName": "Forum Amber Edge",
+        "canonical": "oklch(88.0% 0.072 70)"
+      },
+      "chat-sky": {
+        "role": "tertiary",
+        "displayName": "Chat Sky",
+        "canonical": "oklch(48.0% 0.095 243)",
+        "tonalRamp": [
+          "oklch(48.0% 0.095 243)",
+          "oklch(60.0% 0.105 240)",
+          "oklch(88.0% 0.055 235)",
+          "oklch(94.0% 0.030 235)"
+        ]
+      },
+      "chat-sky-wash": {
+        "role": "tertiary",
+        "displayName": "Chat Sky Wash",
+        "canonical": "oklch(94.0% 0.030 235)"
+      },
+      "chat-sky-edge": {
+        "role": "tertiary",
+        "displayName": "Chat Sky Edge",
+        "canonical": "oklch(88.0% 0.055 235)"
+      },
+      "docs-violet": {
+        "role": "tertiary",
+        "displayName": "Docs Violet",
+        "canonical": "oklch(46.0% 0.095 302)",
+        "tonalRamp": [
+          "oklch(46.0% 0.095 302)",
+          "oklch(56.0% 0.110 300)",
+          "oklch(87.5% 0.050 300)",
+          "oklch(93.5% 0.028 300)"
+        ]
+      },
+      "docs-violet-wash": {
+        "role": "tertiary",
+        "displayName": "Docs Violet Wash",
+        "canonical": "oklch(93.5% 0.028 300)"
+      },
+      "docs-violet-edge": {
+        "role": "tertiary",
+        "displayName": "Docs Violet Edge",
+        "canonical": "oklch(87.5% 0.050 300)"
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Success",
+        "canonical": "oklch(62.0% 0.120 150)"
+      },
+      "success-wash": {
+        "role": "status",
+        "displayName": "Success Wash",
+        "canonical": "oklch(93.5% 0.045 150)"
+      },
+      "success-text": {
+        "role": "status",
+        "displayName": "Success Text",
+        "canonical": "oklch(48.0% 0.105 152)"
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Warning",
+        "canonical": "oklch(74.0% 0.142 62)"
+      },
+      "warning-wash": {
+        "role": "status",
+        "displayName": "Warning Wash",
+        "canonical": "oklch(93.5% 0.042 73)"
+      },
+      "warning-text": {
+        "role": "status",
+        "displayName": "Warning Text",
+        "canonical": "oklch(55.0% 0.112 50)"
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger",
+        "canonical": "oklch(58.0% 0.185 25)"
+      },
+      "danger-wash": {
+        "role": "status",
+        "displayName": "Danger Wash",
+        "canonical": "oklch(94.0% 0.030 25)"
+      },
+      "danger-text": {
+        "role": "status",
+        "displayName": "Danger Text",
+        "canonical": "oklch(48.0% 0.170 25)"
+      },
+      "info": {
+        "role": "status",
+        "displayName": "Info",
+        "canonical": "oklch(60.0% 0.105 240)"
+      },
+      "category-moss": {
+        "role": "tertiary",
+        "displayName": "Category Moss",
+        "canonical": "oklch(46.0% 0.090 125)"
+      },
+      "category-moss-wash": {
+        "role": "tertiary",
+        "displayName": "Category Moss Wash",
+        "canonical": "oklch(95.0% 0.030 125)"
+      },
+      "category-moss-edge": {
+        "role": "tertiary",
+        "displayName": "Category Moss Edge",
+        "canonical": "oklch(88.0% 0.050 125)"
+      },
+      "category-rose": {
+        "role": "tertiary",
+        "displayName": "Category Rose",
+        "canonical": "oklch(46.0% 0.090 5)"
+      },
+      "category-rose-wash": {
+        "role": "tertiary",
+        "displayName": "Category Rose Wash",
+        "canonical": "oklch(95.0% 0.030 5)"
+      },
+      "category-rose-edge": {
+        "role": "tertiary",
+        "displayName": "Category Rose Edge",
+        "canonical": "oklch(88.0% 0.050 5)"
+      },
+      "category-indigo": {
+        "role": "tertiary",
+        "displayName": "Category Indigo",
+        "canonical": "oklch(46.0% 0.090 270)"
+      },
+      "category-indigo-wash": {
+        "role": "tertiary",
+        "displayName": "Category Indigo Wash",
+        "canonical": "oklch(95.0% 0.030 270)"
+      },
+      "category-indigo-edge": {
+        "role": "tertiary",
+        "displayName": "Category Indigo Edge",
+        "canonical": "oklch(88.0% 0.050 270)"
+      },
+      "category-plum": {
+        "role": "tertiary",
+        "displayName": "Category Plum",
+        "canonical": "oklch(46.0% 0.090 335)"
+      },
+      "category-plum-wash": {
+        "role": "tertiary",
+        "displayName": "Category Plum Wash",
+        "canonical": "oklch(95.0% 0.030 335)"
+      },
+      "category-plum-edge": {
+        "role": "tertiary",
+        "displayName": "Category Plum Edge",
+        "canonical": "oklch(88.0% 0.050 335)"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles and the resident greeting; one per page."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card, thread and dialog titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Feed previews, thread bodies, empty states."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Button labels and dense UI text."
+      },
+      "nav": {
+        "displayName": "Nav",
+        "purpose": "Sidebar navigation items."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Chips, authors, footers, bottom-nav labels."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase section eyebrows."
+      },
+      "meta-mono": {
+        "displayName": "Meta Mono",
+        "purpose": "Timestamps and counts only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "xs",
+        "value": "0 1px 2px oklch(20.5% 0.005 75 / 0.06)",
+        "purpose": "Cards and outline buttons at rest. Dark: black at 30–50% alpha."
+      },
+      {
+        "name": "sm",
+        "value": "0 1px 2px oklch(20.5% 0.005 75 / 0.05), 0 2px 6px oklch(20.5% 0.005 75 / 0.06)",
+        "purpose": "Sidebar panel and resting panels. Dark: black at 30–50% alpha."
+      },
+      {
+        "name": "md",
+        "value": "0 2px 4px oklch(20.5% 0.005 75 / 0.05), 0 6px 16px oklch(20.5% 0.005 75 / 0.08)",
+        "purpose": "Hover state of clickable cards. Dark: black at 30–50% alpha."
+      },
+      {
+        "name": "lg",
+        "value": "0 4px 8px oklch(20.5% 0.005 75 / 0.05), 0 12px 32px oklch(20.5% 0.005 75 / 0.10)",
+        "purpose": "Sheets and popovers. Dark: black at 30–50% alpha."
+      },
+      {
+        "name": "xl",
+        "value": "0 8px 16px oklch(20.5% 0.005 75 / 0.06), 0 20px 48px oklch(20.5% 0.005 75 / 0.12)",
+        "purpose": "Dialogs and top-most overlays. Dark: black at 30–50% alpha."
+      }
+    ],
+    "motion": [
+      {
+        "name": "nav-transition",
+        "value": "140ms",
+        "purpose": "Background and colour change on nav items."
+      },
+      {
+        "name": "card-lift",
+        "value": "150ms, translateY(-2px)",
+        "purpose": "Hover rise for clickable cards."
+      },
+      {
+        "name": "overlay",
+        "value": "100ms fade + zoom 95%",
+        "purpose": "Dialog open and close."
+      },
+      {
+        "name": "sheet",
+        "value": "200ms ease-in-out, 2.5rem slide",
+        "purpose": "Sheet enter and exit."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Button active state."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "All animation and transition collapsed under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "Sidebar replaces bottom nav."
+      },
+      {
+        "name": "xl",
+        "value": "1280px",
+        "purpose": "Right panel appears."
+      },
+      {
+        "name": "frame",
+        "value": "1366px",
+        "purpose": "Max app shell width."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one call to action on a screen: Stairwell Pine fill.",
+      "html": "<button class=\"ds-btn-primary\">Novi zahtev</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 10px; border: 1px solid transparent; border-radius: 12px; background: var(--brand, oklch(52% 0.09 185)); color: var(--on-brand, oklch(100% 0 75)); font: 500 14px/1 'Hanken Grotesk', system-ui, sans-serif; cursor: pointer; transition: background 150ms, box-shadow 150ms, transform 150ms; } .ds-btn-primary:hover { background: var(--brand-hover, oklch(44% 0.078 185)); } .ds-btn-primary:focus-visible { outline: none; border-color: oklch(60.5% 0.094 185); box-shadow: 0 0 0 3px oklch(60.5% 0.094 185 / 0.5); } .ds-btn-primary:active { background: var(--brand-active, oklch(36% 0.062 185)); transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action on a plaster ground with a hairline edge.",
+      "html": "<button class=\"ds-btn-outline\">Otkaži</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 10px; border: 1px solid oklch(91% 0.006 75); border-radius: 12px; background: oklch(98.6% 0.003 75); color: oklch(20.5% 0.005 75); font: 500 14px/1 'Hanken Grotesk', system-ui, sans-serif; box-shadow: 0 1px 2px oklch(20.5% 0.005 75 / 0.06); cursor: pointer; transition: background 150ms; } .ds-btn-outline:hover { background: oklch(96.6% 0.004 75); } .ds-btn-outline:focus-visible { outline: none; border-color: oklch(60.5% 0.094 185); box-shadow: 0 0 0 3px oklch(60.5% 0.094 185 / 0.5); } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Soft danger wash for delete and deactivate actions; never solid red.",
+      "html": "<button class=\"ds-btn-danger\">Deaktiviraj</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 10px; border: 1px solid transparent; border-radius: 12px; background: oklch(58% 0.185 25 / 0.1); color: oklch(58% 0.185 25); font: 500 14px/1 'Hanken Grotesk', system-ui, sans-serif; cursor: pointer; transition: background 150ms; } .ds-btn-danger:hover { background: oklch(58% 0.185 25 / 0.2); } .ds-btn-danger:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(58% 0.185 25 / 0.2); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "36px field with a 12px radius and a pine focus ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"Broj stana\" />",
+      "css": ".ds-input { width: 240px; height: 36px; padding: 4px 10px; border: 1px solid oklch(84.5% 0.007 75); border-radius: 12px; background: transparent; color: oklch(20.5% 0.005 75); font: 400 14px/1.4 'Hanken Grotesk', system-ui, sans-serif; box-shadow: 0 1px 2px oklch(20.5% 0.005 75 / 0.06); outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: oklch(46.5% 0.008 75); } .ds-input:focus-visible { border-color: oklch(60.5% 0.094 185); box-shadow: 0 0 0 3px oklch(60.5% 0.094 185 / 0.5); }"
+    },
+    {
+      "name": "Sidebar Nav",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Floating plaster panel; the active item gets a pine mist fill.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span>Početna</span></a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 11l18-5v12L3 14v-3z\"/><path d=\"M11.6 16.8a3 3 0 1 1-5.8-1.6\"/></svg><span>Oglasna tabla</span></a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z\"/></svg><span>Zahtevi</span><span class=\"ds-count\">2</span></a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 216px; padding: 12px; background: oklch(100% 0 75); border: 1px solid oklch(91% 0.006 75); border-radius: 16px; box-shadow: 0 1px 2px oklch(20.5% 0.005 75 / 0.05), 0 2px 6px oklch(20.5% 0.005 75 / 0.06); } .ds-nav-item { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 12px; color: oklch(46.5% 0.008 75); font: 500 13px/1.4 'Hanken Grotesk', system-ui, sans-serif; text-decoration: none; transition: background 140ms, color 140ms; } .ds-nav-item svg { color: oklch(54% 0.008 75); flex-shrink: 0; } .ds-nav-item span:first-of-type { flex: 1; } .ds-nav-item:hover { background: oklch(96.6% 0.004 75); color: oklch(20.5% 0.005 75); } .ds-nav-item:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(60.5% 0.094 185 / 0.5); } .ds-nav-item.is-active { background: oklch(97.5% 0.012 185); color: oklch(44% 0.078 185); font-weight: 600; } .ds-nav-item.is-active svg { color: oklch(52% 0.09 185); } .ds-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 9999px; background: oklch(91% 0.006 75); color: oklch(46.5% 0.008 75); font: 700 11px/1 'Hanken Grotesk', system-ui, sans-serif; }"
+    },
+    {
+      "name": "Content-Type Chips",
+      "kind": "chip",
+      "refersTo": "chip-board",
+      "description": "Wash + text + edge trio per content type.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-chip ds-chip-board\">Obaveštenje</span><span class=\"ds-chip ds-chip-forum\">Forum</span><span class=\"ds-chip ds-chip-chat\">Chat</span><span class=\"ds-chip ds-chip-docs\">Dokument</span></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; flex-wrap: wrap; } .ds-chip { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border: 1px solid; border-radius: 9999px; font: 500 12px/1 'Hanken Grotesk', system-ui, sans-serif; white-space: nowrap; } .ds-chip-board { background: oklch(97.5% 0.012 185); color: oklch(44% 0.078 185); border-color: oklch(89% 0.045 185); } .ds-chip-forum { background: oklch(97.5% 0.02 75); color: oklch(45% 0.09 48); border-color: oklch(88% 0.072 70); } .ds-chip-chat { background: oklch(94% 0.03 235); color: oklch(48% 0.095 243); border-color: oklch(88% 0.055 235); } .ds-chip-docs { background: oklch(93.5% 0.028 300); color: oklch(46% 0.095 302); border-color: oklch(87.5% 0.05 300); }"
+    },
+    {
+      "name": "Feed Card",
+      "kind": "card",
+      "refersTo": "feed-card",
+      "description": "Signature resident feed item: type chip, mono timestamp, title, two-line preview, footer.",
+      "html": "<article class=\"ds-feed-card\" tabindex=\"0\"><header><span class=\"ds-feed-chip\">Forum</span><time>pre 2h</time></header><h3>Kvar lifta u ulazu B</h3><p>Lift ponovo ne radi od jutros. Da li je neko već prijavio servisu? Stariji stanari na višim spratovima ne mogu da izađu.</p><footer><span class=\"ds-feed-author\">Jelena M.</span><span class=\"ds-feed-stat\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/></svg><span>7</span></span></footer></article>",
+      "css": ".ds-feed-card { width: 360px; padding: 16px; background: oklch(100% 0 75); border-radius: 20px; box-shadow: 0 0 0 1px oklch(20.5% 0.005 75 / 0.1), 0 1px 2px oklch(20.5% 0.005 75 / 0.06); color: oklch(20.5% 0.005 75); font-family: 'Hanken Grotesk', system-ui, sans-serif; cursor: pointer; transition: transform 150ms, box-shadow 150ms; } .ds-feed-card:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px oklch(20.5% 0.005 75 / 0.1), 0 2px 4px oklch(20.5% 0.005 75 / 0.05), 0 6px 16px oklch(20.5% 0.005 75 / 0.08); } .ds-feed-card:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(60.5% 0.094 185 / 0.5); } .ds-feed-card header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; } .ds-feed-chip { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border: 1px solid oklch(88% 0.072 70); border-radius: 9999px; background: oklch(97.5% 0.02 75); color: oklch(45% 0.09 48); font-size: 12px; font-weight: 500; } .ds-feed-card time { font: 400 12px/1 'JetBrains Mono', ui-monospace, monospace; color: oklch(46.5% 0.008 75); } .ds-feed-card h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; line-height: 1.375; } .ds-feed-card p { margin: 0 0 12px; font-size: 16px; line-height: 1.5; color: oklch(46.5% 0.008 75); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .ds-feed-card footer { display: flex; align-items: center; gap: 12px; font-size: 12px; color: oklch(46.5% 0.008 75); } .ds-feed-author { font-weight: 500; color: oklch(20.5% 0.005 75 / 0.7); } .ds-feed-stat { display: inline-flex; align-items: center; gap: 4px; font-family: 'JetBrains Mono', ui-monospace, monospace; }"
+    },
+    {
+      "name": "Category Chips",
+      "kind": "chip",
+      "refersTo": "chip-category-maintenance",
+      "description": "Forum and ticket categories: own hue trio plus an icon, so colour is never the only signal.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-cat ds-cat-maint\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg>Održavanje</span><span class=\"ds-cat ds-cat-complaint\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Žalba</span><span class=\"ds-cat ds-cat-ask\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/></svg>Pitanje</span><span class=\"ds-cat ds-cat-payment\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/></svg>Plaćanje</span><span class=\"ds-cat\">Opšte</span></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; flex-wrap: wrap; } .ds-cat { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border: 1px solid oklch(91% 0.006 75); border-radius: 9999px; color: oklch(20.5% 0.005 75); font: 500 12px/1 'Hanken Grotesk', system-ui, sans-serif; white-space: nowrap; } .ds-cat-maint { background: oklch(95% 0.03 125); color: oklch(46% 0.09 125); border-color: oklch(88% 0.05 125); } .ds-cat-complaint { background: oklch(95% 0.03 5); color: oklch(46% 0.09 5); border-color: oklch(88% 0.05 5); } .ds-cat-ask { background: oklch(95% 0.03 270); color: oklch(46% 0.09 270); border-color: oklch(88% 0.05 270); } .ds-cat-payment { background: oklch(95% 0.03 335); color: oklch(46% 0.09 335); border-color: oklch(88% 0.05 335); }"
+    },
+    {
+      "name": "Status Chips",
+      "kind": "chip",
+      "refersTo": "chip-status-open",
+      "description": "Open/closed status for tickets and threads, using the success tokens.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-status ds-status-open\">Otvoreno</span><span class=\"ds-status ds-status-closed\">Zatvoreno</span></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; } .ds-status { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 9999px; font: 500 10px/1.2 'Hanken Grotesk', system-ui, sans-serif; } .ds-status-open { background: oklch(93.5% 0.045 150); color: oklch(48% 0.105 152); } .ds-status-closed { background: oklch(96.6% 0.004 75); color: oklch(54% 0.008 75); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Well-Kept Building",
+    "overview": "The interface should feel like a clean, well-lit entrance hall in a building that someone looks after. Everything has its place, nothing shouts, and you can tell at a glance that the building is cared for. The ground is warm plaster: off-whites and greys tinted toward hue 75, never cold blue-grey. A single muted Stairwell Pine marks where you are and what you can act on. The mood is calm, warm and trustworthy. Residents should feel reassured that management is present, and upravnici should feel the building is in order.\n\nContent sits in soft layers. The plaster ground is the floor. White panels and cards rest on it with a hairline edge and a warm, low shadow. Dialogs and sheets float above on deeper shadows of the same tint. Corners are soft throughout (12–20px), which reads as approachable rather than playful. Each kind of content has its own colour (announcements pine, forum amber, chat sky, documents violet), so residents can scan a mixed feed and know what each item is before reading it. Forum and ticket categories get a quieter second palette (moss, rose, indigo, plum), always paired with an icon.\n\nDensity is moderate. The resident feed breathes on a phone with 16px card padding and 12px gaps between cards. The upravnik's desktop workspace fits a 240px sidebar, a fluid column and a 280px side panel inside a 1366px frame. Type does the work of hierarchy. Decoration does not.\n\nThe same building after dark: a dark theme (Sistem / Svetla / Tamna) re-points the ramps rather than the components. Plaster inverts to warm charcoal (ground L15, surface L19, sunken L23), washes become deep low-chroma tints with light text, and Stairwell Pine lifts to L68 with dark text on it, so it still means \"act here\".",
+    "keyCharacteristics": [
+      "Warm plaster neutrals (hue 75) under one muted pine accent.",
+      "Soft layers: ground → panel/card → overlay, with warm-tinted two-layer shadows.",
+      "One colour per content type, applied as a pale wash, a darker text tone and a matching edge.",
+      "Hanken Grotesk for all reading and UI text; JetBrains Mono only for timestamps and counts.",
+      "Soft corners: 12px for controls, 16px for panels, 20px for cards, pills for chips and counts.",
+      "Serbian UI copy. Labels are short nouns (\"Oglasna tabla\", \"Zahtevi\", \"Dokumenta\").",
+      "Light and dark themes from one set of ramps; components never branch on theme."
+    ],
+    "rules": [
+      {
+        "name": "The Content-Type Rule",
+        "body": "Every content type keeps its colour everywhere it appears: announcements pine, forum amber, chat sky, documents violet. A type colour is always a trio of wash background, darker text and matching edge, never a solid fill. No other element may borrow these hues for decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Category Hue Rule",
+        "body": "Category chips use only the --cat-* trios, never a content-type or status hue, and always carry their icon so colour is never the only signal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Warm Plaster Rule",
+        "body": "Neutrals are tinted toward hue 75. Don't introduce cool greys (Tailwind gray, slate, zinc) or pure #000 and #fff outside the stone ramp.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Pine Rule",
+        "body": "Stairwell Pine is the only colour that means \"act here\". Status uses the status tokens, and content types use their own hues.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono-for-Numbers Rule",
+        "body": "JetBrains Mono appears only on timestamps, counts and stats. It never sets words or headings.",
+        "section": "typography"
+      },
+      {
+        "name": "The Single Headline Rule",
+        "body": "Each page has exactly one 1.5rem semibold headline, and below that hierarchy comes from weight and colour rather than more sizes. Don't add display sizes to app screens.",
+        "section": "typography"
+      },
+      {
+        "name": "The Warm Shadow Rule",
+        "body": "In light, every shadow uses the stone tint at 12% alpha or less, and every shadow has two layers except xs. Shadows are defined once as --elev-* and themed there, never per component. Never use Tailwind's default black shadows or coloured glows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Lift Means Click Rule",
+        "body": "Only a card you can click rises on hover. Static containers keep their resting shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do colour every new surface through semantic aliases (--surface, --text, --border, --brand*, --type-*, status tokens) or the system ramps. Both are re-pointed by .dark, while Tailwind's default palettes and literal colours are not.",
+      "Do check new pages in both themes.",
+      "Do use the content-type trio (wash, text, edge) whenever announcements, forum, chat or documents appear, including in new places such as notifications and search results.",
+      "Do set timestamps and counts in JetBrains Mono at 12px.",
+      "Do use stone-tinted two-layer shadows from the shared scale (shadow-xs … shadow-xl). Rest at xs/sm, rise to md on hover, and float overlays at lg/xl.",
+      "Do keep page titles at one 1.5rem semibold headline with −0.025em tracking.",
+      "Do keep controls at 12px radius, cards and dialogs at 20px, and chips and counts as full pills."
+    ],
+    "donts": [
+      "Don't use Tailwind's default emerald, blue, gray or slate palettes, or any step a ramp doesn't define (such as red-50). They don't theme.",
+      "Don't colour announcements purple. Announcements are Stairwell Pine.",
+      "Don't hard-code text-white or #fff on pine. Use text-primary-foreground / --on-brand, which turns dark in the dark theme.",
+      "Don't copy chip maps into pages. Add to lib/chips.ts.",
+      "Don't fill a content-type colour as a solid block, and don't borrow type hues for decoration.",
+      "Don't make a static container rise on hover, or use neutral black (in light) or coloured shadows.",
+      "Don't introduce extra display sizes, condensed fonts or mono text for words on app screens."
+    ]
+  }
+}

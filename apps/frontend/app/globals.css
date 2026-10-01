@@ -15,12 +15,12 @@
   --radius-xl:   20px;
   --radius-2xl:  28px;
 
-  /* Warm shadows (stone-tinted, low alpha) */
-  --shadow-xs: 0 1px 2px oklch(20.5% 0.005 75 / 0.06);
-  --shadow-sm: 0 1px 2px oklch(20.5% 0.005 75 / 0.05), 0 2px 6px oklch(20.5% 0.005 75 / 0.06);
-  --shadow-md: 0 2px 4px oklch(20.5% 0.005 75 / 0.05), 0 6px 16px oklch(20.5% 0.005 75 / 0.08);
-  --shadow-lg: 0 4px 8px oklch(20.5% 0.005 75 / 0.05), 0 12px 32px oklch(20.5% 0.005 75 / 0.10);
-  --shadow-xl: 0 8px 16px oklch(20.5% 0.005 75 / 0.06), 0 20px 48px oklch(20.5% 0.005 75 / 0.12);
+  /* Warm shadows — values live in :root / .dark as --elev-* so they can theme */
+  --shadow-xs: var(--elev-xs);
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+  --shadow-xl: var(--elev-xl);
 
   /* ── Pine ramp — brand teal (hue 185) ── */
   --color-pine-50:  var(--pine-50);
@@ -84,6 +84,20 @@
   --color-red-500: var(--red-500);
   --color-red-700: var(--red-700);
 
+  /* ── Category hues — forum/ticket categories, never content types ── */
+  --color-cat-maint-wash:     var(--cat-maint-wash);
+  --color-cat-maint-edge:     var(--cat-maint-edge);
+  --color-cat-maint-text:     var(--cat-maint-text);
+  --color-cat-complaint-wash: var(--cat-complaint-wash);
+  --color-cat-complaint-edge: var(--cat-complaint-edge);
+  --color-cat-complaint-text: var(--cat-complaint-text);
+  --color-cat-ask-wash:       var(--cat-ask-wash);
+  --color-cat-ask-edge:       var(--cat-ask-edge);
+  --color-cat-ask-text:       var(--cat-ask-text);
+  --color-cat-payment-wash:   var(--cat-payment-wash);
+  --color-cat-payment-edge:   var(--cat-payment-edge);
+  --color-cat-payment-text:   var(--cat-payment-text);
+
   /* ── shadcn semantic aliases ── */
   --color-background:             var(--background);
   --color-foreground:             var(--foreground);
@@ -132,7 +146,7 @@
     --stone-200: oklch(91.0% 0.006 75);
     --stone-300: oklch(84.5% 0.007 75);
     --stone-400: oklch(71.0% 0.008 75);
-    --stone-500: oklch(57.5% 0.008 75);
+    --stone-500: oklch(54.0% 0.008 75);
     --stone-600: oklch(46.5% 0.008 75);
     --stone-700: oklch(37.5% 0.007 75);
     --stone-800: oklch(27.5% 0.006 75);
@@ -173,6 +187,20 @@
     --red-500: oklch(58.0% 0.185 25);
     --red-700: oklch(48.0% 0.170 25);
 
+    /* ── CATEGORY HUES — wash / edge / text ── */
+    --cat-maint-wash:     oklch(95.0% 0.030 125);
+    --cat-maint-edge:     oklch(88.0% 0.050 125);
+    --cat-maint-text:     oklch(46.0% 0.090 125);
+    --cat-complaint-wash: oklch(95.0% 0.030 5);
+    --cat-complaint-edge: oklch(88.0% 0.050 5);
+    --cat-complaint-text: oklch(46.0% 0.090 5);
+    --cat-ask-wash:       oklch(95.0% 0.030 270);
+    --cat-ask-edge:       oklch(88.0% 0.050 270);
+    --cat-ask-text:       oklch(46.0% 0.090 270);
+    --cat-payment-wash:   oklch(95.0% 0.030 335);
+    --cat-payment-edge:   oklch(88.0% 0.050 335);
+    --cat-payment-text:   oklch(46.0% 0.090 335);
+
     /* ── DESIGN SYSTEM SEMANTIC ALIASES ── */
     --brand:              var(--pine-600);
     --brand-hover:        var(--pine-700);
@@ -186,6 +214,7 @@
     --surface:        var(--stone-0);
     --surface-sunken: var(--stone-100);
     --surface-hover:  var(--stone-100);
+    --surface-well:   var(--stone-100);
 
     --text:          var(--stone-900);
     --text-secondary:var(--stone-600);
@@ -224,6 +253,13 @@
     --type-docs-subtle:  var(--violet-100);
     --type-docs-border:  var(--violet-200);
 
+    /* Elevation — warm, stone-tinted, low alpha */
+    --elev-xs: 0 1px 2px oklch(20.5% 0.005 75 / 0.06);
+    --elev-sm: 0 1px 2px oklch(20.5% 0.005 75 / 0.05), 0 2px 6px oklch(20.5% 0.005 75 / 0.06);
+    --elev-md: 0 2px 4px oklch(20.5% 0.005 75 / 0.05), 0 6px 16px oklch(20.5% 0.005 75 / 0.08);
+    --elev-lg: 0 4px 8px oklch(20.5% 0.005 75 / 0.05), 0 12px 32px oklch(20.5% 0.005 75 / 0.10);
+    --elev-xl: 0 8px 16px oklch(20.5% 0.005 75 / 0.06), 0 20px 48px oklch(20.5% 0.005 75 / 0.12);
+
     /* ── SHADCN/UI SEMANTIC MAPPING ── */
     --background:           var(--bg);
     --foreground:           var(--text);
@@ -242,9 +278,94 @@
     --destructive:          var(--danger);
     --destructive-foreground: var(--stone-0);
     --border:               var(--stone-200);
-    --input:                var(--surface-sunken);
+    --input:                var(--border-strong);
     --ring:                 var(--ring-focus);
     --radius:               0.75rem;
+  }
+
+  /* ── DARK — ramps invert around the surface, so raw stone-/pine-/… utilities
+     keep their meaning (0/50 = ground, 900 = ink). Fills (500/600) stay vivid. ── */
+  .dark {
+    --pine-50:  oklch(21.5% 0.022 185);
+    --pine-100: oklch(27.0% 0.038 185);
+    --pine-200: oklch(33.0% 0.048 185);
+    --pine-300: oklch(42.0% 0.060 185);
+    --pine-400: oklch(52.0% 0.075 185);
+    --pine-500: oklch(60.0% 0.088 185);
+    --pine-600: oklch(68.0% 0.092 185);
+    --pine-700: oklch(76.0% 0.080 185);
+    --pine-800: oklch(83.0% 0.065 185);
+    --pine-900: oklch(89.0% 0.045 185);
+    --pine-950: oklch(94.0% 0.025 185);
+
+    --stone-0:   oklch(19.0% 0.004 75);
+    --stone-50:  oklch(15.0% 0.004 75);
+    --stone-100: oklch(23.0% 0.005 75);
+    --stone-150: oklch(25.5% 0.005 75);
+    --stone-200: oklch(28.0% 0.006 75);
+    --stone-300: oklch(36.0% 0.007 75);
+    --stone-400: oklch(48.0% 0.008 75);
+    --stone-500: oklch(66.0% 0.008 75);
+    --stone-600: oklch(76.0% 0.007 75);
+    --stone-700: oklch(84.0% 0.006 75);
+    --stone-800: oklch(90.0% 0.005 75);
+    --stone-900: oklch(94.0% 0.004 75);
+    --stone-950: oklch(97.0% 0.003 75);
+
+    --amber-50:  oklch(23.0% 0.025 70);
+    --amber-100: oklch(27.0% 0.040 70);
+    --amber-200: oklch(35.0% 0.055 68);
+    --amber-300: oklch(45.0% 0.075 66);
+    --amber-400: oklch(56.0% 0.100 64);
+    --amber-500: oklch(70.0% 0.130 62);
+    --amber-600: oklch(74.0% 0.120 60);
+    --amber-700: oklch(80.0% 0.100 62);
+    --amber-800: oklch(85.0% 0.085 66);
+    --amber-900: oklch(90.0% 0.060 70);
+
+    --sky-100: oklch(26.0% 0.035 235);
+    --sky-200: oklch(34.0% 0.050 235);
+    --sky-500: oklch(66.0% 0.100 240);
+    --sky-700: oklch(81.0% 0.080 240);
+
+    --violet-100: oklch(26.0% 0.035 300);
+    --violet-200: oklch(34.0% 0.050 300);
+    --violet-500: oklch(66.0% 0.100 300);
+    --violet-700: oklch(81.0% 0.080 300);
+
+    --green-100: oklch(27.0% 0.045 150);
+    --green-500: oklch(68.0% 0.120 150);
+    --green-700: oklch(81.0% 0.100 150);
+
+    --red-100: oklch(27.0% 0.050 25);
+    --red-500: oklch(66.0% 0.170 25);
+    --red-700: oklch(80.0% 0.110 25);
+
+    --cat-maint-wash:     oklch(26.0% 0.030 125);
+    --cat-maint-edge:     oklch(35.0% 0.050 125);
+    --cat-maint-text:     oklch(82.0% 0.080 125);
+    --cat-complaint-wash: oklch(26.0% 0.030 5);
+    --cat-complaint-edge: oklch(35.0% 0.050 5);
+    --cat-complaint-text: oklch(82.0% 0.080 5);
+    --cat-ask-wash:       oklch(26.0% 0.030 270);
+    --cat-ask-edge:       oklch(35.0% 0.050 270);
+    --cat-ask-text:       oklch(82.0% 0.080 270);
+    --cat-payment-wash:   oklch(26.0% 0.030 335);
+    --cat-payment-edge:   oklch(35.0% 0.050 335);
+    --cat-payment-text:   oklch(82.0% 0.080 335);
+
+    /* Semantic overrides the inversion can't express */
+    --brand-hover:  oklch(73.0% 0.088 185);
+    --brand-active: oklch(77.0% 0.082 185);
+    --on-brand:     oklch(18.0% 0.030 185);
+    --surface-well: oklch(12.5% 0.004 75); /* below the ground, so the content well stays recessed */
+
+    /* Depth on dark comes mostly from lighter surfaces + hairlines */
+    --elev-xs: 0 1px 2px oklch(0% 0 0 / 0.35);
+    --elev-sm: 0 1px 2px oklch(0% 0 0 / 0.30), 0 2px 6px oklch(0% 0 0 / 0.35);
+    --elev-md: 0 2px 4px oklch(0% 0 0 / 0.30), 0 6px 16px oklch(0% 0 0 / 0.40);
+    --elev-lg: 0 4px 8px oklch(0% 0 0 / 0.30), 0 12px 32px oklch(0% 0 0 / 0.45);
+    --elev-xl: 0 8px 16px oklch(0% 0 0 / 0.35), 0 20px 48px oklch(0% 0 0 / 0.50);
   }
 
   * {

@@ -3,9 +3,10 @@
 import { useBuildings } from '@/hooks/useBuildings'
 import { useAnnouncements } from '@/hooks/useAnnouncements'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Pin } from 'lucide-react'
+import { Pin, Megaphone } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/PageHeader'
 
 function AnnouncementSkeleton() {
   return (
@@ -33,9 +34,13 @@ export default function BoardPage() {
   })
 
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Oglasna tabla</h1>
-      <p className="text-base text-muted-foreground mb-6">Obaveštenja od upravnika</p>
+    <div className="pb-6">
+      <PageHeader
+        icon={<Megaphone />}
+        tone="board"
+        title="Oglasna tabla"
+        description="Obaveštenja od upravnika"
+      />
 
       {isLoading || buildingsLoading ? (
         <AnnouncementSkeleton />

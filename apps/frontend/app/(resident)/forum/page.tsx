@@ -5,24 +5,11 @@ import { useBuildings } from '@/hooks/useBuildings'
 import { useThreads } from '@/hooks/useThreads'
 import { CreateThreadDialog } from '@/components/CreateThreadDialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, MessagesSquare } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
-import type { ThreadCategory } from '@/lib/types'
-
-const categoryLabel: Record<ThreadCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  QUESTION: 'Pitanje',
-}
-
-const categoryClass: Record<ThreadCategory, string> = {
-  GENERAL: 'border-border text-foreground',
-  MAINTENANCE: 'bg-amber-100 text-amber-800 border-amber-200',
-  COMPLAINT: 'bg-red-100 text-red-700 border-red-200',
-  QUESTION: 'bg-violet-100 text-violet-700 border-violet-200',
-}
+import { ChipBadge } from '@/components/ChipBadge'
+import { threadCategory } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 function ThreadSkeleton() {
   return (
@@ -51,14 +38,14 @@ export default function ForumPage() {
   )
 
   return (
-    <div className="py-6">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Forum</h1>
-          <p className="text-base text-muted-foreground">Diskusije stanara zgrade</p>
-        </div>
-        {buildingId && <CreateThreadDialog buildingId={buildingId} />}
-      </div>
+    <div className="pb-6">
+      <PageHeader
+        icon={<MessagesSquare />}
+        tone="forum"
+        title="Forum"
+        description="Diskusije stanara zgrade"
+        actions={buildingId && <CreateThreadDialog buildingId={buildingId} />}
+      />
 
       {isLoading || buildingsLoading ? (
         <ThreadSkeleton />
@@ -71,9 +58,7 @@ export default function ForumPage() {
               <div className="rounded-lg border border-border bg-card p-4 hover:bg-stone-100 transition-colors">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${categoryClass[t.category]}`}>
-                      {categoryLabel[t.category]}
-                    </Badge>
+                    <ChipBadge chip={threadCategory[t.category]} />
                     <p className="font-semibold text-base text-foreground leading-snug">{t.title}</p>
                   </div>
                   {t.status === 'CLOSED' && (

@@ -5,14 +5,8 @@ import { useDocuments } from '@/hooks/useDocuments'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FileText, ExternalLink } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
-import type { DocumentCategory } from '@/lib/types'
-
-const categoryLabel: Record<DocumentCategory, string> = {
-  CONTRACT: 'Ugovor',
-  REPORT: 'Izveštaj',
-  DECISION: 'Odluka',
-  OTHER: 'Ostalo',
-}
+import { documentCategoryLabel } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function BuildingDocumentsPage({
   params,
@@ -27,9 +21,8 @@ export default function BuildingDocumentsPage({
   )
 
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Dokumenta</h1>
-      <p className="text-base text-muted-foreground mb-6">Dokumenti i fajlovi zgrade</p>
+    <div className="pb-6">
+      <PageHeader icon={<FileText />} tone="docs" title="Dokumenta" description="Dokumenti i fajlovi zgrade" />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -55,7 +48,7 @@ export default function BuildingDocumentsPage({
               <div className="flex-1 min-w-0">
                 <p className="text-base font-semibold text-foreground truncate">{d.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {categoryLabel[d.category]} · {getAuthorName(d.uploader)} ·{' '}
+                  {documentCategoryLabel[d.category]} · {getAuthorName(d.uploader)} ·{' '}
                   <span className="font-mono">{formatTimestamp(d.createdAt)}</span>
                 </p>
               </div>

@@ -5,9 +5,10 @@ import { useAnnouncements, useUpdateAnnouncement } from '@/hooks/useAnnouncement
 import { useAuth } from '@/lib/auth'
 import { CreateAnnouncementDialog } from '@/components/CreateAnnouncementDialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Pin } from 'lucide-react'
+import { Pin, Megaphone } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function BuildingBoardPage({
   params,
@@ -27,14 +28,14 @@ export default function BuildingBoardPage({
   })
 
   return (
-    <div className="py-6">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Oglasna tabla</h1>
-          <p className="text-base text-muted-foreground">Obaveštenja za ovu zgradu</p>
-        </div>
-        {canManage && <CreateAnnouncementDialog buildingId={buildingId} />}
-      </div>
+    <div className="pb-6">
+      <PageHeader
+        icon={<Megaphone />}
+        tone="board"
+        title="Oglasna tabla"
+        description="Obaveštenja za ovu zgradu"
+        actions={canManage && <CreateAnnouncementDialog buildingId={buildingId} />}
+      />
 
       {isLoading ? (
         <div className="space-y-3">

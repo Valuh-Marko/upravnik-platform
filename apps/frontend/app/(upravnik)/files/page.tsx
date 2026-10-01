@@ -1,10 +1,15 @@
 import { FileText, Upload } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function FilesPage() {
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Dokumenta</h1>
-      <p className="text-base text-muted-foreground mb-8">Svi dokumenti po zgradama — u izradi</p>
+    <div className="pb-6">
+      <PageHeader
+        icon={<FileText />}
+        tone="docs"
+        title="Dokumenta"
+        description="Svi dokumenti po zgradama — u izradi"
+      />
 
       <div className="space-y-3">
         <div className="flex gap-4 p-4 rounded-lg border border-border bg-card">

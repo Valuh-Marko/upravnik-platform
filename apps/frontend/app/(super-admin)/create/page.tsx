@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Plus, PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +11,7 @@ import type { BulkCreateDto } from '@/lib/types'
 import { BuildingCard } from './BuildingCard'
 import { TreePreview } from './TreePreview'
 import type { BuildingDraft, Scope, FormMode } from './types'
+import { PageHeader } from '@/components/PageHeader'
 
 function newBuilding(): BuildingDraft {
   return {
@@ -233,15 +234,12 @@ export default function BulkCreatePage() {
   const previewComplexName = mode === 'csv' ? csvComplexName : complexName
 
   return (
-    <div className="py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">
-          Kreiranje strukture
-        </h1>
-        <p className="text-base text-muted-foreground">
-          Kreirajte kompleks, zgrade i jedinice u jednom koraku.
-        </p>
-      </div>
+    <div className="pb-6">
+      <PageHeader
+        icon={<PlusCircle />}
+        title="Kreiranje strukture"
+        description="Kreirajte kompleks, zgrade i jedinice u jednom koraku."
+      />
 
       {/* Mode tabs */}
       <div className="flex border-b border-border mb-6">

@@ -5,23 +5,12 @@ import Link from 'next/link'
 import { useAllThreads } from '@/hooks/useThreads'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { ChevronDown, ChevronRight, MessageSquare } from 'lucide-react'
+import { ChevronDown, ChevronRight, MessageSquare, MessagesSquare } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
-import type { Thread, ThreadCategory } from '@/lib/types'
-
-const categoryLabel: Record<ThreadCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  QUESTION: 'Pitanje',
-}
-
-const categoryClass: Record<ThreadCategory, string> = {
-  GENERAL: 'border-border text-foreground',
-  MAINTENANCE: 'bg-amber-100 text-amber-800 border-amber-200',
-  COMPLAINT: 'bg-red-100 text-red-700 border-red-200',
-  QUESTION: 'bg-violet-100 text-violet-700 border-violet-200',
-}
+import type { Thread } from '@/lib/types'
+import { ChipBadge } from '@/components/ChipBadge'
+import { threadCategory } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 function ThreadRow({ thread }: { thread: Thread }) {
   return (
@@ -29,9 +18,7 @@ function ThreadRow({ thread }: { thread: Thread }) {
       <div className="rounded-lg border border-border bg-card p-4 hover:bg-stone-100 transition-colors">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${categoryClass[thread.category]}`}>
-              {categoryLabel[thread.category]}
-            </Badge>
+            <ChipBadge chip={threadCategory[thread.category]} />
             <p className="font-semibold text-base text-foreground leading-snug">{thread.title}</p>
           </div>
           {thread.status === 'CLOSED' && (
@@ -85,9 +72,13 @@ export default function ThreadsPage() {
     })
 
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Forum</h1>
-      <p className="text-base text-muted-foreground mb-6">Sve diskusije stanara po zgradama</p>
+    <div className="pb-6">
+      <PageHeader
+        icon={<MessagesSquare />}
+        tone="forum"
+        title="Forum"
+        description="Sve diskusije stanara po zgradama"
+      />
 
       {isLoading ? (
         <div className="space-y-3">

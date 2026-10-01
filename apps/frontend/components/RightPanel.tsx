@@ -6,30 +6,12 @@ import { useMyTickets, useAllTickets } from "@/hooks/useTickets";
 import { UserMenu } from "@/components/UserMenu";
 import { Megaphone, MessagesSquare, Ticket, MessageSquare } from "lucide-react";
 import { formatTimestamp } from "@/lib/format";
-import type { TicketStatus, TicketCategory } from "@/lib/types";
-
-const categoryLabel: Record<TicketCategory, string> = {
-  GENERAL: "Opšte",
-  MAINTENANCE: "Održavanje",
-  COMPLAINT: "Žalba",
-  PAYMENT: "Plaćanje",
-  REQUEST: "Zahtjev",
-};
-
-const statusClass: Record<TicketStatus, string> = {
-  OPEN: "bg-emerald-100 text-emerald-700",
-  CLOSED: "bg-stone-100 text-stone-500",
-};
-
-const statusLabel: Record<TicketStatus, string> = {
-  OPEN: "Otvoreno",
-  CLOSED: "Zatvoreno",
-};
+import { ticketCategory, ticketStatus } from "@/lib/chips";
 
 function UnreadBadge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[10px] font-bold leading-none">
+    <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none">
       {count > 9 ? "9+" : count}
     </span>
   );
@@ -47,7 +29,7 @@ function ResidentTicketsPanel() {
     <div className="mt-4">
       <div className="flex items-center justify-between mb-2 px-1">
         <span className="flex items-center gap-1.5 text-[11px] font-semibold text-stone-500 uppercase tracking-[0.06em]">
-          Moji zahtjevi
+          Moji zahtevi
           <UnreadBadge count={unreadCount} />
         </span>
         <Link
@@ -59,7 +41,7 @@ function ResidentTicketsPanel() {
       </div>
 
       {recent.length === 0 ? (
-        <p className="text-xs text-muted-foreground px-1 py-2">Nemate zahtjeva.</p>
+        <p className="text-xs text-muted-foreground px-1 py-2">Nemate zahteva.</p>
       ) : (
         <div className="space-y-1">
           {recent.map((t) => (
@@ -69,11 +51,11 @@ function ResidentTicketsPanel() {
               className="block rounded-md px-2 py-2 hover:bg-stone-100 transition-colors"
             >
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${statusClass[t.status]}`}>
-                  {statusLabel[t.status]}
+                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${ticketStatus[t.status].className}`}>
+                  {ticketStatus[t.status].label}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {categoryLabel[t.category]}
+                  {ticketCategory[t.category].label}
                 </span>
               </div>
               <p className="text-xs font-medium text-foreground truncate flex items-center gap-1">
@@ -114,39 +96,43 @@ export function RightPanel() {
     : 0;
 
   return (
-    <aside className="hidden xl:flex flex-col py-6">
-      <UserMenu />
+    <aside className="hidden xl:flex flex-col h-full min-h-0 py-3">
+      <div className="flex flex-col h-full overflow-y-auto bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] shadow-sm p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="pb-3 border-b border-[var(--border)]">
+          <UserMenu />
+        </div>
 
-      <nav className="space-y-1 mt-4 mb-4">
-        <Link
-          href={threadHref}
-          className="flex items-center gap-2 px-3 py-2 rounded-md text-base text-muted-foreground hover:bg-stone-100 hover:text-stone-900 transition-colors"
-        >
-          <MessagesSquare className="w-4 h-4" />
-          Moje teme
-        </Link>
-        {!isResident && (
+        <nav className="space-y-1 mt-3 mb-4">
           <Link
-            href="/tickets"
+            href={threadHref}
             className="flex items-center gap-2 px-3 py-2 rounded-md text-base text-muted-foreground hover:bg-stone-100 hover:text-stone-900 transition-colors"
           >
-            <Ticket className="w-4 h-4" />
-            Zahtjevi
-            <UnreadBadge count={staffUnread} />
+            <MessagesSquare className="w-4 h-4" />
+            Moje teme
           </Link>
-        )}
-        {canManageAnnouncements && (
-          <Link
-            href="/announcements"
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-base text-muted-foreground hover:bg-stone-100 hover:text-stone-900 transition-colors"
-          >
-            <Megaphone className="w-4 h-4" />
-            Moje objave
-          </Link>
-        )}
-      </nav>
+          {!isResident && (
+            <Link
+              href="/tickets"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-base text-muted-foreground hover:bg-stone-100 hover:text-stone-900 transition-colors"
+            >
+              <Ticket className="w-4 h-4" />
+              Zahtevi
+              <UnreadBadge count={staffUnread} />
+            </Link>
+          )}
+          {canManageAnnouncements && (
+            <Link
+              href="/announcements"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-base text-muted-foreground hover:bg-stone-100 hover:text-stone-900 transition-colors"
+            >
+              <Megaphone className="w-4 h-4" />
+              Moje objave
+            </Link>
+          )}
+        </nav>
 
-      {isResident && <ResidentTicketsPanel />}
+        {isResident && <ResidentTicketsPanel />}
+      </div>
     </aside>
   );
 }

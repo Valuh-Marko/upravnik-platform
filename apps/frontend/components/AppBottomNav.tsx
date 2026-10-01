@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth'
 import { useBuildings } from '@/hooks/useBuildings'
 import { useMyTickets } from '@/hooks/useTickets'
 import { CreateTicketDialog } from '@/components/CreateTicketDialog'
+import { ThemeSegmented } from '@/components/ThemeSwitcher'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -24,23 +25,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatTimestamp } from '@/lib/format'
-import type { TicketStatus, TicketCategory } from '@/lib/types'
-
-const statusClass: Record<TicketStatus, string> = {
-  OPEN: 'bg-emerald-100 text-emerald-700',
-  CLOSED: 'bg-stone-100 text-stone-500',
-}
-const statusLabel: Record<TicketStatus, string> = {
-  OPEN: 'Otvoreno',
-  CLOSED: 'Zatvoreno',
-}
-const categoryLabel: Record<TicketCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  PAYMENT: 'Plaćanje',
-  REQUEST: 'Zahtjev',
-}
+import { ticketCategory, ticketStatus } from '@/lib/chips'
 
 function getInitials(username: string, firstName?: string | null, lastName?: string | null) {
   if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase()
@@ -118,7 +103,7 @@ function MobileUserSheet({
             {!isResident && (
               <Link href="/tickets" onClick={close} className={linkClass}>
                 <Ticket className="w-4 h-4" />
-                Zahtjevi
+                Zahtevi
               </Link>
             )}
 
@@ -138,7 +123,7 @@ function MobileUserSheet({
                 }}
               >
                 <PlusCircle className="w-4 h-4" />
-                Novi zahtjev
+                Novi zahtev
               </button>
             )}
           </nav>
@@ -148,7 +133,7 @@ function MobileUserSheet({
             <div className="border-t border-border px-4 pt-3 pb-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.06em]">
-                  Moji zahtjevi
+                  Moji zahtevi
                 </span>
                 <Link
                   href="/tickets"
@@ -160,7 +145,7 @@ function MobileUserSheet({
               </div>
 
               {recentTickets.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">Nemate zahtjeva.</p>
+                <p className="text-xs text-muted-foreground py-2">Nemate zahteva.</p>
               ) : (
                 <div className="space-y-1">
                   {recentTickets.map((t) => (
@@ -171,11 +156,11 @@ function MobileUserSheet({
                       className="block rounded-md px-2 py-2 hover:bg-stone-100 transition-colors"
                     >
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${statusClass[t.status]}`}>
-                          {statusLabel[t.status]}
+                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${ticketStatus[t.status].className}`}>
+                          {ticketStatus[t.status].label}
                         </span>
                         <span className="text-[10px] text-muted-foreground">
-                          {categoryLabel[t.category]}
+                          {ticketCategory[t.category].label}
                         </span>
                       </div>
                       <p className="text-xs font-medium text-foreground truncate flex items-center gap-1">
@@ -200,11 +185,19 @@ function MobileUserSheet({
             </div>
           )}
 
+          {/* Theme */}
+          <div className="border-t border-border px-4 pt-3 pb-3">
+            <span className="block text-[11px] font-semibold text-stone-500 uppercase tracking-[0.06em] mb-2">
+              Tema
+            </span>
+            <ThemeSegmented />
+          </div>
+
           {/* Logout */}
           <div className="px-2 pt-2 border-t border-border">
             <button
               onClick={logout}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-red-50 transition-colors w-full text-left"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-red-100 transition-colors w-full text-left"
             >
               <LogOut className="w-4 h-4" />
               Odjava
@@ -228,7 +221,7 @@ const residentNav = [
   { href: '/home', label: 'Početna', icon: Home },
   { href: '/board', label: 'Tabla', icon: Megaphone },
   { href: '/forum', label: 'Forum', icon: MessagesSquare },
-  { href: '/tickets', label: 'Zahtjevi', icon: Ticket },
+  { href: '/tickets', label: 'Zahtevi', icon: Ticket },
   { href: '/documents', label: 'Dokumenta', icon: FileText },
 ]
 
@@ -268,7 +261,7 @@ export function AppBottomNav() {
                 <div className="relative">
                   <Icon className="w-5 h-5" />
                   {badge > 0 && (
-                    <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-0.5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                    <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center leading-none">
                       {badge > 9 ? '9+' : badge}
                     </span>
                   )}

@@ -1,4 +1,5 @@
-import { StickyNote, CheckSquare, Pin, Bell } from 'lucide-react'
+import { StickyNote, CheckSquare, Pin, Bell, LayoutDashboard } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
 
 const planned = [
   {
@@ -29,11 +30,12 @@ const planned = [
 
 export default function DashboardPage() {
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Početna</h1>
-      <p className="text-base text-muted-foreground mb-8">
-        Personalizovana tabla upravnika — u izradi
-      </p>
+    <div className="pb-6">
+      <PageHeader
+        icon={<LayoutDashboard />}
+        title="Početna"
+        description="Personalizovana tabla upravnika — u izradi"
+      />
 
       <div className="space-y-3">
         {planned.map(({ icon: Icon, title, description }) => (

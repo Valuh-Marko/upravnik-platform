@@ -4,8 +4,9 @@ import { use } from 'react'
 import Link from 'next/link'
 import { useUnits } from '@/hooks/useUnits'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Home, Building, Store } from 'lucide-react'
+import { Home, Building, Store, Users } from 'lucide-react'
 import type { UnitType } from '@/lib/types'
+import { PageHeader } from '@/components/PageHeader'
 
 const unitTypeLabel: Record<UnitType, string> = {
   APARTMENT: 'Stan',
@@ -32,11 +33,12 @@ export default function BuildingMembersPage({
   )
 
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Stanari</h1>
-      <p className="text-base text-muted-foreground mb-6">
-        {units ? `${units.length} jedinica` : 'Jedinice u zgradi'}
-      </p>
+    <div className="pb-6">
+      <PageHeader
+        icon={<Users />}
+        title="Stanari"
+        description={units ? `${units.length} jedinica` : 'Jedinice u zgradi'}
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

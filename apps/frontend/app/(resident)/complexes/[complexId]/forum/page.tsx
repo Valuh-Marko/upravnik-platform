@@ -5,24 +5,12 @@ import Link from 'next/link'
 import { useComplexThreads } from '@/hooks/useThreads'
 import { CreateComplexThreadDialog } from '@/components/CreateComplexThreadDialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, MessagesSquare } from 'lucide-react'
 import { formatTimestamp } from '@/lib/format'
-import type { ComplexThread, ThreadCategory } from '@/lib/types'
-
-const categoryLabel: Record<ThreadCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  QUESTION: 'Pitanje',
-}
-
-const categoryClass: Record<ThreadCategory, string> = {
-  GENERAL: 'border-border text-foreground',
-  MAINTENANCE: 'bg-amber-100 text-amber-800 border-amber-200',
-  COMPLAINT: 'bg-red-100 text-red-700 border-red-200',
-  QUESTION: 'bg-violet-100 text-violet-700 border-violet-200',
-}
+import type { ComplexThread } from '@/lib/types'
+import { ChipBadge } from '@/components/ChipBadge'
+import { threadCategory } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 function authorName(a?: ComplexThread['author'] | null) {
   if (!a) return 'Nepoznat'
@@ -43,14 +31,14 @@ export default function ComplexForumPage({
   )
 
   return (
-    <div className="py-6">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Forum kompleksa</h1>
-          <p className="text-base text-muted-foreground">Diskusije svih stanara u kompleksu</p>
-        </div>
-        <CreateComplexThreadDialog complexId={complexId} />
-      </div>
+    <div className="pb-6">
+      <PageHeader
+        icon={<MessagesSquare />}
+        tone="forum"
+        title="Forum kompleksa"
+        description="Diskusije svih stanara u kompleksu"
+        actions={<CreateComplexThreadDialog complexId={complexId} />}
+      />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -78,9 +66,7 @@ export default function ComplexForumPage({
               <div className="rounded-lg border border-border bg-card p-4 hover:bg-stone-100 transition-colors">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${categoryClass[t.category]}`}>
-                      {categoryLabel[t.category]}
-                    </Badge>
+                    <ChipBadge chip={threadCategory[t.category]} />
                     <p className="font-semibold text-base text-foreground leading-snug">{t.title}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">

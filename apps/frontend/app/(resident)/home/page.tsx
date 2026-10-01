@@ -8,8 +8,9 @@ import { useAnnouncements } from '@/hooks/useAnnouncements'
 import { useThreads } from '@/hooks/useThreads'
 import { FeedCard } from '@/components/resident/FeedCard'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Pin } from 'lucide-react'
+import { Pin, Home } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
+import { PageHeader } from '@/components/PageHeader'
 
 function FeedSkeleton() {
   return (
@@ -76,19 +77,22 @@ export default function ResidentHomePage() {
   const building = buildings?.[0]
 
   return (
-    <div className="py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{greeting}</h1>
-        <p className="text-base text-muted-foreground mt-1">
-          {building ? building.name : '—'}
-        </p>
-        {user && (
-          <span className="inline-flex items-center gap-2 mt-2 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            {user.username}
+    <div className="pb-6">
+      <PageHeader
+        icon={<Home />}
+        title={greeting}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            {building ? building.name : '—'}
+            {user && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-muted px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                {user.username}
+              </span>
+            )}
           </span>
-        )}
-      </div>
+        }
+      />
 
       {isLoading ? (
         <FeedSkeleton />

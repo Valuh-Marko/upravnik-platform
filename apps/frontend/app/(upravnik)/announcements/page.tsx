@@ -5,10 +5,11 @@ import { useAuth } from '@/lib/auth'
 import { useAllAnnouncements, useUpdateAnnouncement } from '@/hooks/useAnnouncements'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { Pin, ChevronDown, ChevronRight } from 'lucide-react'
+import { Pin, ChevronDown, ChevronRight, Megaphone } from 'lucide-react'
 import { formatTimestamp } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Announcement } from '@/lib/types'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function AnnouncementsPage() {
   const { user } = useAuth()
@@ -43,13 +44,13 @@ export default function AnnouncementsPage() {
     })
 
   return (
-    <div className="py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">
-          Oglasna tabla
-        </h1>
-        <p className="text-base text-muted-foreground">Sva obaveštenja po zgradama</p>
-      </div>
+    <div className="pb-6">
+      <PageHeader
+        icon={<Megaphone />}
+        tone="board"
+        title="Oglasna tabla"
+        description="Sva obaveštenja po zgradama"
+      />
 
       {isLoading ? (
         <div className="space-y-3">

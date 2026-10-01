@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useBuildings } from '@/hooks/useBuildings'
 import { Building2, MapPin, ChevronRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PageHeader } from '@/components/PageHeader'
 
 function BuildingsSkeleton() {
   return (
@@ -25,9 +26,8 @@ export default function BuildingsPage() {
   const { data: buildings, isLoading } = useBuildings()
 
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Zgrade</h1>
-      <p className="text-base text-muted-foreground mb-6">Zgrade kojim upravljate</p>
+    <div className="pb-6">
+      <PageHeader icon={<Building2 />} title="Zgrade" description="Zgrade kojim upravljate" />
 
       {isLoading ? (
         <BuildingsSkeleton />

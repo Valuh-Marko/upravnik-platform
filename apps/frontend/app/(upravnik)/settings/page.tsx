@@ -1,7 +1,10 @@
+import { Settings } from 'lucide-react'
+import { PageHeader } from '@/components/PageHeader'
+
 export default function SettingsPage() {
   return (
-    <div className="py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Podešavanja</h1>
+    <div className="pb-6">
+      <PageHeader icon={<Settings />} title="Podešavanja" />
       <div className="text-base text-muted-foreground text-center py-12">Stranica se gradi…</div>
     </div>
   )

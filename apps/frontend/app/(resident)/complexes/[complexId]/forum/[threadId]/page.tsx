@@ -1,31 +1,18 @@
 'use client'
 
 import { use, useState } from 'react'
-import Link from 'next/link'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth'
 import { useComplexThread, useCreateComplexReply, useCloseComplexThread } from '@/hooks/useThreads'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, MessageSquare } from 'lucide-react'
+import { MessageSquare } from 'lucide-react'
 import { formatTimestamp } from '@/lib/format'
-import type { ComplexThread, ComplexThreadReply, ThreadCategory } from '@/lib/types'
-
-const categoryLabel: Record<ThreadCategory, string> = {
-  GENERAL: 'Opšte',
-  MAINTENANCE: 'Održavanje',
-  COMPLAINT: 'Žalba',
-  QUESTION: 'Pitanje',
-}
-
-const categoryClass: Record<ThreadCategory, string> = {
-  GENERAL: 'border-border text-foreground',
-  MAINTENANCE: 'bg-amber-100 text-amber-800 border-amber-200',
-  COMPLAINT: 'bg-red-100 text-red-700 border-red-200',
-  QUESTION: 'bg-violet-100 text-violet-700 border-violet-200',
-}
+import type { ComplexThread, ComplexThreadReply } from '@/lib/types'
+import { ChipBadge } from '@/components/ChipBadge'
+import { threadCategory } from '@/lib/chips'
+import { PageHeader } from '@/components/PageHeader'
 
 function authorName(a?: ComplexThread['author'] | null) {
   if (!a) return 'Nepoznat'
@@ -59,14 +46,11 @@ export default function ComplexThreadPage({
   if (error) {
     const status = (error as { response?: { status?: number } }).response?.status
     return (
-      <div className="py-6">
-        <Link
-          href={`/complexes/${complexId}/forum`}
-          className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Forum kompleksa
-        </Link>
+      <div className="pb-6">
+        <PageHeader
+          back={{ href: `/complexes/${complexId}/forum`, label: 'Forum kompleksa' }}
+          title="Tema"
+        />
         <p className="text-base text-muted-foreground">
           {status === 403 ? 'Pristup odbijen.' : 'Tema nije pronađena.'}
         </p>
@@ -75,18 +59,23 @@ export default function ComplexThreadPage({
   }
 
   return (
-    <div className="py-6">
-      <Link
-        href={`/complexes/${complexId}/forum`}
-        className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Forum kompleksa
-      </Link>
+    <div className="pb-6">
+      <PageHeader
+        back={{ href: `/complexes/${complexId}/forum`, label: 'Forum kompleksa' }}
+        title={thread?.title ?? 'Tema'}
+        loading={isLoading}
+        actions={
+          canClose &&
+          thread?.status === 'OPEN' && (
+            <Button variant="outline" size="sm" disabled={isClosing} onClick={() => closeThread()}>
+              {isClosing ? 'Zatvaranje…' : 'Zatvori temu'}
+            </Button>
+          )
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-3">
-          <Skeleton className="h-7 w-2/3" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-5/6" />
         </div>
@@ -95,27 +84,9 @@ export default function ComplexThreadPage({
           {/* Thread header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant="outline" className={`text-xs h-5 px-2 font-medium ${categoryClass[thread.category]}`}>
-                {categoryLabel[thread.category]}
-              </Badge>
+              <ChipBadge chip={threadCategory[thread.category]} />
               {thread.status === 'CLOSED' && (
                 <span className="text-xs text-muted-foreground">Zatvoreno</span>
-              )}
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">
-                {thread.title}
-              </h1>
-              {canClose && thread.status === 'OPEN' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isClosing}
-                  onClick={() => closeThread()}
-                  className="flex-shrink-0 text-xs"
-                >
-                  {isClosing ? 'Zatvaranje…' : 'Zatvori temu'}
-                </Button>
               )}
             </div>
             <p className="text-xs text-muted-foreground mb-4">
