@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
+import { Loader } from '@/components/ui/loader'
 import type { AccountType, Role } from '@/lib/types'
 
 interface AuthGuardProps {
@@ -39,8 +40,12 @@ export function AuthGuard({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen">
-        <p className="text-base text-muted-foreground">Učitavanje…</p>
+      <div
+        role="status"
+        className="loader-reveal flex-1 flex flex-col items-center justify-center gap-5 min-h-screen"
+      >
+        <Loader />
+        <p className="text-xs font-medium text-muted-foreground">Učitavanje…</p>
       </div>
     )
   }

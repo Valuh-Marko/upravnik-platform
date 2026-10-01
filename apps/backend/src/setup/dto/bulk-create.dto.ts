@@ -8,10 +8,13 @@ import {
   IsArray,
   ValidateNested,
   ArrayMinSize,
+  ArrayMaxSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UnitType } from '../../prisma';
+
+export const MAX_UNITS_PER_BUILDING = 1000;
 
 export class BulkCreateUnitDto {
   @ApiProperty({ example: '1-1' })
@@ -50,9 +53,10 @@ export class BulkCreateBuildingDto {
   @IsNotEmpty()
   city: string;
 
-  @ApiProperty({ type: [BulkCreateUnitDto] })
+  @ApiProperty({ type: [BulkCreateUnitDto], maxItems: MAX_UNITS_PER_BUILDING })
   @IsArray()
   @ArrayMinSize(1)
+  @ArrayMaxSize(MAX_UNITS_PER_BUILDING)
   @ValidateNested({ each: true })
   @Type(() => BulkCreateUnitDto)
   units: BulkCreateUnitDto[];

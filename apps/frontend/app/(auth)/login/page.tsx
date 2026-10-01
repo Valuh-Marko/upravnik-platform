@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Loader } from '@/components/ui/loader'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -83,6 +84,7 @@ export default function LoginPage() {
             </div>
             {error && <p className="text-base text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending && <Loader size={16} tone="current" />}
               {isPending ? 'Prijavljivanje…' : 'Prijavi se'}
             </Button>
           </form>

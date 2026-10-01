@@ -156,6 +156,7 @@ model Unit {
   user           User?           @relation("UnitAccount", fields: [userId], references: [id])
   buildingMember BuildingMember?
 
+  @@unique([buildingId, unitNumber])
   @@map("units")
 }
 

@@ -388,3 +388,81 @@
     }
   }
 }
+
+/* ── LOADER — the four content types (board, docs, chat, forum) weave into a #.
+   After uiverse.io/SchawnnahJ. Bars are box-shadows of two pseudo-elements. ── */
+@layer components {
+  .loader {
+    --loader-board: color-mix(in oklch, var(--pine-500) 80%, transparent);
+    --loader-docs:  color-mix(in oklch, var(--violet-500) 80%, transparent);
+    --loader-chat:  color-mix(in oklch, var(--sky-500) 80%, transparent);
+    --loader-forum: color-mix(in oklch, var(--amber-500) 80%, transparent);
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 2.5em;
+    height: 2.5em;
+    transform: rotate(165deg);
+  }
+
+  /* On a filled surface (e.g. a primary button) the bars take the text colour */
+  .loader[data-tone='current'] {
+    --loader-board: currentColor;
+    --loader-docs:  color-mix(in oklch, currentColor 75%, transparent);
+    --loader-chat:  color-mix(in oklch, currentColor 85%, transparent);
+    --loader-forum: color-mix(in oklch, currentColor 60%, transparent);
+  }
+
+  .loader::before,
+  .loader::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 0.25em;
+    transform: translate(-50%, -50%);
+  }
+
+  .loader::before { animation: loader-weave-h 2s infinite; }
+  .loader::after  { animation: loader-weave-v 2s infinite; }
+
+  /* Reduced motion: hold the woven # instead of animating */
+  @media (prefers-reduced-motion: reduce) {
+    .loader::before {
+      animation: none;
+      width: 2.5em;
+      box-shadow: 0 -0.5em var(--loader-board), 0 0.5em var(--loader-docs);
+    }
+    .loader::after {
+      animation: none;
+      height: 2.5em;
+      box-shadow: 0.5em 0 var(--loader-chat), -0.5em 0 var(--loader-forum);
+    }
+  }
+
+  /* Full-screen waits: stay invisible for fast loads, then fade in */
+  .loader-reveal {
+    animation: loader-reveal 300ms cubic-bezier(0.16, 1, 0.3, 1) 400ms both;
+  }
+}
+
+@keyframes loader-weave-h {
+  0%   { width: 0.5em; box-shadow: 1em -0.5em var(--loader-board), -1em 0.5em var(--loader-docs); }
+  35%  { width: 2.5em; box-shadow: 0 -0.5em var(--loader-board), 0 0.5em var(--loader-docs); }
+  70%  { width: 0.5em; box-shadow: -1em -0.5em var(--loader-board), 1em 0.5em var(--loader-docs); }
+  100% { box-shadow: 1em -0.5em var(--loader-board), -1em 0.5em var(--loader-docs); }
+}
+
+@keyframes loader-weave-v {
+  0%   { height: 0.5em; box-shadow: 0.5em 1em var(--loader-chat), -0.5em -1em var(--loader-forum); }
+  35%  { height: 2.5em; box-shadow: 0.5em 0 var(--loader-chat), -0.5em 0 var(--loader-forum); }
+  70%  { height: 0.5em; box-shadow: 0.5em -1em var(--loader-chat), -0.5em 1em var(--loader-forum); }
+  100% { box-shadow: 0.5em 1em var(--loader-chat), -0.5em -1em var(--loader-forum); }
+}
+
+@keyframes loader-reveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

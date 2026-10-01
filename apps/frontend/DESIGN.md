@@ -273,7 +273,7 @@ Forum and ticket categories get their own trio (wash L95 C0.03, edge L88 C0.05, 
 The `.dark` class (next-themes, "Sistem / Svetla / Tamna" in the account menu and mobile sheet) re-points the ramps rather than the components. Stone inverts around the surface: stone-50 (ground) becomes L15, stone-0 (surface) L19, stone-100 (sunken/hover) L23, stone-200 (line) L28, stone-300 (strong line) L36, and ink runs stone-500 L66 → stone-900 L94. Chromatic ramps flip the same way: 50/100 become deep low-chroma washes (L21.5–27; pine-50 stays closest to the surface so pinned cards and active nav read as a tint, not a block), 200 a dark edge (L33–35), and 700/800 light text (L76–85). Fill steps stay vivid: pine-600 lifts to L68, so `--on-brand` turns dark (pine L18) and Stairwell Pine still reads as "act here". Category trios become wash L26, edge L35, text L82. Every raw `stone-*`/`pine-*` utility therefore keeps its meaning in both themes. Every text/wash pair clears 4.5:1 in both.
 
 ### Named Rules
-**The Content-Type Rule.** Every content type keeps its colour everywhere it appears: announcements pine, forum amber, chat sky, documents violet. A type colour is always a trio of wash background, darker text and matching edge, never a solid fill. No other element may borrow these hues for decoration.
+**The Content-Type Rule.** Every content type keeps its colour everywhere it appears: announcements pine, forum amber, chat sky, documents violet. A type colour is always a trio of wash background, darker text and matching edge, never a solid fill. No other element may borrow these hues for decoration. The one exception is the Loader, where all four appear together to stand for the whole building loading.
 
 **The Category Hue Rule.** Category chips use only the `--cat-*` trios, never a content-type or status hue, and always carry their icon so colour is never the only signal.
 
@@ -385,6 +385,11 @@ Every main-column page opens with `<PageHeader>`, a sticky Plaster White cap on 
 
 ### Brand Lockup
 The pine building tile (34px) sits beside a two-line wordmark: "PROFESIONALNI" as an 11px uppercase eyebrow in Ink Muted, and "Upravnik" in 17px bold with −0.02em tracking in Ink.
+
+### Loader
+`<Loader />` (`components/ui/loader.tsx`, styles in `globals.css`) draws four rounded bars, one in each content-type hue (pine, violet, sky and amber at the 500 step and 80% alpha). They slide apart and weave into a "#" every 2s, rotated 165°. It is decorative, so the wrapper carries `role="status"` and the text.
+- **When to use it:** only for waits that have no layout to hold yet: the app-boot auth check (40px, with a 12px muted "Učitavanje…" below it, wrapped in `.loader-reveal` so it fades in after 400ms and fast loads never flash) and pending primary buttons (16px, `tone="current"`, beside the pending label). When the layout is known, page content uses `Skeleton`.
+- **Reduced motion:** the bars hold still in the woven "#".
 
 ## Do's and Don'ts
 

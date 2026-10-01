@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/lib/auth'
 import { useAllAnnouncements, useUpdateAnnouncement } from '@/hooks/useAnnouncements'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -30,16 +30,14 @@ export default function AnnouncementsPage() {
     return Array.from(map.values())
   }, [announcements])
 
-  const [expanded, setExpanded] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    if (grouped.length > 0) setExpanded(new Set(grouped.map((g) => g.id)))
-  }, [grouped])
+  // Groups start open; only the ones the user closes are tracked.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
   const toggle = (id: string) =>
-    setExpanded((prev) => {
+    setCollapsed((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
 
@@ -63,7 +61,7 @@ export default function AnnouncementsPage() {
       ) : (
         <div className="space-y-3">
           {grouped.map((group) => {
-            const isOpen = expanded.has(group.id)
+            const isOpen = !collapsed.has(group.id)
             return (
               <div key={group.id} className="rounded-lg border border-border bg-card">
                 <button
