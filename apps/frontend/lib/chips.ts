@@ -1,5 +1,12 @@
 import { AlertTriangle, HelpCircle, Inbox, Wallet, Wrench, type LucideIcon } from 'lucide-react'
-import type { DocumentCategory, ThreadCategory, TicketCategory, TicketStatus } from '@/lib/types'
+import type {
+  DocumentCategory,
+  FinanceFund,
+  InvoiceStatus,
+  ThreadCategory,
+  TicketCategory,
+  TicketStatus,
+} from '@/lib/types'
 
 export type Chip = { label: string; className: string; icon?: LucideIcon }
 
@@ -54,4 +61,22 @@ export const documentCategoryLabel: Record<DocumentCategory, string> = {
   REPORT: 'Izveštaj',
   DECISION: 'Odluka',
   OTHER: 'Ostalo',
+}
+
+export const financeFundLabel: Record<FinanceFund, string> = {
+  TEKUCE_ODRZAVANJE: 'Tekuće održavanje',
+  INVESTICIONO_ODRZAVANJE: 'Investiciono održavanje',
+  UPRAVLJANJE: 'Upravljanje',
+  HITNE_INTERVENCIJE: 'Hitne intervencije',
+  OSTALO: 'Ostalo',
+}
+
+// Status hues (warning / success / muted), like ticketStatus.
+const UNSETTLED = 'bg-[var(--warning-subtle)] text-[var(--warning-text)] border-[var(--warning)]/30'
+
+export const invoiceStatus: Record<InvoiceStatus, Chip> = {
+  UNPAID: { label: 'Neplaćena', className: UNSETTLED },
+  PARTIALLY_PAID: { label: 'Delimično plaćena', className: UNSETTLED },
+  PAID: { label: 'Plaćena', className: 'bg-green-100 text-green-700 border-green-500/30' },
+  CANCELLED: { label: 'Stornirana', className: 'bg-stone-100 text-stone-500 border-stone-200' },
 }

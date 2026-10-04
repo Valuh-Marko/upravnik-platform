@@ -10,6 +10,22 @@ export function isStaff(access: Pick<Access, 'role'>) {
   return STAFF_ROLES.includes(access.role);
 }
 
+// Payer names, accounts and references on owner payments are staff-only.
+export const canSeeRawBankData = isStaff;
+
+// A unit's charges and debt: staff, or the unit's own account or member.
+export function canViewUnitLedger(
+  access: Access,
+  unit: { userId: string | null; buildingMember: { userId: string } | null },
+  userId: string,
+) {
+  return (
+    isStaff(access) ||
+    unit.userId === userId ||
+    unit.buildingMember?.userId === userId
+  );
+}
+
 // Tickets are private between their author and the building's staff.
 export function canViewTicket(
   access: Access,

@@ -3,6 +3,10 @@ import { validateEnv } from './env.validation';
 const base = {
   DATABASE_URL: 'postgresql://localhost/db',
   JWT_SECRET: 'x'.repeat(32),
+  S3_REGION: 'us-east-1',
+  S3_BUCKET: 'bucket',
+  S3_ACCESS_KEY_ID: 'key',
+  S3_SECRET_ACCESS_KEY: 'secret',
 };
 
 describe('validateEnv', () => {
@@ -22,6 +26,14 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...base, DATABASE_URL: '' })).toThrow(
       /DATABASE_URL/,
     );
+  });
+
+  it('rejects missing S3 settings and parses S3_FORCE_PATH_STYLE', () => {
+    expect(() => validateEnv({ ...base, S3_BUCKET: '' })).toThrow(/S3_BUCKET/);
+    expect(validateEnv(base).S3_FORCE_PATH_STYLE).toBe(false);
+    expect(
+      validateEnv({ ...base, S3_FORCE_PATH_STYLE: 'true' }).S3_FORCE_PATH_STYLE,
+    ).toBe(true);
   });
 
   it('rejects a short or placeholder JWT_SECRET', () => {

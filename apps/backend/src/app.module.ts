@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { validateEnv } from './config/env.validation';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -15,10 +16,14 @@ import { ComplexForumModule } from './complex-forum/complex-forum.module';
 import { ChatModule } from './chat/chat.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SetupModule } from './setup/setup.module';
+import { StorageModule } from './storage/storage.module';
+import { FilesModule } from './files/files.module';
+import { FinanceModule } from './finance/finance.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -33,6 +38,9 @@ import { SetupModule } from './setup/setup.module';
     ChatModule,
     NotificationsModule,
     SetupModule,
+    StorageModule,
+    FilesModule,
+    FinanceModule,
   ],
 })
 export class AppModule {}

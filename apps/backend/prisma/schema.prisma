@@ -67,6 +67,30 @@ enum AuditAction {
   DELETED
 }
 
+enum FinanceDirection {
+  INCOME
+  EXPENSE
+}
+
+enum FeeMethod {
+  PER_UNIT
+  PER_SQM
+}
+
+enum UnitChargeType {
+  MONTHLY
+  OPENING
+  ADJUSTMENT
+}
+
+enum FinanceFund {
+  TEKUCE_ODRZAVANJE
+  INVESTICIONO_ODRZAVANJE
+  UPRAVLJANJE
+  HITNE_INTERVENCIJE
+  OSTALO
+}
+
 // ─── Layer 1 — Identity ──────────────────────────────────────────────────────
 
 model User {
@@ -99,6 +123,10 @@ model User {
   chatMessages    ChatMessage[]
   notifications   Notification[]
   auditLogs       AuditLog[]
+  storedFiles          StoredFile[]
+  invoices             Invoice[]
+  financeTransactions  FinanceTransaction[]
+  unitCharges          UnitCharge[]
 
   @@map("users")
 }
@@ -115,6 +143,8 @@ model Complex {
 
   buildings      Building[]
   complexThreads ComplexThread[]
+  financeEntity  FinanceEntity?
+  storedFiles    StoredFile[]
 
   @@map("complexes")
 }
@@ -136,6 +166,8 @@ model Building {
   threads       Thread[]
   tickets       Ticket[]
   chatMessages  ChatMessage[]
+  financeEntity FinanceEntity?
+  storedFiles   StoredFile[]
 
   @@map("buildings")
 }
@@ -149,14 +181,21 @@ model Unit {
   type          UnitType
   areaSqm       Decimal?
   userId     String?  @unique
+  // Poziv na broj (model 97) for owner payments; assigned on first use by finance.
+  paymentReference String?
+  // Last overdue-debt reminder sent to the unit account.
+  lastReminderAt   DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   building       Building        @relation(fields: [buildingId], references: [id])
   user           User?           @relation("UnitAccount", fields: [userId], references: [id])
   buildingMember BuildingMember?
+  financeTransactions FinanceTransaction[]
+  charges             UnitCharge[]
 
   @@unique([buildingId, unitNumber])
+  @@unique([buildingId, paymentReference])
   @@map("units")
 }
 
@@ -209,6 +248,7 @@ model Document {
 
   building Building @relation(fields: [buildingId], references: [id])
   uploader User     @relation(fields: [uploadedBy], references: [id])
+  feeRules FeeRule[]
 
   @@map("documents")
 }
@@ -362,4 +402,234 @@ model Notification {
   user User @relation(fields: [userId], references: [id])
 
   @@map("notifications")
+}
+
+model StoredFile {
+  id         String   @id @default(uuid())
+  buildingId String
+  storageKey String   @unique
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  building  Building  @relation(fields: [buildingId], references: [id])
+  uploader  User      @relation(fields: [uploadedBy], references: [id])
+  invoices  Invoice[]
+  complex   Complex?  @relation(fields: [complexId], references: [id])
+  complexId String?
+
+  @@map("stored_files")
+}
+
+// ─── Layer 7 — Finance ───────────────────────────────────────────────────────
+
+// The HOA (stambena zajednica) as a legal entity. Owned by a building, or by a
+// complex (reserved for later; exactly one is set — CHECK in the migration).
+model FinanceEntity {
+  id                  String   @id @default(uuid())
+  buildingId          String?  @unique
+  complexId           String?  @unique
+  legalName           String
+  pib                 String
+  maticniBroj         String
+  address             String?
+  booksStartDate      DateTime @db.Date
+  // Days after a unit charge is issued before it counts as overdue.
+  paymentTermDays     Int      @default(30)
+  // Issue monthly unit charges automatically on the 1st.
+  autoGenerateCharges Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  building     Building?         @relation(fields: [buildingId], references: [id])
+  complex      Complex?          @relation(fields: [complexId], references: [id])
+  bankAccounts BankAccount[]
+  categories   FinanceCategory[]
+  suppliers    Supplier[]
+  invoices     Invoice[]
+  feeRules     FeeRule[]
+  unitCharges  UnitCharge[]
+
+  @@map("finance_entities")
+}
+
+model BankAccount {
+  id             String   @id @default(uuid())
+  entityId       String
+  bankName       String
+  // Normalised to 18 digits, no dashes.
+  accountNumber  String   @unique
+  isPrimary      Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  openingBalance Decimal  @db.Decimal(14, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  entity       FinanceEntity        @relation(fields: [entityId], references: [id])
+  transactions FinanceTransaction[]
+
+  @@map("bank_accounts")
+}
+
+// Each entity gets its own copy of the default categories when it is created.
+model FinanceCategory {
+  id             String           @id @default(uuid())
+  entityId       String
+  direction      FinanceDirection
+  fund           FinanceFund?
+  name           String
+  isOwnerPayment Boolean          @default(false)
+  isMarketIncome Boolean          @default(false)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+
+  entity       FinanceEntity        @relation(fields: [entityId], references: [id])
+  invoices     Invoice[]
+  transactions FinanceTransaction[]
+
+  @@unique([entityId, name])
+  @@map("finance_categories")
+}
+
+model Supplier {
+  id          String   @id @default(uuid())
+  entityId    String
+  name        String
+  pib         String?
+  maticniBroj String?
+  bankAccount String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entity   FinanceEntity @relation(fields: [entityId], references: [id])
+  invoices Invoice[]
+
+  @@map("suppliers")
+}
+
+// Incoming supplier invoice (ulazna faktura). Status is derived from payments.
+model Invoice {
+  id           String    @id @default(uuid())
+  entityId     String
+  supplierId   String
+  number       String
+  issueDate    DateTime  @db.Date
+  dueDate      DateTime? @db.Date
+  amount       Decimal   @db.Decimal(14, 2)
+  categoryId   String
+  description  String?
+  fileId       String?
+  cancelledAt  DateTime?
+  cancelReason String?
+  createdBy    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  entity   FinanceEntity    @relation(fields: [entityId], references: [id])
+  supplier Supplier         @relation(fields: [supplierId], references: [id])
+  category FinanceCategory  @relation(fields: [categoryId], references: [id])
+  file     StoredFile?      @relation(fields: [fileId], references: [id])
+  creator  User             @relation(fields: [createdBy], references: [id])
+  payments InvoicePayment[]
+
+  @@unique([supplierId, number])
+  @@map("invoices")
+}
+
+// Immutable. Corrections are a reversal (storno) entry pointing at the original.
+model FinanceTransaction {
+  id                  String           @id @default(uuid())
+  bankAccountId       String
+  direction           FinanceDirection
+  amount              Decimal          @db.Decimal(14, 2)
+  valueDate           DateTime         @db.Date
+  categoryId          String
+  description         String
+  counterpartyName    String?
+  counterpartyAccount String?
+  // Poziv na broj.
+  reference           String?
+  // Set on owner payments.
+  unitId              String?
+  reversesId          String?          @unique
+  createdBy           String
+  createdAt           DateTime         @default(now())
+
+  bankAccount     BankAccount         @relation(fields: [bankAccountId], references: [id])
+  category        FinanceCategory     @relation(fields: [categoryId], references: [id])
+  unit            Unit?               @relation(fields: [unitId], references: [id])
+  creator         User                @relation(fields: [createdBy], references: [id])
+  reverses        FinanceTransaction? @relation("Reversal", fields: [reversesId], references: [id])
+  reversedBy      FinanceTransaction? @relation("Reversal")
+  invoicePayments InvoicePayment[]
+
+  @@index([bankAccountId, valueDate])
+  @@map("finance_transactions")
+}
+
+model InvoicePayment {
+  transactionId String
+  invoiceId     String
+  amount        Decimal @db.Decimal(14, 2)
+
+  transaction FinanceTransaction @relation(fields: [transactionId], references: [id])
+  invoice     Invoice            @relation(fields: [invoiceId], references: [id])
+
+  @@id([transactionId, invoiceId])
+  @@map("invoice_payments")
+}
+
+// Monthly fee for one fund, in RSD per unit or per m². A rule with a unitType
+// overrides the default (unitType = null) rule for units of that type.
+model FeeRule {
+  id                 String      @id @default(uuid())
+  entityId           String
+  fund               FinanceFund
+  method             FeeMethod
+  amount             Decimal     @db.Decimal(14, 2)
+  unitType           UnitType?
+  // "YYYY-MM", inclusive. validTo = null means open-ended.
+  validFrom          String
+  validTo            String?
+  decisionDocumentId String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  entity           FinanceEntity @relation(fields: [entityId], references: [id])
+  decisionDocument Document?     @relation(fields: [decisionDocumentId], references: [id])
+
+  @@index([entityId])
+  @@map("fee_rules")
+}
+
+// What a unit owes (zaduženje). Payments are owner-payment transactions with
+// the unit set. Never deleted: corrections cancel the charge.
+model UnitCharge {
+  id           String         @id @default(uuid())
+  entityId     String
+  unitId       String
+  type         UnitChargeType
+  // "YYYY-MM" of issueDate.
+  period       String
+  issueDate    DateTime       @db.Date
+  fund         FinanceFund?
+  // Negative for credits (ADJUSTMENT, or an OPENING prepayment).
+  amount       Decimal        @db.Decimal(14, 2)
+  description  String?
+  // Null when issued by the monthly scheduler.
+  createdBy    String?
+  createdAt    DateTime       @default(now())
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  entity  FinanceEntity @relation(fields: [entityId], references: [id])
+  unit    Unit          @relation(fields: [unitId], references: [id])
+  creator User?         @relation(fields: [createdBy], references: [id])
+
+  @@index([unitId])
+  @@index([entityId, period])
+  @@map("unit_charges")
 }

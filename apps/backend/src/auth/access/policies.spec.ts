@@ -5,7 +5,9 @@ import {
   assertCanClose,
   assertOpen,
   canClose,
+  canSeeRawBankData,
   canViewTicket,
+  canViewUnitLedger,
   isStaff,
 } from './policies';
 
@@ -16,6 +18,21 @@ describe('policies', () => {
     expect(isStaff(as(Role.UPRAVNIK))).toBe(true);
     expect(isStaff(as(Role.BOARD_MEMBER))).toBe(true);
     expect(isStaff(as(Role.RESIDENT))).toBe(false);
+  });
+
+  it('shows raw bank data to staff only', () => {
+    expect(canSeeRawBankData(as(Role.UPRAVNIK))).toBe(true);
+    expect(canSeeRawBankData(as(Role.BOARD_MEMBER))).toBe(true);
+    expect(canSeeRawBankData(as(Role.RESIDENT))).toBe(false);
+  });
+
+  it('shows a unit ledger to staff and that unit only', () => {
+    const unit = { userId: 'account', buildingMember: { userId: 'member' } };
+    expect(canViewUnitLedger(as(Role.UPRAVNIK), unit, 'other')).toBe(true);
+    expect(canViewUnitLedger(as(Role.BOARD_MEMBER), unit, 'other')).toBe(true);
+    expect(canViewUnitLedger(as(Role.RESIDENT), unit, 'account')).toBe(true);
+    expect(canViewUnitLedger(as(Role.RESIDENT), unit, 'member')).toBe(true);
+    expect(canViewUnitLedger(as(Role.RESIDENT), unit, 'other')).toBe(false);
   });
 
   it('lets staff and the author view a ticket', () => {

@@ -16,6 +16,7 @@ function meToUser(me: MeResponse): AuthUser {
     lastName: me.lastName,
     email: me.email,
     phone: me.phone,
+    unitId: me.buildingMembers?.[0]?.unit?.id ?? null,
   }
 }
 

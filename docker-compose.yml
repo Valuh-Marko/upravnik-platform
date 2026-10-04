@@ -11,5 +11,38 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # S3-compatible file storage for local development (invoice PDFs, attachments).
+  # RustFS is a MinIO-compatible server; MinIO no longer publishes images.
+  # Console: http://localhost:9001 (rustfsadmin / rustfsadmin).
+  s3:
+    image: rustfs/rustfs:latest
+    container_name: upravnik-s3
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+      RUSTFS_CONSOLE_ENABLE: 'true'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - s3_data:/data
+
+  # Creates the bucket once the S3 server is up, then exits.
+  s3-init:
+    image: amazon/aws-cli:latest
+    container_name: upravnik-s3-init
+    depends_on:
+      - s3
+    environment:
+      AWS_ACCESS_KEY_ID: rustfsadmin
+      AWS_SECRET_ACCESS_KEY: rustfsadmin
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: >
+      /bin/sh -c "
+      until aws --endpoint-url http://s3:9000 s3api head-bucket --bucket upravnik-files 2>/dev/null
+      || aws --endpoint-url http://s3:9000 s3 mb s3://upravnik-files; do sleep 1; done
+      "
+
 volumes:
   postgres_data:
+  s3_data:

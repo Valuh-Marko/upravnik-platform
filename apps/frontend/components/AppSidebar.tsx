@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Users,
   Ticket,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Building } from "@/lib/types";
@@ -29,6 +30,7 @@ const residentNav = [
   { href: "/forum", label: "Forum", icon: MessagesSquare },
   { href: "/tickets", label: "Zahtevi", icon: Ticket },
   { href: "/chat", label: "Chat", icon: MessageSquare },
+  { href: "/finances", label: "Finansije", icon: Wallet },
   { href: "/documents", label: "Dokumenta", icon: FileText },
 ];
 
@@ -37,6 +39,7 @@ const buildingSubNav = [
   { key: "forum", label: "Forum", icon: MessagesSquare },
   { key: "tickets", label: "Zahtevi", icon: Ticket },
   { key: "members", label: "Stanari", icon: Users },
+  { key: "finances", label: "Finansije", icon: Wallet },
   { key: "documents", label: "Dokumenta", icon: FileText },
 ];
 
