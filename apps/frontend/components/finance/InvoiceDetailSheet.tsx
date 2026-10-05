@@ -8,12 +8,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { useCancelInvoice, useInvoice } from '@/hooks/useFinance'
-import { filesApi } from '@/lib/api/files'
-import { financeFundLabel, invoiceStatus } from '@/lib/chips'
-import { formatDate, formatRSD } from '@/lib/format'
+import { openStoredFile } from '@/lib/api/files'
+import { financeFundLabel, invoiceStatus, overdueText } from '@/lib/chips'
+import { formatDate, formatDateTime, formatRSD } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { InvoiceDetail } from '@/lib/types'
-import { FormError } from './form'
+import { CreateInvoiceDialog } from './CreateInvoiceDialog'
+import { CreateTransactionDialog } from './CreateTransactionDialog'
+import { eyebrow, FormError, QueryError } from './form'
 
 export function InvoiceDetailSheet({
   buildingId,
@@ -26,16 +28,20 @@ export function InvoiceDetailSheet({
   canWrite: boolean
   onClose: () => void
 }) {
-  const { data: invoice, isLoading } = useInvoice(buildingId, invoiceId)
+  const { data: invoice, isLoading, error, refetch } = useInvoice(buildingId, invoiceId)
 
   return (
     <Sheet open={!!invoiceId} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Faktura</SheetTitle>
+          <SheetTitle>
+            {invoice ? `Faktura ${invoice.number}` : 'Faktura'}
+          </SheetTitle>
         </SheetHeader>
         <div className="px-4 pb-6">
-          {isLoading || !invoice ? (
+          {error && !invoice ? (
+            <QueryError onRetry={refetch} />
+          ) : isLoading || !invoice ? (
             <div className="space-y-2">
               <Skeleton className="h-6 w-2/3" />
               <Skeleton className="h-24 w-full" />
@@ -66,24 +72,20 @@ function InvoiceBody({
 
   async function download(fileId: string) {
     setDownloadError(null)
-    // Open the tab synchronously so popup blockers allow it, then point it at the signed URL.
-    const tab = window.open('', '_blank')
     try {
-      const url = await filesApi.downloadUrl(buildingId, fileId)
-      if (tab) tab.location.href = url
-      else window.location.href = url
+      await openStoredFile(buildingId, fileId)
     } catch (err) {
-      tab?.close()
       setDownloadError(err)
     }
   }
 
   const canCancel = canWrite && invoice.status === 'UNPAID'
+  const canPay = canWrite && (invoice.status === 'UNPAID' || invoice.status === 'PARTIALLY_PAID')
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-lg font-semibold text-foreground">{invoice.supplier.name}</p>
+        <p className="text-base font-semibold text-foreground">{invoice.supplier.name}</p>
         <p className="text-sm text-muted-foreground">
           Br. {invoice.number}
           {invoice.supplier.pib && <> · PIB <span className="font-mono">{invoice.supplier.pib}</span></>}
@@ -105,7 +107,7 @@ function InvoiceBody({
         {invoice.dueDate && (
           <>
             <dt className="text-muted-foreground">Rok plaćanja</dt>
-            <dd className={cn(invoice.isOverdue && 'text-[var(--danger-text)] font-medium')}>
+            <dd className={cn(invoice.isOverdue && [overdueText, 'font-medium'])}>
               {formatDate(invoice.dueDate)}
             </dd>
           </>
@@ -119,13 +121,20 @@ function InvoiceBody({
         </dd>
       </dl>
 
+      {canPay && (
+        <div className="flex flex-wrap gap-2">
+          <CreateTransactionDialog buildingId={buildingId} payInvoice={invoice} />
+          {invoice.status === 'UNPAID' && <CreateInvoiceDialog buildingId={buildingId} invoice={invoice} />}
+        </div>
+      )}
+
       {invoice.description && (
         <p className="text-sm text-foreground whitespace-pre-wrap">{invoice.description}</p>
       )}
 
       {invoice.cancelledAt && (
         <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-          Stornirana {formatDate(invoice.cancelledAt)}
+          Stornirana {formatDateTime(invoice.cancelledAt)}
           {invoice.cancelReason && `: ${invoice.cancelReason}`}
         </p>
       )}
@@ -141,9 +150,7 @@ function InvoiceBody({
       )}
 
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-stone-500 mb-2">
-          Plaćanja
-        </p>
+        <p className={cn(eyebrow, 'mb-2')}>Plaćanja</p>
         {invoice.payments.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nema plaćanja.</p>
         ) : (
@@ -197,6 +204,11 @@ function InvoiceBody({
             Storniraj fakturu
           </Button>
         ))}
+      {canWrite && invoice.status === 'PARTIALLY_PAID' && (
+        <p className="text-xs text-muted-foreground">
+          Faktura sa uplatama ne može se stornirati. Prvo stornirajte uplate na kartici Transakcije.
+        </p>
+      )}
     </div>
   )
 }

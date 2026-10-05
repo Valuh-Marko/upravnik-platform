@@ -11,7 +11,7 @@ import {
   OmitType,
   PartialType,
 } from '@nestjs/swagger';
-import { DateRangeQueryDto } from './summary-query.dto';
+import { ListQueryDto } from './summary-query.dto';
 import { IsDateOnly, IsMoney } from './validators';
 
 export enum InvoiceStatus {
@@ -76,7 +76,7 @@ export class CancelInvoiceDto {
   reason: string;
 }
 
-export class InvoicesQueryDto extends DateRangeQueryDto {
+export class InvoicesQueryDto extends ListQueryDto {
   @ApiPropertyOptional({ enum: InvoiceStatus })
   @IsEnum(InvoiceStatus)
   @IsOptional()

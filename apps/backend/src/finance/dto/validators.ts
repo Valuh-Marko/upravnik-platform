@@ -6,6 +6,29 @@ import {
   normaliseAccountNumber,
 } from '../finance.util';
 
+// Serbian labels for messages; an unlisted property falls back to its name.
+const FIELD_LABELS: Record<string, string> = {
+  accountNumber: 'Broj računa',
+  adoptedAt: 'Datum usvajanja',
+  amount: 'Iznos',
+  bankAccount: 'Račun',
+  booksStartDate: 'Početak knjiženja',
+  closingBalance: 'Završno stanje',
+  counterpartyAccount: 'Račun druge strane',
+  dueDate: 'Rok plaćanja',
+  from: 'Datum od',
+  issueDate: 'Datum izdavanja',
+  maticniBroj: 'Matični broj',
+  openingBalance: 'Početno stanje',
+  period: 'Period',
+  pib: 'PIB',
+  plannedAmount: 'Planirani iznos',
+  to: 'Datum do',
+  validFrom: 'Važi od',
+  validTo: 'Važi do',
+  valueDate: 'Datum transakcije',
+};
+
 function rule(
   name: string,
   message: string,
@@ -17,7 +40,10 @@ function rule(
       name,
       target: object.constructor,
       propertyName,
-      options: { message: `${propertyName} ${message}`, ...options },
+      options: {
+        message: `${FIELD_LABELS[propertyName] ?? propertyName} ${message}`,
+        ...options,
+      },
       validator: { validate: test },
     });
 }
@@ -29,7 +55,7 @@ const SIGNED_MONEY = /^-?\d{1,12}(\.\d{1,2})?$/;
 export const IsMoney = (options?: ValidationOptions) =>
   rule(
     'isMoney',
-    'must be a positive amount with up to 2 decimals, e.g. "12500.50"',
+    'mora biti pozitivan iznos sa najviše 2 decimale, npr. "12500.50"',
     (v) => typeof v === 'string' && MONEY.test(v) && Number(v) > 0,
     options,
   );
@@ -38,7 +64,7 @@ export const IsMoney = (options?: ValidationOptions) =>
 export const IsSignedMoney = (options?: ValidationOptions) =>
   rule(
     'isSignedMoney',
-    'must be an amount with up to 2 decimals, e.g. "-1500.00"',
+    'mora biti iznos sa najviše 2 decimale, npr. "-1500.00"',
     (v) => typeof v === 'string' && SIGNED_MONEY.test(v),
     options,
   );
@@ -47,7 +73,7 @@ export const IsSignedMoney = (options?: ValidationOptions) =>
 export const IsDateOnly = (options?: ValidationOptions) =>
   rule(
     'isDateOnly',
-    'must be a date in YYYY-MM-DD format',
+    'mora biti datum u formatu GGGG-MM-DD',
     (v) => {
       if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
       const date = new Date(`${v}T00:00:00Z`);
@@ -61,7 +87,7 @@ export const IsDateOnly = (options?: ValidationOptions) =>
 export const IsAccountNumber = (options?: ValidationOptions) =>
   rule(
     'isAccountNumber',
-    'must be a valid Serbian bank account number, e.g. "160-0000000012345-67"',
+    'mora biti ispravan broj računa, npr. "160-0000000012345-67"',
     (v) => {
       if (typeof v !== 'string') return false;
       const normalised = normaliseAccountNumber(v);
@@ -73,7 +99,7 @@ export const IsAccountNumber = (options?: ValidationOptions) =>
 export const IsPib = (options?: ValidationOptions) =>
   rule(
     'isPib',
-    'must be a valid 9-digit PIB',
+    'mora biti ispravan PIB od 9 cifara',
     (v) => typeof v === 'string' && isValidPib(v),
     options,
   );
@@ -81,7 +107,7 @@ export const IsPib = (options?: ValidationOptions) =>
 export const IsMaticniBroj = (options?: ValidationOptions) =>
   rule(
     'isMaticniBroj',
-    'must be an 8-digit matični broj',
+    'mora biti matični broj od 8 cifara',
     (v) => typeof v === 'string' && isValidMaticniBroj(v),
     options,
   );
@@ -90,7 +116,7 @@ export const IsMaticniBroj = (options?: ValidationOptions) =>
 export const IsNonNegativeMoney = (options?: ValidationOptions) =>
   rule(
     'isNonNegativeMoney',
-    'must be zero or a positive amount with up to 2 decimals, e.g. "1500.00"',
+    'mora biti nula ili pozitivan iznos sa najviše 2 decimale, npr. "1500.00"',
     (v) => typeof v === 'string' && MONEY.test(v),
     options,
   );
@@ -99,7 +125,7 @@ export const IsNonNegativeMoney = (options?: ValidationOptions) =>
 export const IsNonZeroMoney = (options?: ValidationOptions) =>
   rule(
     'isNonZeroMoney',
-    'must be a non-zero amount with up to 2 decimals, e.g. "-1500.00"',
+    'mora biti iznos različit od nule sa najviše 2 decimale, npr. "-1500.00"',
     (v) => typeof v === 'string' && SIGNED_MONEY.test(v) && Number(v) !== 0,
     options,
   );
@@ -108,7 +134,7 @@ export const IsNonZeroMoney = (options?: ValidationOptions) =>
 export const IsPeriod = (options?: ValidationOptions) =>
   rule(
     'isPeriod',
-    'must be a month in YYYY-MM format',
+    'mora biti mesec u formatu GGGG-MM',
     (v) => typeof v === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(v),
     options,
   );

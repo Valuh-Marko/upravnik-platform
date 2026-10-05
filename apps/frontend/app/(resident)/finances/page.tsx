@@ -4,9 +4,10 @@ import { Wallet } from 'lucide-react'
 import { useBuildings } from '@/hooks/useBuildings'
 import { PageHeader } from '@/components/PageHeader'
 import { FinanceView } from '@/components/finance/FinanceView'
+import { QueryError } from '@/components/finance/form'
 
 export default function FinancesPage() {
-  const { data: buildings } = useBuildings()
+  const { data: buildings, error, refetch } = useBuildings()
   const buildingId = buildings?.[0]?.id ?? ''
 
   return (
@@ -14,9 +15,15 @@ export default function FinancesPage() {
       <PageHeader
         icon={<Wallet />}
         title="Finansije"
-        description="Stanje računa, prihodi, rashodi i fakture zgrade"
+        description="Vaša zaduženja i uplate, i finansije zgrade"
       />
-      <FinanceView buildingId={buildingId} canWrite={false} />
+      {error && !buildings ? (
+        <QueryError message="Finansije trenutno nisu dostupne." onRetry={refetch} />
+      ) : buildings && buildings.length === 0 ? (
+        <p className="text-base text-muted-foreground text-center py-12">Niste povezani ni sa jednom zgradom.</p>
+      ) : (
+        <FinanceView buildingId={buildingId} canWrite={false} />
+      )}
     </div>
   )
 }

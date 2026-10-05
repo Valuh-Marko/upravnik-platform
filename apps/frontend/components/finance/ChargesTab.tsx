@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle, Pencil, Plus, ReceiptText } from 'lucide-react'
-import { unitTypeLabel } from '@/app/(super-admin)/create/units'
+import { AlertTriangle, Loader2, Pencil, Plus, ReceiptText } from 'lucide-react'
+import { ChipBadge } from '@/components/ChipBadge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDocuments } from '@/hooks/useDocuments'
 import {
   useChargesPreview,
   useCreateFeeRule,
@@ -15,15 +14,13 @@ import {
   useGenerateCharges,
   useUpdateFeeRule,
 } from '@/hooks/useFinance'
-import { financeFundLabel } from '@/lib/chips'
+import { chargeLineStatus, financeFundLabel, unitTypeLabel } from '@/lib/chips'
 import { formatPeriod, formatRSD, parseMoneyInput, plural, todayISO } from '@/lib/format'
-import { cn } from '@/lib/utils'
-import type { ChargeLineStatus, FeeMethod, FeeRule, FinanceFund, UnitType } from '@/lib/types'
+import type { FeeMethod, FeeRule, FinanceFund, UnitType } from '@/lib/types'
 import { ArrearsTable } from './Arrears'
-import { Field, FormError, NativeSelect } from './form'
+import { DecisionSelect, eyebrow, Field, FormError, MonthInput, NativeSelect, QueryError } from './form'
 import { UnitLedgerSheet } from './UnitLedger'
 
-const eyebrow = 'text-[11px] font-semibold uppercase tracking-[0.06em] text-stone-500'
 const PERIOD = /^\d{4}-(0[1-9]|1[0-2])$/
 
 const methodSuffix: Record<FeeMethod, string> = { PER_UNIT: 'po jedinici', PER_SQM: 'po m²' }
@@ -58,19 +55,20 @@ export function ChargesTab({ buildingId, canWrite }: { buildingId: string; canWr
 }
 
 function FeeRulesList({ buildingId, canWrite }: { buildingId: string; canWrite: boolean }) {
-  const { data: rules, isLoading } = useFeeRules(buildingId)
+  const { data: rules, isLoading, error, refetch } = useFeeRules(buildingId)
 
-  if (isLoading || !rules) return <Skeleton className="h-24 w-full rounded-lg" />
+  if (error && !rules) return <QueryError onRetry={refetch} />
+  if (isLoading || !rules) return <Skeleton className="h-24 w-full rounded-xl" />
   if (rules.length === 0) {
     return (
-      <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+      <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
         Nema pravila. Dodajte iznos mesečnog zaduženja po fondu da biste mogli da izdajete zaduženja.
       </p>
     )
   }
 
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
       {rules.map((r) => (
         <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
           <div className="flex-1 min-w-0">
@@ -107,7 +105,6 @@ function FeeRuleDialog({ buildingId, rule }: { buildingId: string; rule?: FeeRul
     validTo: '',
     decisionDocumentId: '',
   })
-  const { data: documents } = useDocuments(open ? buildingId : '')
   const create = useCreateFeeRule(buildingId)
   const update = useUpdateFeeRule(buildingId)
   const save = rule ? update : create
@@ -148,7 +145,10 @@ function FeeRuleDialog({ buildingId, rule }: { buildingId: string; rule?: FeeRul
     else create.mutate(dto, done)
   }
 
-  const valid = amountValid && PERIOD.test(form.validFrom) && (!form.validTo || PERIOD.test(form.validTo))
+  // "YYYY-MM" strings compare in calendar order.
+  const toBeforeFrom = !!form.validTo && form.validTo < form.validFrom
+  const valid =
+    amountValid && PERIOD.test(form.validFrom) && (!form.validTo || PERIOD.test(form.validTo)) && !toBeforeFrom
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -193,7 +193,7 @@ function FeeRuleDialog({ buildingId, rule }: { buildingId: string; rule?: FeeRul
                 <option value="PER_SQM">Po m²</option>
               </NativeSelect>
             </Field>
-            <Field id="fr-amount" label="Iznos (RSD)" hint="0 = oslobođeno">
+            <Field id="fr-amount" label="Iznos (RSD)" hint="Npr. 2.500,00; 0 = oslobođeno">
               <Input
                 id="fr-amount"
                 inputMode="decimal"
@@ -206,21 +206,33 @@ function FeeRuleDialog({ buildingId, rule }: { buildingId: string; rule?: FeeRul
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field id="fr-from" label="Važi od">
-              <Input id="fr-from" type="month" value={form.validFrom} onChange={set('validFrom')} />
+              <MonthInput
+                id="fr-from"
+                value={form.validFrom}
+                onChange={(validFrom) => setForm((f) => ({ ...f, validFrom }))}
+              />
             </Field>
-            <Field id="fr-to" label="Važi do (opciono)">
-              <Input id="fr-to" type="month" value={form.validTo} onChange={set('validTo')} />
+            <Field
+              id="fr-to"
+              label="Važi do (opciono)"
+              hint={toBeforeFrom ? 'Mesec završetka ne može biti pre početka.' : undefined}
+            >
+              <MonthInput
+                id="fr-to"
+                optional
+                invalid={toBeforeFrom}
+                value={form.validTo}
+                onChange={(validTo) => setForm((f) => ({ ...f, validTo }))}
+              />
             </Field>
           </div>
           <Field id="fr-doc" label="Odluka skupštine (opciono)">
-            <NativeSelect id="fr-doc" value={form.decisionDocumentId} onChange={set('decisionDocumentId')}>
-              <option value="">—</option>
-              {documents?.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.title}
-                </option>
-              ))}
-            </NativeSelect>
+            <DecisionSelect
+              id="fr-doc"
+              buildingId={buildingId}
+              value={form.decisionDocumentId}
+              onChange={(decisionDocumentId) => setForm((f) => ({ ...f, decisionDocumentId }))}
+            />
           </Field>
           <FormError error={save.error} />
           <DialogFooter>
@@ -234,16 +246,11 @@ function FeeRuleDialog({ buildingId, rule }: { buildingId: string; rule?: FeeRul
   )
 }
 
-const lineStatus: Record<ChargeLineStatus, { label: string; className: string }> = {
-  NEW: { label: 'novo', className: 'text-pine-700' },
-  ISSUED: { label: 'izdato', className: 'text-muted-foreground' },
-  CHANGED: { label: 'izmenjeno', className: 'text-[var(--warning-text)]' },
-  CANCELLED: { label: 'stornirano', className: 'text-muted-foreground' },
-}
-
 function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
   const [open, setOpen] = useState(false)
   const [period, setPeriod] = useState('')
+  // Re-running cancels charges residents may already have seen, so it asks first.
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false)
   const validPeriod = PERIOD.test(period)
   const { data: preview, isFetching, error } = useChargesPreview(buildingId, open && validPeriod ? period : null)
   const generate = useGenerateCharges(buildingId)
@@ -251,6 +258,7 @@ function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
   function handleOpen() {
     setPeriod(todayISO().slice(0, 7))
     generate.reset()
+    setConfirmRegenerate(false)
     setOpen(true)
   }
 
@@ -265,22 +273,31 @@ function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
         <ReceiptText />
         Izdaj zaduženja
       </Button>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Mesečno zaduženje</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Field id="gc-period" label="Mesec">
-            <Input
-              id="gc-period"
-              type="month"
-              value={period}
-              onChange={(e) => {
-                setPeriod(e.target.value)
-                generate.reset()
-              }}
-              className="w-48"
-            />
+            <div className="flex items-center gap-3">
+              <div className="w-64">
+                <MonthInput
+                  id="gc-period"
+                  value={period}
+                  onChange={(value) => {
+                    setPeriod(value)
+                    generate.reset()
+                    setConfirmRegenerate(false)
+                  }}
+                />
+              </div>
+              {isFetching && preview && (
+                <span role="status" className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                  Osvežavanje…
+                </span>
+              )}
+            </div>
           </Field>
 
           <FormError error={error} />
@@ -289,6 +306,12 @@ function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
 
           {preview && (
             <>
+              {preview.isLocked && (
+                <p className="flex items-start gap-2 rounded-md bg-muted px-3 py-2 text-sm text-foreground">
+                  <AlertTriangle className="mt-0.5 size-4 flex-shrink-0" aria-hidden="true" />
+                  <span>Mesec je zaključen objavljenim finansijskim izveštajem; zaduženja se ne mogu menjati.</span>
+                </p>
+              )}
               {preview.missingArea.length > 0 && (
                 <p className="flex items-start gap-2 rounded-md bg-[var(--warning-subtle)] px-3 py-2 text-sm text-[var(--warning-text)]">
                   <AlertTriangle className="mt-0.5 size-4 flex-shrink-0" aria-hidden="true" />
@@ -302,7 +325,7 @@ function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
               {preview.units.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nema pravila koja važe za {formatPeriod(preview.period)}.</p>
               ) : (
-                <div className={cn('overflow-x-auto rounded-lg border border-border', isFetching && 'opacity-60')}>
+                <div className="overflow-x-auto rounded-xl border border-border">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-xs text-muted-foreground border-b border-border">
@@ -331,7 +354,7 @@ function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
                                       {formatRSD(l.issuedAmount)}
                                     </span>
                                   )}
-                                  <span className={lineStatus[l.status].className}>{lineStatus[l.status].label}</span>
+                                  <ChipBadge chip={chargeLineStatus[l.status]} />
                                 </li>
                               ))}
                             </ul>
@@ -367,25 +390,49 @@ function GenerateChargesDialog({ buildingId }: { buildingId: string }) {
             </>
           )}
         </div>
-        <DialogFooter className="gap-2">
-          {changedCount > 0 && (
+        {confirmRegenerate && preview ? (
+          <div className="space-y-3">
+            <p className="text-sm text-foreground">
+              Ponovni obračun poništava {changedCount}{' '}
+              {plural(changedCount, 'izdato zaduženje', 'izdata zaduženja', 'izdatih zaduženja')} za{' '}
+              {formatPeriod(preview.period)} i izdaje nova. Stanari će videti izmenjene iznose.
+            </p>
+            <DialogFooter className="gap-2">
+              <Button variant="ghost" onClick={() => setConfirmRegenerate(false)} className="w-full sm:w-auto">
+                Odustani
+              </Button>
+              <Button
+                disabled={blocked || generate.isPending}
+                onClick={() =>
+                  generate.mutate({ period, regenerate: true }, { onSettled: () => setConfirmRegenerate(false) })
+                }
+                className="w-full sm:w-auto"
+              >
+                {generate.isPending ? 'Obračunavanje…' : 'Da, ponovo obračunaj'}
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <DialogFooter className="gap-2">
+            {changedCount > 0 && (
+              <Button
+                variant="outline"
+                disabled={blocked || generate.isPending}
+                onClick={() => setConfirmRegenerate(true)}
+                className="w-full sm:w-auto"
+              >
+                Ponovni obračun ({changedCount})
+              </Button>
+            )}
             <Button
-              variant="outline"
-              disabled={blocked || generate.isPending}
-              onClick={() => generate.mutate({ period, regenerate: true })}
+              disabled={!preview || blocked || newCount === 0 || generate.isPending}
+              onClick={() => generate.mutate({ period, regenerate: false })}
               className="w-full sm:w-auto"
             >
-              Ponovni obračun ({changedCount})
+              {generate.isPending ? 'Izdavanje…' : `Izdaj nova zaduženja (${newCount})`}
             </Button>
-          )}
-          <Button
-            disabled={!preview || blocked || newCount === 0 || generate.isPending}
-            onClick={() => generate.mutate({ period, regenerate: false })}
-            className="w-full sm:w-auto"
-          >
-            {generate.isPending ? 'Izdavanje…' : `Izdaj nova zaduženja (${newCount})`}
-          </Button>
-        </DialogFooter>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

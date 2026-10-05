@@ -59,7 +59,9 @@ export function resolveRange(query: { from?: string; to?: string }) {
   const from = toDate(query.from ?? `${year}-01-01`);
   const to = toDate(query.to ?? `${year}-12-31`);
   if (from > to) {
-    throw new UnprocessableEntityException('"from" must not be after "to"');
+    throw new UnprocessableEntityException(
+      'Datum „od“ ne može biti posle datuma „do“',
+    );
   }
   return { from, to };
 }
@@ -78,4 +80,17 @@ const rsd = new Intl.NumberFormat('sr-Latn-RS', {
 // For notification text, e.g. "4.500,00 RSD".
 export function formatRSD(value: Prisma.Decimal | string) {
   return rsd.format(Number(value));
+}
+
+// "15.10.2026." — how Serbian documents print dates.
+export function formatDate(date: Date) {
+  const [y, m, d] = date.toISOString().slice(0, 10).split('-');
+  return `${d}.${m}.${y}.`;
+}
+
+// "840000074222184357" → "840-0000742221843-57"
+export function formatAccountNumber(value: string) {
+  return value.length === 18
+    ? `${value.slice(0, 3)}-${value.slice(3, 16)}-${value.slice(16)}`
+    : value;
 }

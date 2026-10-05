@@ -211,12 +211,63 @@ Read the relevant guide in `node_modules/next/dist/docs/` before writing (per `a
 - Flow: upload → parse → draft lines with proposed matches: owner payments by `reference` = `Unit.paymentReference` (model 97 validated), suppliers by counterparty account/PIB, invoices by number in purpose text → upravnik reviews/edits categories → commit (single `$transaction`). Statement opening balance must equal computed balance, else warn.
 - Re-import of the same file creates no duplicates (dedupe test).
 
+**As built (deviations from the above):**
+
+- **CSV only.**
+  - The NBS XML parser waits for real sample files from the banks.
+  - The CSV mapper (`src/finance/import/csv.ts`) handles:
+    - encoding (UTF-8 / windows-1250), delimiter, header rows to skip, date format, decimal separator;
+    - column indexes for date, a signed amount or debit + credit, counterparty, account, poziv na broj, purpose and an optional bank line id.
+  - The last mapping used is saved on `BankAccount.importMapping` and prefilled next time.
+- **Schema:**
+  - The import has no `statementDate`. It gains `DISCARDED` status and `committedAt`.
+  - Statement opening and closing balances are optional, entered by hand, and only produce warnings.
+  - Lines live in `BankStatementLine` (proposed category / unit / invoice, `skip`, `isDuplicate`, `transactionId`).
+- **Dedupe.**
+  - `externalId` is the bank's line id when mapped. Otherwise it is a hash of the line plus its occurrence number, so identical lines on one day stay distinct and a re-import matches again.
+  - Lines already booked on the account are flagged `isDuplicate`, never booked again, and not editable. The check is repeated at commit.
+- **Matching:**
+  - Poziv na broj (with or without `97`) → unit + the owner-payment category of tekuće održavanje.
+  - Supplier bank account → that supplier's open invoice whose number appears in the purpose (or its only open invoice) + the invoice's category.
+  - Supplier matching by PIB is not done; statements carry no PIB.
+- **Commit** is all or nothing.
+  - Every blocking problem is listed as "Red N: …" (missing category, date before books / in the future / in a locked period, inactive category, invoice cancelled or already paid).
+  - Invoice payments are capped at the invoice's open amount.
+  - Owner payments notify the unit, as manual entries do.
+- **Frontend:** a staff-only **Uvoz** tab with an upload dialog (raw file preview plus mapping form), a review sheet with per-line edits, and commit / discard.
+
 ## Phase 4 — Budget (program održavanja) and reports
 
 - `Budget { entityId, year, adoptedAt?, decisionDocumentId? }`, `BudgetLine { budgetId, categoryId, plannedAmount, note? }`; summary endpoint adds plan vs. actual per category/fund.
 - `FinanceReport { entityId, from, to, documentId, publishedBy, publishedAt }`: publishing renders a PDF (`pdfkit` or similar, server-side, with a Serbian-Latin-capable font), stores via `StorageService`, creates a `Document` (category `REPORT`) and **locks** `[from, to]` (service-level guard on all writes). Contents: entity data, opening/closing balance per account, income and expense by fund and category, plan vs. actual, list of invoices, market income subtotal (PBN-1 relevance), aggregate arrears.
 - Notify all residents "Objavljen finansijski izveštaj".
 - Note: Documents still store a URL; Phase 4 either links `Document` to `StoredFile` (adds `fileId?`) or stores the internal download path — decide at Phase 4 start.
+
+**As built (deviations from the above):**
+
+- **Document ↔ StoredFile.**
+  - `Document` gains `fileId?`, and `fileUrl` becomes nullable.
+  - Generated reports have `fileId` and no URL, and are opened through the signed download endpoint.
+- **Budget:**
+  - `PUT /finance/budgets/:year` replaces the whole budget (lines not sent are removed). Only the upravnik writes; every member reads.
+  - The summary adds `hasBudget`, `plannedIncome` / `plannedExpense` (total and per fund) and `planned` per category. Budgeted categories show even without movement.
+  - Plans are whole-year amounts for every year the range touches; they are not prorated.
+- **Reports:**
+  - `GET /finance/reports/preview?from&to` renders a "NACRT" PDF for staff (UPRAVNIK, BOARD_MEMBER).
+  - `POST /finance/reports` (upravnik) stores the PDF, creates the `REPORT` document and the `FinanceReport`, and notifies every other active member (not only residents).
+  - `from` must not be before `booksStartDate`, and `to` must not be in the future. Overlapping periods are not prevented.
+- **PDF:**
+  - Built with `pdfkit` and the Geist font (OFL), which is copied to `dist/src/finance/reports/fonts` by `nest-cli.json` assets.
+  - Arrears are per unit at the end of the period. They use the current cancellation state of charges and payments, not the state as of that date.
+- **Period lock.** `FinanceService.assertPeriodOpen` returns 409 for dated writes inside a published period:
+  - transaction create (value date) and storno (today);
+  - invoice create, update (old and new issue date) and cancel;
+  - charge generate / regenerate (the month's 1st), cancel and adjustment;
+  - opening balance (`booksStartDate`);
+  - statement lines at commit.
+  - Preview Charges shows `isLocked`.
+  - Once a report exists, `booksStartDate` and bank account numbers / opening balances can no longer change. New bank accounts can still be added.
+- **Frontend:** **Plan** tab (yearly budget, upravnik edit dialog) and **Izveštaji** tab (list with PDF download for everyone; preview and publish for staff).
 
 ## Phase 5 — Complex level
 
@@ -232,6 +283,5 @@ Read the relevant guide in `node_modules/next/dist/docs/` before writing (per `a
 ## Open items to settle during implementation
 
 - Exact bottom-nav placement on phone (fit check).
-- Phase 3 needs real sample statement files from the banks used.
-- Phase 4 PDF library choice and the Document ↔ StoredFile link.
+- Phase 3 needs real sample statement files from the banks used (for the NBS XML parser).
 - Have a lawyer or accountant review the report template before launch.

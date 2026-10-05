@@ -351,6 +351,70 @@ describe('Finance (e2e)', () => {
     });
   });
 
+  describe('list filters', () => {
+    const ids = (rows: Body[]) => rows.map((r) => r.id);
+    const search = (q: string) => `q=${encodeURIComponent(q)}`;
+
+    it('pages transactions in a stable order', async () => {
+      const get = async (query = '') =>
+        list(
+          await f.as('boardA').get(`${base}/transactions?${query}`).expect(200),
+        );
+      const all = await get();
+      expect(all.length).toBeGreaterThanOrEqual(2);
+      expect(ids(await get('take=1'))).toEqual([all[0].id]);
+      expect(ids(await get('take=1&skip=1'))).toEqual([all[1].id]);
+    });
+
+    it('searches transactions by counterparty and invoice number', async () => {
+      const get = async (q: string) =>
+        ids(
+          list(
+            await f
+              .as('boardA')
+              .get(`${base}/transactions?${search(q)}`)
+              .expect(200),
+          ),
+        );
+      expect(await get('petrović')).toEqual([incomeId]);
+      expect(await get('f-1')).toEqual([expenseId]);
+      expect(await get('nepostojeće')).toEqual([]);
+    });
+
+    it('does not let residents search hidden payer data', async () => {
+      const rows = list(
+        await f
+          .as('residentA2')
+          .get(`${base}/transactions?${search('Petrović')}`)
+          .expect(200),
+      );
+      expect(rows).toEqual([]);
+    });
+
+    it('searches and pages invoices', async () => {
+      const get = async (query: string) =>
+        ids(
+          list(
+            await f
+              .as('residentA1')
+              .get(`${base}/invoices?${query}`)
+              .expect(200),
+          ),
+        );
+      expect(await get(search('lift servis'))).toContain(invoiceId);
+      expect(await get(search('nepostojeće'))).toEqual([]);
+      expect(await get('take=1')).toHaveLength(1);
+      expect(await get('status=PARTIALLY_PAID&take=1')).toEqual([invoiceId]);
+      expect(await get('status=PARTIALLY_PAID&take=1&skip=1')).toEqual([]);
+    });
+
+    it('rejects invalid paging params', async () => {
+      for (const query of ['take=0', 'take=201', 'take=x', 'skip=-1']) {
+        await f.as('boardA').get(`${base}/transactions?${query}`).expect(400);
+      }
+    });
+  });
+
   describe('corrections', () => {
     it('refuses to cancel an invoice with payments', async () => {
       await f
@@ -370,6 +434,7 @@ describe('Finance (e2e)', () => {
         direction: 'INCOME',
         amount: '3000',
         reversesId: expenseId,
+        reverses: { id: expenseId },
         description: 'Storno: Servis lifta (Pogrešan iznos)',
       });
 
@@ -415,6 +480,28 @@ describe('Finance (e2e)', () => {
         where: { entityType: 'FinanceTransaction' },
       });
       expect(count).toBe(3);
+    });
+
+    it('counts owner payments without a unit until reversed', async () => {
+      const unassigned = async () =>
+        body(await f.as('upravnikA').get(base)).unassignedPayments;
+      expect(await unassigned()).toBe(0);
+      const res = await f
+        .as('upravnikA')
+        .post(`${base}/transactions`, {
+          bankAccountId: accountId,
+          categoryId: ownerCategoryId,
+          amount: '1000.00',
+          valueDate: todayIso,
+          description: 'Uplata bez stana',
+        })
+        .expect(201);
+      expect(await unassigned()).toBe(1);
+      await f
+        .as('upravnikA')
+        .post(`${base}/transactions/${idOf(res)}/reverse`, { reason: 'Greška' })
+        .expect(201);
+      expect(await unassigned()).toBe(0);
     });
   });
 

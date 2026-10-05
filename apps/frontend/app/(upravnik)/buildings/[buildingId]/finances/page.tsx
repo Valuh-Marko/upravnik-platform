@@ -21,7 +21,7 @@ export default function BuildingFinancesPage({
       <PageHeader
         icon={<Wallet />}
         title="Finansije"
-        description="Stanje računa, transakcije i fakture zgrade"
+        description="Stanje računa, knjiženje, zaduženja stanara i izveštaji zgrade"
       />
       <FinanceView buildingId={buildingId} canWrite={canWrite} />
     </div>

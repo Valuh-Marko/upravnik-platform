@@ -1,30 +1,49 @@
 'use client'
 
 import { useState } from 'react'
+import { ChipBadge } from '@/components/ChipBadge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useTransactions } from '@/hooks/useFinance'
-import { financeFundLabel } from '@/lib/chips'
+import { useFinanceFeedback, useTransactionPages } from '@/hooks/useFinance'
+import { financeFundLabel, transactionStatus } from '@/lib/chips'
 import { formatDate, formatRSD } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { FinanceDirection, FinanceFund, FinanceTransaction } from '@/lib/types'
-import { NativeSelect, Segmented } from './form'
+import { LoadMore, NativeSelect, QueryError, SearchInput, Segmented, YearSelect } from './form'
 
 type DirectionFilter = 'ALL' | FinanceDirection
 
 export function TransactionsList({
   buildingId,
+  booksStartDate,
   rowAction,
 }: {
   buildingId: string
+  booksStartDate: string
   /** Staff controls rendered on each row. */
   rowAction?: (tx: FinanceTransaction) => React.ReactNode
 }) {
   const [direction, setDirection] = useState<DirectionFilter>('ALL')
   const [fund, setFund] = useState<FinanceFund | ''>('')
-  const { data: transactions, isLoading } = useTransactions(buildingId, {
+  const [year, setYear] = useState(String(new Date().getFullYear()))
+  const [q, setQ] = useState('')
+  const { highlightId } = useFinanceFeedback()
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useTransactionPages(buildingId, {
     direction: direction === 'ALL' ? undefined : direction,
     fund: fund || undefined,
+    from: `${year}-01-01`,
+    to: `${year}-12-31`,
+    q: q || undefined,
   })
+  const transactions = data?.pages.flat()
 
   return (
     <div className="space-y-3">
@@ -52,28 +71,52 @@ export function TransactionsList({
             </option>
           ))}
         </NativeSelect>
+        <YearSelect booksStartDate={booksStartDate} value={year} onChange={setYear} />
+        <SearchInput label="Pretraži transakcije" onSearch={setQ} />
       </div>
 
-      {isLoading ? (
+      {error && !data ? (
+        <QueryError message="Transakcije trenutno nisu dostupne." onRetry={refetch} />
+      ) : isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
           ))}
         </div>
       ) : !transactions?.length ? (
         <p className="text-base text-muted-foreground text-center py-12">Nema transakcija.</p>
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-          {transactions.map((tx) => (
-            <TransactionRow key={tx.id} tx={tx} action={rowAction?.(tx)} />
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+            {transactions.map((tx) => (
+              <TransactionRow
+                key={tx.id}
+                tx={tx}
+                action={rowAction?.(tx)}
+                highlight={tx.id === highlightId}
+              />
+            ))}
+          </ul>
+          {isFetchNextPageError ? (
+            <QueryError inline onRetry={fetchNextPage} />
+          ) : (
+            <LoadMore hasMore={hasNextPage} loading={isFetchingNextPage} onLoad={fetchNextPage} />
+          )}
+        </>
       )}
     </div>
   )
 }
 
-function TransactionRow({ tx, action }: { tx: FinanceTransaction; action?: React.ReactNode }) {
+function TransactionRow({
+  tx,
+  action,
+  highlight,
+}: {
+  tx: FinanceTransaction
+  action?: React.ReactNode
+  highlight: boolean
+}) {
   const isIncome = tx.direction === 'INCOME'
   // Staff see the payer behind an owner payment; residents never get these fields.
   const details = [
@@ -83,19 +126,19 @@ function TransactionRow({ tx, action }: { tx: FinanceTransaction; action?: React
   ].filter(Boolean)
 
   return (
-    <li className="flex items-start gap-3 px-4 py-3">
+    <li className={cn('flex items-start gap-3 px-4 py-3', highlight && 'finance-highlight')}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground">
-          <span className={cn(tx.reversedBy && 'line-through decoration-muted-foreground')}>
-            {tx.displayName}
-          </span>
-          {tx.reversedBy && (
-            <span className="ml-2 text-[11px] font-medium text-muted-foreground">Stornirano</span>
-          )}
-        </p>
+        <p className="text-sm font-semibold text-foreground">{tx.displayName}</p>
         <p className="text-xs text-muted-foreground">
           <span className="font-mono">{formatDate(tx.valueDate)}</span> · {tx.category.name}
         </p>
+        {(tx.reversedBy || tx.reverses) && (
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <ChipBadge chip={transactionStatus[tx.reversedBy ? 'REVERSED' : 'REVERSAL']} />
+            {tx.reversedBy && <span>storno od {formatDate(tx.reversedBy.valueDate)}</span>}
+            {tx.reverses && <span>Storno transakcije od {formatDate(tx.reverses.valueDate)}</span>}
+          </div>
+        )}
         {details.length > 0 && (
           <p className="text-xs text-muted-foreground mt-0.5 break-words">{details.join(' · ')}</p>
         )}
@@ -110,7 +153,8 @@ function TransactionRow({ tx, action }: { tx: FinanceTransaction; action?: React
         <span
           className={cn(
             'font-mono tabular-nums text-sm font-semibold',
-            isIncome ? 'text-[var(--success-text)]' : 'text-[var(--danger-text)]'
+            isIncome ? 'text-[var(--success-text)]' : 'text-[var(--danger-text)]',
+            tx.reversedBy && 'line-through'
           )}
         >
           {isIncome ? '+' : '−'}

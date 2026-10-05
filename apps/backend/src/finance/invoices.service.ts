@@ -52,6 +52,10 @@ export class InvoicesService {
 
   async list(buildingId: string, query: InvoicesQueryDto) {
     const entity = await this.finance.entityFor(buildingId);
+    const q = query.q?.trim();
+    const contains = { contains: q, mode: 'insensitive' } as const;
+    // Status is derived from payments, so with a status filter paging happens after it.
+    const paged = !query.status;
     const invoices = await this.prisma.invoice.findMany({
       where: {
         entityId: entity.id,
@@ -60,15 +64,26 @@ export class InvoicesService {
           gte: query.from && toDate(query.from),
           lte: query.to && toDate(query.to),
         },
+        OR: q
+          ? [
+              { number: contains },
+              { description: contains },
+              { supplier: { name: contains } },
+            ]
+          : undefined,
       },
       include: INVOICE_INCLUDE,
-      orderBy: [{ issueDate: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ issueDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      take: paged ? query.take : undefined,
+      skip: paged ? query.skip : undefined,
     });
     const paid = await this.paidAmounts(invoices.map((i) => i.id));
     const result = invoices.map((i) => present(i, paid.get(i.id) ?? ZERO));
-    return query.status
-      ? result.filter((i) => i.status === query.status)
-      : result;
+    if (!query.status) return result;
+    const skip = query.skip ?? 0;
+    return result
+      .filter((i) => i.status === query.status)
+      .slice(skip, query.take && skip + query.take);
   }
 
   async findOne(buildingId: string, id: string) {
@@ -109,6 +124,7 @@ export class InvoicesService {
     assertDueDate(dto.issueDate, dto.dueDate);
 
     return this.prisma.$transaction(async (tx) => {
+      await this.finance.assertPeriodOpen(tx, entity.id, toDate(dto.issueDate));
       await tx.supplier.findFirstOrThrow({
         where: { id: dto.supplierId, entityId: entity.id },
       });
@@ -149,6 +165,12 @@ export class InvoicesService {
       if (invoice.cancelledAt) {
         throw new ConflictException('Stornirana faktura se ne može menjati');
       }
+      await this.finance.assertPeriodOpen(
+        tx,
+        entity.id,
+        invoice.issueDate,
+        ...(dto.issueDate ? [toDate(dto.issueDate)] : []),
+      );
       const paid = (await this.paidAmounts([id], tx)).get(id) ?? ZERO;
       if (
         dto.amount !== undefined &&
@@ -198,6 +220,7 @@ export class InvoicesService {
       if (invoice.cancelledAt) {
         throw new ConflictException('Faktura je već stornirana');
       }
+      await this.finance.assertPeriodOpen(tx, entity.id, invoice.issueDate);
       const paid = (await this.paidAmounts([id], tx)).get(id) ?? ZERO;
       if (paid.gt(0)) {
         throw new ConflictException(

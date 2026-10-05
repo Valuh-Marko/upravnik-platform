@@ -206,6 +206,12 @@ export class ChargesService {
     const entity = await this.finance.entityFor(buildingId);
     const plan = await this.plan(this.prisma, entity, period);
     const missingArea = this.missingArea(plan);
+    const locked =
+      (await this.finance.lockingReport(
+        this.prisma,
+        entity.id,
+        periodStart(period),
+      )) !== null;
 
     const units = plan.map((unit) => ({
       unitId: unit.unitId,
@@ -222,7 +228,8 @@ export class ChargesService {
       units,
       total: sum(units.map((u) => new Decimal(u.total))).toFixed(2),
       missingArea,
-      canGenerate: this.periodError(entity, period) === null,
+      canGenerate: this.periodError(entity, period) === null && !locked,
+      isLocked: locked,
     };
   }
 
@@ -252,6 +259,7 @@ export class ChargesService {
     const { changedUnits, issued, cancelled } = await this.prisma.$transaction(
       async (tx) => {
         await lockEntity(tx, entity.id);
+        await this.finance.assertPeriodOpen(tx, entity.id, periodStart(period));
         const plan = await this.plan(tx, entity, period);
         const missingArea = this.missingArea(plan);
         if (missingArea.length > 0) {
@@ -450,6 +458,7 @@ export class ChargesService {
       if (charge.cancelledAt) {
         throw new ConflictException('Zaduženje je već stornirano');
       }
+      await this.finance.assertPeriodOpen(tx, entity.id, charge.issueDate);
       const updated = await tx.unitCharge.update({
         where: { id },
         data: { cancelledAt: new Date(), cancelReason: dto.reason },
@@ -470,6 +479,7 @@ export class ChargesService {
     return this.prisma.$transaction(async (tx) => {
       await tx.unit.findFirstOrThrow({ where: { id: unitId, buildingId } });
       await lockEntity(tx, entity.id);
+      await this.finance.assertPeriodOpen(tx, entity.id, entity.booksStartDate);
       const existing = await tx.unitCharge.count({
         where: { unitId, type: UnitChargeType.OPENING, cancelledAt: null },
       });
@@ -509,6 +519,7 @@ export class ChargesService {
     }
     return this.prisma.$transaction(async (tx) => {
       await tx.unit.findFirstOrThrow({ where: { id: unitId, buildingId } });
+      await this.finance.assertPeriodOpen(tx, entity.id, issueDate);
       const created = await tx.unitCharge.create({
         data: {
           entityId: entity.id,
@@ -640,25 +651,7 @@ export class ChargesService {
   async arrears(buildingId: string, access: Access) {
     const entity = await this.finance.entityFor(buildingId);
     const units = await this.unitStatuses(entity);
-
-    const totalCharged = sum(units.map((u) => u.charged));
-    const totalPaid = sum(units.map((u) => u.paid));
-    const summary = {
-      totalCharged: totalCharged.toFixed(2),
-      totalPaid: totalPaid.toFixed(2),
-      totalOutstanding: sum(
-        units.map((u) => Decimal.max(u.balance, ZERO)),
-      ).toFixed(2),
-      totalOverdue: sum(units.map((u) => u.overdueAmount)).toFixed(2),
-      unitsInArrears: units.filter((u) => u.overdueAmount.gt(0)).length,
-      unitCount: units.length,
-      // Share of everything charged so far that has been paid, in percent.
-      collectionRate: totalCharged.gt(0)
-        ? Decimal.min(totalPaid.div(totalCharged).mul(100), 100)
-            .toDecimalPlaces(1)
-            .toNumber()
-        : null,
-    };
+    const summary = arrearsSummary(units);
     if (!isStaff(access)) return summary;
 
     return {
@@ -674,13 +667,23 @@ export class ChargesService {
     };
   }
 
-  private async unitStatuses(entity: FinanceEntity) {
+  /** Building totals as they stood at the end of `asOf` (for reports). */
+  async arrearsAsOf(entity: FinanceEntity, asOf: Date) {
+    return arrearsSummary(await this.unitStatuses(entity, asOf));
+  }
+
+  /** Charges and payments up to `asOf` (default: today). */
+  private async unitStatuses(entity: FinanceEntity, asOf = today()) {
     const [units, charges, payments] = await Promise.all([
       this.prisma.unit.findMany({
         where: { buildingId: entity.buildingId! },
       }),
       this.prisma.unitCharge.findMany({
-        where: { entityId: entity.id, cancelledAt: null },
+        where: {
+          entityId: entity.id,
+          cancelledAt: null,
+          issueDate: { lte: asOf },
+        },
         orderBy: [{ issueDate: 'asc' }, { createdAt: 'asc' }],
       }),
       this.prisma.financeTransaction.groupBy({
@@ -689,12 +692,12 @@ export class ChargesService {
           unitId: { not: null },
           bankAccount: { entityId: entity.id },
           category: { isOwnerPayment: true },
+          valueDate: { lte: asOf },
         },
         _sum: { amount: true },
       }),
     ]);
 
-    const now = today();
     return units.sort(byPosition).map((unit) => {
       const own = charges.filter((c) => c.unitId === unit.id);
       const paid = paidAmount(
@@ -710,7 +713,7 @@ export class ChargesService {
         lastReminderAt: unit.lastReminderAt,
         charged: sum(own.map((c) => c.amount)),
         paid,
-        ...unitStatus(own, paid, entity.paymentTermDays, now),
+        ...unitStatus(own, paid, entity.paymentTermDays, asOf),
       };
     });
   }
@@ -814,6 +817,34 @@ function planLine(
 
 function sum(values: Decimal[]) {
   return values.reduce((total, v) => total.add(v), ZERO);
+}
+
+function arrearsSummary(
+  units: {
+    charged: Decimal;
+    paid: Decimal;
+    balance: Decimal;
+    overdueAmount: Decimal;
+  }[],
+) {
+  const totalCharged = sum(units.map((u) => u.charged));
+  const totalPaid = sum(units.map((u) => u.paid));
+  return {
+    totalCharged: totalCharged.toFixed(2),
+    totalPaid: totalPaid.toFixed(2),
+    totalOutstanding: sum(
+      units.map((u) => Decimal.max(u.balance, ZERO)),
+    ).toFixed(2),
+    totalOverdue: sum(units.map((u) => u.overdueAmount)).toFixed(2),
+    unitsInArrears: units.filter((u) => u.overdueAmount.gt(0)).length,
+    unitCount: units.length,
+    // Share of everything charged so far that has been paid, in percent.
+    collectionRate: totalCharged.gt(0)
+      ? Decimal.min(totalPaid.div(totalCharged).mul(100), 100)
+          .toDecimalPlaces(1)
+          .toNumber()
+      : null,
+  };
 }
 
 // Owner payments net of their stornos.

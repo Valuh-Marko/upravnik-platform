@@ -3,12 +3,18 @@ import {
   Controller,
   Get,
   Param,
+  ParseFilePipe,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
   Query,
+  StreamableFile,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import {
   CurrentAccess,
   CurrentUser,
@@ -16,9 +22,13 @@ import {
 } from '../auth/access/access.decorators';
 import type { Access, AuthUser } from '../auth/access/auth-user';
 import { Role } from '../prisma';
+import { MAX_FILE_BYTES } from '../files/files.service';
+import { BudgetsService } from './budgets.service';
 import { ChargesService } from './charges.service';
 import { FinanceService } from './finance.service';
+import { ImportsService } from './imports.service';
 import { InvoicesService } from './invoices.service';
+import { ReportsService } from './reports.service';
 import { TransactionsService } from './transactions.service';
 import { UpsertFinanceProfileDto } from './dto/profile.dto';
 import {
@@ -46,6 +56,9 @@ import {
   OpeningBalanceDto,
   PeriodDto,
 } from './dto/charge.dto';
+import { UpdateStatementLineDto, UploadStatementDto } from './dto/import.dto';
+import { UpsertBudgetDto } from './dto/budget.dto';
+import { ReportRangeDto } from './dto/report.dto';
 
 // Every building member reads; only the upravnik writes.
 @ApiTags('finance')
@@ -57,6 +70,9 @@ export class FinanceController {
     private transactionsService: TransactionsService,
     private invoicesService: InvoicesService,
     private chargesService: ChargesService,
+    private importsService: ImportsService,
+    private budgetsService: BudgetsService,
+    private reportsService: ReportsService,
   ) {}
 
   @Get()
@@ -349,5 +365,125 @@ export class FinanceController {
     @CurrentAccess() access: Access,
   ) {
     return this.chargesService.arrears(buildingId, access);
+  }
+
+  // ─── Bank statement import (izvodi) ────────────────────────────
+
+  // Statements carry payer names and accounts, so staff only.
+  @Get('imports')
+  @InBuilding(Role.UPRAVNIK, Role.BOARD_MEMBER)
+  imports(@Param('buildingId') buildingId: string) {
+    return this.importsService.list(buildingId);
+  }
+
+  @Get('imports/:id')
+  @InBuilding(Role.UPRAVNIK, Role.BOARD_MEMBER)
+  import(@Param('buildingId') buildingId: string, @Param('id') id: string) {
+    return this.importsService.findOne(buildingId, id);
+  }
+
+  @Post('imports')
+  @InBuilding(Role.UPRAVNIK)
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_FILE_BYTES } }),
+  )
+  @ApiConsumes('multipart/form-data')
+  uploadStatement(
+    @Param('buildingId') buildingId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UploadStatementDto,
+    @UploadedFile(new ParseFilePipe()) file: Express.Multer.File,
+  ) {
+    return this.importsService.upload(buildingId, user.id, dto, file);
+  }
+
+  @Patch('imports/:id/lines/:lineId')
+  @InBuilding(Role.UPRAVNIK)
+  updateStatementLine(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: UpdateStatementLineDto,
+  ) {
+    return this.importsService.updateLine(buildingId, id, lineId, dto);
+  }
+
+  @Post('imports/:id/commit')
+  @InBuilding(Role.UPRAVNIK)
+  commitStatement(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.importsService.commit(buildingId, user.id, id);
+  }
+
+  @Post('imports/:id/discard')
+  @InBuilding(Role.UPRAVNIK)
+  discardStatement(
+    @Param('buildingId') buildingId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.importsService.discard(buildingId, user.id, id);
+  }
+
+  // ─── Budget (program održavanja) ───────────────────────────────
+
+  @Get('budgets')
+  @InBuilding()
+  budgets(@Param('buildingId') buildingId: string) {
+    return this.budgetsService.list(buildingId);
+  }
+
+  @Get('budgets/:year')
+  @InBuilding()
+  budget(
+    @Param('buildingId') buildingId: string,
+    @Param('year', ParseIntPipe) year: number,
+  ) {
+    return this.budgetsService.findOne(buildingId, year);
+  }
+
+  @Put('budgets/:year')
+  @InBuilding(Role.UPRAVNIK)
+  upsertBudget(
+    @Param('buildingId') buildingId: string,
+    @Param('year', ParseIntPipe) year: number,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UpsertBudgetDto,
+  ) {
+    return this.budgetsService.upsert(buildingId, user.id, year, dto);
+  }
+
+  // ─── Reports ───────────────────────────────────────────────────
+
+  @Get('reports')
+  @InBuilding()
+  reports(@Param('buildingId') buildingId: string) {
+    return this.reportsService.list(buildingId);
+  }
+
+  @Get('reports/preview')
+  @InBuilding(Role.UPRAVNIK, Role.BOARD_MEMBER)
+  async previewReport(
+    @Param('buildingId') buildingId: string,
+    @Query() query: ReportRangeDto,
+  ) {
+    const pdf = await this.reportsService.preview(buildingId, query);
+    return new StreamableFile(pdf, {
+      type: 'application/pdf',
+      disposition: 'inline; filename="pregled-izvestaja.pdf"',
+    });
+  }
+
+  @Post('reports')
+  @InBuilding(Role.UPRAVNIK)
+  publishReport(
+    @Param('buildingId') buildingId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ReportRangeDto,
+  ) {
+    return this.reportsService.publish(buildingId, user.id, dto);
   }
 }

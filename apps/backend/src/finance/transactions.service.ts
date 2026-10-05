@@ -40,6 +40,7 @@ const TRANSACTION_INCLUDE = {
   bankAccount: { select: { id: true, bankName: true, accountNumber: true } },
   unit: { select: { id: true, unitNumber: true } },
   reversedBy: { select: { id: true, valueDate: true } },
+  reverses: { select: { id: true, valueDate: true } },
   invoicePayments: {
     select: {
       amount: true,
@@ -70,6 +71,8 @@ export class TransactionsService {
   async list(buildingId: string, access: Access, query: TransactionsQueryDto) {
     const entity = await this.finance.entityFor(buildingId);
     const { from, to } = resolveRange(query);
+    const raw = canSeeRawBankData(access);
+    const q = query.q?.trim();
 
     const rows = await this.prisma.financeTransaction.findMany({
       where: {
@@ -79,11 +82,14 @@ export class TransactionsService {
         categoryId: query.categoryId,
         bankAccountId: query.bankAccountId,
         category: query.fund && { fund: query.fund },
+        AND: q ? [searchWhere(q, raw)] : undefined,
       },
       include: TRANSACTION_INCLUDE,
-      orderBy: [{ valueDate: 'desc' }, { createdAt: 'desc' }],
+      // `id` keeps paging stable: an import commit gives its rows one createdAt.
+      orderBy: [{ valueDate: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      take: query.take,
+      skip: query.skip,
     });
-    const raw = canSeeRawBankData(access);
     return rows.map((row) => present(row, raw));
   }
 
@@ -102,6 +108,7 @@ export class TransactionsService {
     }
 
     const transaction = await this.prisma.$transaction(async (tx) => {
+      await this.finance.assertPeriodOpen(tx, entity.id, valueDate);
       const account = await tx.bankAccount.findFirstOrThrow({
         where: { id: dto.bankAccountId, entityId: entity.id },
       });
@@ -173,7 +180,7 @@ export class TransactionsService {
   }
 
   // Tells the unit account its payment was booked.
-  private async notifyPayment(unitId: string, amount: Prisma.Decimal) {
+  async notifyPayment(unitId: string, amount: Prisma.Decimal) {
     const unit = await this.prisma.unit.findUniqueOrThrow({
       where: { id: unitId },
     });
@@ -196,6 +203,7 @@ export class TransactionsService {
     const entity = await this.finance.entityFor(buildingId);
 
     return this.prisma.$transaction(async (tx) => {
+      await this.finance.assertPeriodOpen(tx, entity.id, today());
       const original = await tx.financeTransaction.findFirstOrThrow({
         where: { id, bankAccount: { entityId: entity.id } },
         include: { reversedBy: { select: { id: true } } },
@@ -286,6 +294,28 @@ export class TransactionsService {
 
 // Residents see owner payments as "Uplata – stan X", without the payer's
 // name, account, reference or the free-text description (which may name them).
+// Counterparty, purpose, reference or invoice number. Without raw bank data the
+// payer fields of owner payments are hidden, so they are not searchable either.
+function searchWhere(
+  q: string,
+  raw: boolean,
+): Prisma.FinanceTransactionWhereInput {
+  const contains = { contains: q, mode: 'insensitive' } as const;
+  const text = {
+    OR: [
+      { counterpartyName: contains },
+      { description: contains },
+      { reference: contains },
+    ],
+  };
+  return {
+    OR: [
+      raw ? text : { ...text, category: { isOwnerPayment: false } },
+      { invoicePayments: { some: { invoice: { number: contains } } } },
+    ],
+  };
+}
+
 function present(row: TransactionRow, raw: boolean) {
   const { category, unit } = row;
   if (!category.isOwnerPayment) {

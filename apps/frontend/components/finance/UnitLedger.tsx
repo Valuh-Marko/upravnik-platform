@@ -1,22 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertTriangle, Undo2 } from 'lucide-react'
-import { unitTypeLabel } from '@/app/(super-admin)/create/units'
+import { encode } from 'uqr'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCancelCharge, useCreateAdjustment, useOpeningBalance, useUnitLedger } from '@/hooks/useFinance'
-import { financeFundLabel } from '@/lib/chips'
-import { formatAccountNumber, formatDate, formatPeriod, formatRSD, parseMoneyInput } from '@/lib/format'
+import { financeFundLabel, unitTypeLabel } from '@/lib/chips'
+import { formatAccountNumber, formatDate, formatDateTime, formatPeriod, formatRSD, parseMoneyInput } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { ipsPayload } from '@/lib/ips'
 import type { LedgerEntry, UnitLedger } from '@/lib/types'
-import { CopyButton } from './FinanceOverview'
-import { Field, FormError } from './form'
-
-const card = 'rounded-lg border border-border bg-card p-4 md:p-5'
-const eyebrow = 'text-[11px] font-semibold uppercase tracking-[0.06em] text-stone-500'
+import { CopyButton, eyebrow, Field, financeCard as card, FormError, QueryError } from './form'
 
 function entryLabel(e: LedgerEntry): string {
   if (e.kind === 'PAYMENT') return e.isReversal ? 'Storno uplate' : 'Uplata'
@@ -31,6 +28,32 @@ function signed(value: string): string {
   return `${n > 0 ? '+' : n < 0 ? '−' : ''}${formatRSD(String(Math.abs(n)))}`
 }
 
+function unitName(unit: UnitLedger['unit']): string {
+  return `${unitTypeLabel[unit.type]} ${unit.unitNumber}`
+}
+
+/** NBS IPS QR code; always dark on white, whatever the theme, so every banking app can scan it. */
+function IpsQr({ payload }: { payload: string }) {
+  const qr = useMemo(() => {
+    const { data } = encode(payload, { ecc: 'M', border: 2 })
+    let d = ''
+    data.forEach((row, y) => row.forEach((on, x) => on && (d += `M${x} ${y}h1v1h-1z`)))
+    return { d, size: data.length }
+  }, [payload])
+  return (
+    <svg
+      viewBox={`0 0 ${qr.size} ${qr.size}`}
+      role="img"
+      aria-label="IPS QR kod za plaćanje"
+      shapeRendering="crispEdges"
+      className="size-44 rounded-md"
+    >
+      <rect width={qr.size} height={qr.size} fill="#fff" />
+      <path d={qr.d} fill="#000" />
+    </svg>
+  )
+}
+
 /** A unit's balance, payment instructions and charge/payment timeline. */
 export function UnitLedgerView({
   ledger,
@@ -41,6 +64,8 @@ export function UnitLedgerView({
 }) {
   const balance = Number(ledger.balance)
   const { payTo } = ledger
+  // Entries are newest first.
+  const lastPayment = ledger.entries.find((e) => e.kind === 'PAYMENT' && !e.isReversal)
 
   return (
     <div className="space-y-4">
@@ -51,14 +76,18 @@ export function UnitLedgerView({
         <p className="mt-1 text-sm text-muted-foreground">
           {balance > 0 ? 'Dugovanje' : balance < 0 ? 'Pretplata' : 'Nema dugovanja'}
         </p>
-        {balance !== 0 && (
-          <p
-            className={cn(
-              'text-3xl font-semibold tracking-tight font-mono tabular-nums',
-              balance > 0 ? 'text-foreground' : 'text-[var(--success-text)]'
-            )}
-          >
-            {formatRSD(String(Math.abs(balance)))}
+        <p
+          className={cn(
+            'text-2xl font-semibold tracking-tight font-mono tabular-nums',
+            balance > 0 ? 'text-foreground' : balance < 0 ? 'text-[var(--success-text)]' : 'text-muted-foreground'
+          )}
+        >
+          {formatRSD(String(Math.abs(balance)))}
+        </p>
+        {balance === 0 && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Sve obaveze su izmirene.
+            {lastPayment && <> Poslednja uplata {formatDate(lastPayment.date)}.</>}
           </p>
         )}
         {Number(ledger.overdueAmount) > 0 && (
@@ -105,6 +134,24 @@ export function UnitLedgerView({
         <p className="mt-2 text-xs text-muted-foreground">
           Rok plaćanja je {ledger.paymentTermDays} dana od izdavanja zaduženja.
         </p>
+        {balance > 0 && payTo.accountNumber && (
+          <div className="mt-4 flex flex-col items-center gap-2 border-t border-border pt-4">
+            <IpsQr
+              payload={ipsPayload({
+                account: payTo.accountNumber,
+                payee: payTo.recipient,
+                amount: ledger.balance,
+                purpose: `Zaduženje za ${unitName(ledger.unit)}`,
+                model: payTo.model,
+                reference: payTo.reference,
+              })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Skenirajte u aplikaciji banke. Iznos u QR kodu:{' '}
+              <span className="font-mono tabular-nums">{formatRSD(ledger.balance)}</span>
+            </p>
+          </div>
+        )}
       </section>
 
       <section className={card}>
@@ -112,6 +159,10 @@ export function UnitLedgerView({
         {ledger.entries.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">Nema zaduženja ni uplata.</p>
         ) : (
+          <>
+          <p className="mt-1 text-xs text-muted-foreground">
+            <span className="font-mono">+</span> zaduženje · <span className="font-mono">−</span> uplata ili umanjenje
+          </p>
           <ul className="mt-2 divide-y divide-border">
             {ledger.entries.map((e) => {
               const cancelled = e.kind === 'CHARGE' && !!e.cancelledAt
@@ -119,8 +170,9 @@ export function UnitLedgerView({
                 <li key={`${e.kind}-${e.id}`} className="py-2.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className={cn('text-sm text-foreground', cancelled && 'text-muted-foreground line-through')}>
-                        {entryLabel(e)}
+                      <p className={cn('text-sm text-foreground', cancelled && 'text-muted-foreground')}>
+                        <span className={cn(cancelled && 'line-through')}>{entryLabel(e)}</span>
+                        {cancelled && ' (stornirano)'}
                       </p>
                       <p className="text-xs text-muted-foreground">{formatDate(e.date)}</p>
                     </div>
@@ -144,7 +196,7 @@ export function UnitLedgerView({
                   </div>
                   {cancelled && e.kind === 'CHARGE' && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Stornirano {formatDate(e.cancelledAt!)}
+                      Stornirano {formatDateTime(e.cancelledAt!)}
                       {e.cancelReason && `: ${e.cancelReason}`}
                     </p>
                   )}
@@ -153,6 +205,7 @@ export function UnitLedgerView({
               )
             })}
           </ul>
+          </>
         )}
       </section>
     </div>
@@ -162,9 +215,9 @@ export function UnitLedgerView({
 function LedgerSkeleton() {
   return (
     <div className="space-y-3">
-      <Skeleton className="h-28 w-full rounded-lg" />
-      <Skeleton className="h-32 w-full rounded-lg" />
-      <Skeleton className="h-40 w-full rounded-lg" />
+      <Skeleton className="h-28 w-full rounded-xl" />
+      <Skeleton className="h-32 w-full rounded-xl" />
+      <Skeleton className="h-40 w-full rounded-xl" />
     </div>
   )
 }
@@ -189,16 +242,18 @@ export function UnitLedgerSheet({
   canWrite: boolean
   onClose: () => void
 }) {
-  const { data: ledger, isLoading } = useUnitLedger(buildingId, unitId)
+  const { data: ledger, isLoading, error, refetch } = useUnitLedger(buildingId, unitId)
 
   return (
     <Sheet open={!!unitId} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Kartica stana</SheetTitle>
+          <SheetTitle>{ledger ? `Kartica stana · ${unitName(ledger.unit)}` : 'Kartica stana'}</SheetTitle>
         </SheetHeader>
         <div className="px-4 pb-6">
-          {isLoading || !ledger ? (
+          {error && !ledger ? (
+            <QueryError onRetry={refetch} />
+          ) : isLoading || !ledger ? (
             <LedgerSkeleton />
           ) : (
             // Keyed so the forms reset when another unit opens.
@@ -213,14 +268,38 @@ export function UnitLedgerSheet({
 function SheetBody({ buildingId, ledger, canWrite }: { buildingId: string; ledger: UnitLedger; canWrite: boolean }) {
   const [cancelId, setCancelId] = useState<string | null>(null)
   const [reason, setReason] = useState('')
+  // The correction forms stay folded away, one open at a time, so the ledger leads.
+  const [tool, setTool] = useState<'opening' | 'adjustment' | null>(null)
   const cancel = useCancelCharge(buildingId)
 
   if (!canWrite) return <UnitLedgerView ledger={ledger} />
 
   const hasOpening = ledger.entries.some((e) => e.kind === 'CHARGE' && e.type === 'OPENING' && !e.cancelledAt)
+  const toggle = (next: 'opening' | 'adjustment') => setTool((t) => (t === next ? null : next))
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {!hasOpening && (
+          <Button size="sm" variant="outline" aria-expanded={tool === 'opening'} onClick={() => toggle('opening')}>
+            Početno stanje
+          </Button>
+        )}
+        <Button size="sm" variant="outline" aria-expanded={tool === 'adjustment'} onClick={() => toggle('adjustment')}>
+          Korekcija
+        </Button>
+      </div>
+      {tool === 'opening' && !hasOpening && (
+        <OpeningBalanceForm buildingId={buildingId} unitId={ledger.unit.id} unit={unitName(ledger.unit)} />
+      )}
+      {tool === 'adjustment' && (
+        <AdjustmentForm
+          buildingId={buildingId}
+          unitId={ledger.unit.id}
+          unit={unitName(ledger.unit)}
+          onDone={() => setTool(null)}
+        />
+      )}
       <UnitLedgerView
         ledger={ledger}
         entryAction={(e) => {
@@ -270,13 +349,11 @@ function SheetBody({ buildingId, ledger, canWrite }: { buildingId: string; ledge
           )
         }}
       />
-      {!hasOpening && <OpeningBalanceForm buildingId={buildingId} unitId={ledger.unit.id} />}
-      <AdjustmentForm buildingId={buildingId} unitId={ledger.unit.id} />
     </div>
   )
 }
 
-function OpeningBalanceForm({ buildingId, unitId }: { buildingId: string; unitId: string }) {
+function OpeningBalanceForm({ buildingId, unitId, unit }: { buildingId: string; unitId: string; unit: string }) {
   const [amount, setAmount] = useState('')
   const save = useOpeningBalance(buildingId)
   const parsed = parseMoneyInput(amount)
@@ -294,7 +371,7 @@ function OpeningBalanceForm({ buildingId, unitId }: { buildingId: string; unitId
       <Field
         id="ob-amount"
         label="Dug na dan početka evidencije (RSD)"
-        hint="Unosi se jednom po stanu. Negativan iznos je pretplata."
+        hint="Npr. 12.500,00. Unosi se jednom po stanu. Negativan iznos je pretplata."
       >
         <Input
           id="ob-amount"
@@ -305,6 +382,12 @@ function OpeningBalanceForm({ buildingId, unitId }: { buildingId: string; unitId
           aria-invalid={amount !== '' && !parsed}
         />
       </Field>
+      {valid && (
+        <p className="text-sm text-foreground">
+          Početno stanje <span className="font-mono tabular-nums">{signed(parsed)}</span> za {unit} — stanar će ga
+          videti.
+        </p>
+      )}
       <FormError error={save.error} />
       <Button type="submit" size="sm" variant="outline" disabled={!valid || save.isPending}>
         {save.isPending ? 'Čuvanje…' : 'Unesi početno stanje'}
@@ -313,7 +396,17 @@ function OpeningBalanceForm({ buildingId, unitId }: { buildingId: string; unitId
   )
 }
 
-function AdjustmentForm({ buildingId, unitId }: { buildingId: string; unitId: string }) {
+function AdjustmentForm({
+  buildingId,
+  unitId,
+  unit,
+  onDone,
+}: {
+  buildingId: string
+  unitId: string
+  unit: string
+  onDone: () => void
+}) {
   const [form, setForm] = useState({ amount: '', description: '' })
   const create = useCreateAdjustment(buildingId)
   const parsed = parseMoneyInput(form.amount)
@@ -327,12 +420,12 @@ function AdjustmentForm({ buildingId, unitId }: { buildingId: string; unitId: st
         if (!valid) return
         create.mutate(
           { unitId, amount: parsed, description: form.description.trim() },
-          { onSuccess: () => setForm({ amount: '', description: '' }) }
+          { onSuccess: onDone }
         )
       }}
     >
       <p className={eyebrow}>Korekcija</p>
-      <Field id="adj-amount" label="Iznos (RSD)" hint="Pozitivan iznos povećava dug, negativan ga smanjuje.">
+      <Field id="adj-amount" label="Iznos (RSD)" hint="Npr. 2.500,00. Pozitivan iznos povećava dug, negativan ga smanjuje.">
         <Input
           id="adj-amount"
           inputMode="decimal"
@@ -350,6 +443,11 @@ function AdjustmentForm({ buildingId, unitId }: { buildingId: string; unitId: st
           placeholder="Npr. Popravka interfona"
         />
       </Field>
+      {valid && (
+        <p className="text-sm text-foreground">
+          Korekcija <span className="font-mono tabular-nums">{signed(parsed)}</span> za {unit} — stanar će je videti.
+        </p>
+      )}
       <FormError error={create.error} />
       <Button type="submit" size="sm" variant="outline" disabled={!valid || create.isPending}>
         {create.isPending ? 'Čuvanje…' : 'Dodaj korekciju'}

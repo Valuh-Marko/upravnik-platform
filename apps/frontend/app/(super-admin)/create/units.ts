@@ -5,12 +5,6 @@ import type { BuildingDraft, ComplexDraft, Generator, UnitEntry, UnitType } from
 /** Mirrors MAX_UNITS_PER_BUILDING in the backend bulk-create DTO. */
 export const MAX_UNITS = 1000
 
-export const unitTypeLabel: Record<UnitType, string> = {
-  APARTMENT: 'Stan',
-  OFFICE: 'Kancelarija',
-  COMMERCIAL: 'Lokal',
-}
-
 const defaultGenerator: Generator = {
   pattern: 'sequential',
   floors: 4,

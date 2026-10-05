@@ -1,34 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, Copy, Landmark } from 'lucide-react'
+import { AlertTriangle, Landmark } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { financeFundLabel } from '@/lib/chips'
 import { formatAccountNumber, formatDate, formatRSD } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { BankAccount, FinanceEntity, FinanceSummary } from '@/lib/types'
-
-const card = 'rounded-lg border border-border bg-card p-4 md:p-5'
-const eyebrow = 'text-[11px] font-semibold uppercase tracking-[0.06em] text-stone-500'
-
-export function CopyButton({ value, label }: { value: string; label: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={() => {
-        navigator.clipboard.writeText(value).then(() => {
-          setCopied(true)
-          setTimeout(() => setCopied(false), 1500)
-        })
-      }}
-      className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-    >
-      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-    </button>
-  )
-}
+import { CopyButton, eyebrow, financeCard as card } from './form'
 
 function Amount({ value, className }: { value: string; className?: string }) {
   return <span className={cn('font-mono tabular-nums', className)}>{formatRSD(value)}</span>
@@ -40,12 +18,15 @@ export function FinanceOverview({
   totalBalance,
   summary,
   summaryLoading,
+  unassignedPayments,
 }: {
   entity: FinanceEntity
   bankAccounts: BankAccount[]
   totalBalance: string
   summary?: FinanceSummary
   summaryLoading: boolean
+  /** Staff only; residents get undefined. */
+  unassignedPayments?: number
 }) {
   const income = summary?.byCategory.filter((c) => c.direction === 'INCOME') ?? []
   const expense = summary?.byCategory.filter((c) => c.direction === 'EXPENSE') ?? []
@@ -55,9 +36,18 @@ export function FinanceOverview({
       {/* Balance + accounts */}
       <section className={card}>
         <p className={eyebrow}>Ukupno stanje</p>
-        <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+        <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
           <Amount value={totalBalance} />
         </p>
+        {!!unassignedPayments && (
+          <p className="mt-3 flex items-start gap-2 rounded-md bg-[var(--warning-subtle)] px-3 py-2 text-sm text-[var(--warning-text)]">
+            <AlertTriangle className="mt-0.5 size-4 flex-shrink-0" aria-hidden="true" />
+            <span>
+              Nerazvrstane uplate ({unassignedPayments}). Uplate vlasnika bez stana ne umanjuju ničiji dug; stornirajte
+              ih i proknjižite ponovo sa stanom.
+            </span>
+          </p>
+        )}
 
         {bankAccounts.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">Nema unetih računa.</p>
@@ -66,14 +56,14 @@ export function FinanceOverview({
             {bankAccounts.map((a) => (
               <li
                 key={a.id}
-                className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 py-3', !a.isActive && 'opacity-60')}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 py-3"
               >
                 <Landmark className="size-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className={cn('text-sm font-semibold', a.isActive ? 'text-foreground' : 'text-muted-foreground')}>
                     {a.bankName}
                     {a.isPrimary && (
-                      <span className="ml-2 text-[11px] font-medium text-pine-700">Primarni</span>
+                      <span className="ml-2 text-[11px] font-medium text-muted-foreground">Primarni</span>
                     )}
                     {!a.isActive && (
                       <span className="ml-2 text-[11px] font-medium text-muted-foreground">Ugašen</span>
@@ -84,7 +74,10 @@ export function FinanceOverview({
                     <CopyButton value={formatAccountNumber(a.accountNumber)} label="Kopiraj broj računa" />
                   </p>
                 </div>
-                <Amount value={a.balance} className="text-sm font-semibold text-foreground" />
+                <Amount
+                  value={a.balance}
+                  className={cn('text-sm font-semibold', a.isActive ? 'text-foreground' : 'text-muted-foreground')}
+                />
               </li>
             ))}
           </ul>
@@ -123,11 +116,12 @@ export function FinanceOverview({
 
             {summary.byFund.length > 0 && (
               <table className="mt-4 w-full text-sm">
+                <caption className="sr-only">Prihodi i rashodi po fondu</caption>
                 <thead>
                   <tr className="text-xs text-muted-foreground">
-                    <th className="text-left font-medium py-1">Fond</th>
-                    <th className="text-right font-medium py-1">Prihodi</th>
-                    <th className="text-right font-medium py-1">Rashodi</th>
+                    <th scope="col" className="text-left font-medium py-1">Fond</th>
+                    <th scope="col" className="text-right font-medium py-1">Prihodi</th>
+                    <th scope="col" className="text-right font-medium py-1">Rashodi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -165,15 +159,29 @@ export function FinanceOverview({
               ) : (
                 <ul className="mt-2 space-y-1.5">
                   {rows.map((c) => (
-                    <li key={c.categoryId} className="flex justify-between gap-3 text-sm">
-                      <span className="text-foreground">{c.name}</span>
-                      <Amount value={c.amount} className="flex-shrink-0" />
+                    <li key={c.categoryId} className="text-sm">
+                      <div className="flex justify-between gap-3">
+                        <span className="text-foreground">{c.name}</span>
+                        <Amount value={c.amount} className="flex-shrink-0" />
+                      </div>
+                      {c.planned && (
+                        <p className="text-right text-xs text-muted-foreground">
+                          plan <Amount value={c.planned} />
+                          {Number(c.planned) > 0 &&
+                            ` · ${Math.round((Number(c.amount) / Number(c.planned)) * 100)}%`}
+                        </p>
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
           ))}
+          {summary.hasBudget && (
+            <p className="text-xs text-muted-foreground md:col-span-2">
+              Plan je iznos iz godišnjeg programa održavanja i ne deli se po mesecima.
+            </p>
+          )}
         </section>
       )}
 

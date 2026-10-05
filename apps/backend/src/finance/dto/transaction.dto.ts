@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FinanceDirection, FinanceFund } from '../../prisma';
-import { DateRangeQueryDto } from './summary-query.dto';
+import { ListQueryDto } from './summary-query.dto';
 import { IsAccountNumber, IsDateOnly, IsMoney } from './validators';
 
 export class InvoicePaymentDto {
@@ -90,7 +90,7 @@ export class ReverseTransactionDto {
   reason?: string;
 }
 
-export class TransactionsQueryDto extends DateRangeQueryDto {
+export class TransactionsQueryDto extends ListQueryDto {
   @ApiPropertyOptional({ enum: FinanceDirection })
   @IsEnum(FinanceDirection)
   @IsOptional()
