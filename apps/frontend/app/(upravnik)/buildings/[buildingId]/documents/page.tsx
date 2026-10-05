@@ -7,6 +7,7 @@ import { FileText, ExternalLink } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
 import { documentCategoryLabel } from '@/lib/chips'
 import { PageHeader } from '@/components/PageHeader'
+import { openStoredFile } from '@/lib/api/files'
 
 export default function BuildingDocumentsPage({
   params,
@@ -37,7 +38,16 @@ export default function BuildingDocumentsPage({
           {sorted.map((d) => (
             <a
               key={d.id}
-              href={d.fileUrl}
+              href={d.fileUrl ?? '#'}
+              // Uploaded files (e.g. published reports) need a fresh signed URL.
+              onClick={
+                d.fileId
+                  ? (e) => {
+                      e.preventDefault()
+                      openStoredFile(buildingId, d.fileId!).catch(() => {})
+                    }
+                  : undefined
+              }
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:bg-stone-100 transition-colors group"

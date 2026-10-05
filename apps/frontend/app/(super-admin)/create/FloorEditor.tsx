@@ -12,8 +12,8 @@ import {
   isDuplicate,
   newUnit,
   nextUnitNumber,
-  unitTypeLabel,
 } from './units'
+import { unitTypeLabel } from '@/lib/chips'
 import type { BuildingDraft, UnitEntry, UnitType } from './types'
 
 const typeIcon: Partial<Record<UnitType, typeof Store>> = {

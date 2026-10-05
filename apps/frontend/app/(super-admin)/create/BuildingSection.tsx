@@ -13,9 +13,9 @@ import {
   countByType,
   generateUnits,
   generatedCount,
-  unitTypeLabel,
   type BuildingIssues,
 } from './units'
+import { unitTypeLabel } from '@/lib/chips'
 import type { BuildingDraft, ComplexDraft, Generator, NumberPattern, UnitType } from './types'
 
 const patterns: { value: NumberPattern; label: string; example: string }[] = [

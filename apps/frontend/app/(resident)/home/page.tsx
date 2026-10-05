@@ -7,6 +7,7 @@ import { useBuildings } from '@/hooks/useBuildings'
 import { useAnnouncements } from '@/hooks/useAnnouncements'
 import { useThreads } from '@/hooks/useThreads'
 import { FeedCard } from '@/components/resident/FeedCard'
+import { HomeDebtCard } from '@/components/finance/HomeDebtCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pin, Home } from 'lucide-react'
 import { formatTimestamp, getAuthorName } from '@/lib/format'
@@ -93,6 +94,8 @@ export default function ResidentHomePage() {
           </span>
         }
       />
+
+      <HomeDebtCard buildingId={buildingId} unitId={user?.unitId} />
 
       {isLoading ? (
         <FeedSkeleton />

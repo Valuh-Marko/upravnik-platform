@@ -466,3 +466,11 @@
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* A finance row just created: a brief info tint that fades out. */
+@keyframes finance-highlight {
+  from { background-color: var(--info-subtle); }
+}
+.finance-highlight {
+  animation: finance-highlight 3s ease-out;
+}

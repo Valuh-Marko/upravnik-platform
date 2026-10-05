@@ -8,13 +8,31 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { AccountType, Role, SystemRole } from '../src/prisma';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { StorageService } from '../src/storage/storage.service';
 
 export const PASSWORD = 'Password123!';
+
+// Keeps uploads in memory so e2e runs need no S3 server.
+export class FakeStorage {
+  objects = new Map<string, Buffer>();
+
+  put(key: string, body: Buffer) {
+    this.objects.set(key, body);
+    return Promise.resolve();
+  }
+
+  signedDownloadUrl(key: string) {
+    return Promise.resolve(`https://storage.test/${key}?signed`);
+  }
+}
 
 export async function createTestApp(): Promise<INestApplication<App>> {
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(StorageService)
+    .useValue(new FakeStorage())
+    .compile();
   const app = moduleRef.createNestApplication<INestApplication<App>>();
   configureApp(app);
   await app.init();
@@ -145,6 +163,8 @@ export async function seed(app: INestApplication<App>) {
         .patch(`/api${url}`)
         .auth(tokens[actor], { type: 'bearer' })
         .send(body),
+    put: (url: string, body: object = {}) =>
+      http.put(`/api${url}`).auth(tokens[actor], { type: 'bearer' }).send(body),
   });
 
   return {

@@ -22,6 +22,7 @@ import {
   User,
   MessageSquare,
   PlusCircle,
+  Wallet,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatTimestamp } from '@/lib/format'
@@ -99,6 +100,14 @@ function MobileUserSheet({
               <MessagesSquare className="w-4 h-4" />
               Moje teme
             </Link>
+
+            {/* The bottom bar is full on phones, so residents reach Finansije from here. */}
+            {isResident && (
+              <Link href="/finances" onClick={close} className={linkClass}>
+                <Wallet className="w-4 h-4" />
+                Finansije
+              </Link>
+            )}
 
             {!isResident && (
               <Link href="/tickets" onClick={close} className={linkClass}>
