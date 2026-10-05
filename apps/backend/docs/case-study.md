@@ -1,49 +1,52 @@
 # Upravnik Platform — Case Study Brief
 
-> A living document. This is the single source of truth for the recruiter-facing case study covering both the backend (`upravnik-platform`) and frontend (`upravnik-platform-frontend`) repositories. It is written so a different AI agent — with zero prior context on this project — can build or update the case-study showcase page from this document alone, without needing to ask clarifying questions.
+> A living document. This is the single source of truth for the recruiter-facing case study of the `upravnik-platform` Nx monorepo (`apps/backend` + `apps/frontend`). It is written so a different AI agent — with zero prior context on this project — can build or update the case-study showcase page from this document alone, without needing to ask clarifying questions.
+>
+> Last refreshed: 2026-10-05 (after Finance phases 1–4, PR #2).
 
 ---
 
 ## 1. Document Purpose & Update Contract
 
-**Audience & tone.** This document is written for **recruiters and hiring managers** evaluating engineering ability, not for prospective clients. Every section should read like an honest senior-engineer walkthrough: what was built, what tradeoffs were made and why, what's deliberately deferred, and what's a genuine gap. Never adopt a sales/marketing voice ("book a demo," "revolutionize your building"). The goal is to demonstrate judgment, not to sell a product.
+**Audience & tone.** This document is written for **recruiters and hiring managers** evaluating engineering ability, not for prospective clients. Every section should read like an honest senior-engineer walkthrough: what was built, what tradeoffs were made and why, what's deliberately deferred, and what's a genuine gap. Never adopt a sales/marketing voice ("book a demo," "revolutionize your building"). The goal is to demonstrate judgment, not to sell a product. No real customers, users, deployments or usage numbers exist — never imply any.
 
-**This document produces a companion build spec.** The actionable page-implementation plan lives at `C:\My Web Projects\upravnik-platform-frontend\docs\case-study-page-spec.md` ("doc #2"). Doc #2's sections are numbered to mirror this document's sections 2–17 **1:1**.
+**This document produces a companion build spec.** The actionable page-implementation plan lives at `apps/frontend/docs/case-study-page-spec.md` ("doc #2"). Doc #2's sections are numbered to mirror this document's sections 2–17 **1:1**.
 
 **Update contract — follow this whenever a fact in this document changes** (a new feature ships, a gap closes, scope changes, a new metric is available):
 
 1. **Update here first.** This document is the source of truth; never edit the showcase page's copy directly without reflecting the change here.
 2. **Propagate mechanically.** After updating a section here, re-open doc #2, find the section with the matching number/heading, and refresh only the copy/data it references — do not change doc #2's component structure unless the change genuinely requires a new visual section (e.g., an entirely new flagship feature).
-3. **Don't erase growth — relocate it.** When a gap listed in §15 (Honest Gaps & Tradeoffs) gets resolved (e.g., `RolesGuard` becomes consistently wired, a test suite ships, chat goes live), do not simply delete the callout. Move it into the relevant feature section as a short "this used to be a known gap — here's how it was resolved" note. The growth story is part of the value.
+3. **Don't erase growth — relocate it.** When a gap listed in §15 (Honest Gaps & Tradeoffs) gets resolved, do not simply delete the callout. Move it into the relevant feature section as a short "this used to be a known gap — here's how it was resolved" note. The growth story is part of the value.
 4. **Never fabricate.** If you need a fact to complete an update and can't find it, write `[NEEDS VERIFICATION: <what's missing>]` inline rather than guessing. A wrong number is worse than a visible placeholder.
 
 ---
 
 ## 2. Elevator Pitch
 
-Upravnik Platform is a full-stack, role-based property-management system for residential buildings in Serbia. It digitizes the relationship between building managers ("upravnik"), elected board members, and residents — replacing informal WhatsApp groups and paper notices with a structured, closed, multi-tenant platform for announcements, community forums, private support tickets, real-time chat, and document sharing. It's a solo-built project spanning a NestJS/Prisma/PostgreSQL API and a Next.js/React frontend, designed and built end-to-end — data model, authorization, business logic, and UI — by one engineer.
+Upravnik Platform is a full-stack, role-based property-management system for residential buildings in Serbia. It digitizes the relationship between building managers ("upravnik"), elected board members, and residents — replacing informal WhatsApp groups, paper notices and spreadsheet bookkeeping with a closed, building-scoped, multi-tenant platform for announcements, forums, private support tickets, real-time chat and, since October 2026, the building's money: a transparent ledger, monthly charges, bank-statement import and published financial reports grounded in Serbian housing law. It is a solo-built Nx monorepo — a NestJS/Prisma/PostgreSQL API and a Next.js/React frontend — designed and built end-to-end by one engineer.
 
 ---
 
 ## 3. Project Snapshot / Metadata
 
-| | Backend | Frontend |
+| | Backend (`apps/backend`) | Frontend (`apps/frontend`) |
 |---|---|---|
-| Repo | `upravnik-platform` | `upravnik-platform-frontend` |
-| Stack | NestJS 11, Prisma 7, PostgreSQL 16 | Next.js 16 (canary), React 19, TypeScript |
-| Commits | 5 (but 3 more schema migrations exist beyond the last commit — see §16) | 4 |
+| Stack | NestJS 11, Prisma 7, PostgreSQL 16, Socket.IO | Next.js 16, React 19, TypeScript, TanStack Query v5, Tailwind v4 |
+| Repo | One Nx 23 monorepo (npm workspaces); both apps' histories merged in on 2026-09-30 | |
+| Commits | 13 (2026-07-08 → 2026-10-05) | |
 | Status | Actively developed, pre-1.0 | Actively developed, pre-1.0 |
 
-- **Domain model:** 17 Prisma models, 10 enums, 6 migrations.
-- **API surface:** 46 HTTP endpoints across 13 feature modules, plus a Socket.IO chat gateway.
-- **API contract discipline:** a 1,210-line Postman collection kept in lockstep with every endpoint change (see §8).
-- This is a **solo-developer project**: one person designed the domain model, wrote the authorization logic, built the API, and built the entire frontend — a useful frame for evaluating scope and velocity, not a team output.
+- **Domain model:** 32 Prisma models, 16 enums, 11 migrations.
+- **API surface:** 91 HTTP endpoints across 17 controllers (42 of them in finance), plus 2 Socket.IO event handlers for chat.
+- **Tests:** 194 automated test cases in 18 files — 53 backend unit, 132 backend e2e against a real PostgreSQL test database, 9 frontend (`node --test`).
+- **API contract discipline:** a 4,112-line Postman collection kept in lockstep with every endpoint change (see §8).
+- This is a **solo-developer project**: one person designed the domain model, wrote the authorization logic, built the API, the finance module and the entire frontend — a useful frame for evaluating scope and velocity, not a team output.
 
 ---
 
 ## 4. The Problem & Product Story
 
-Residential buildings in Serbia — especially larger complexes made up of multiple connected blocks ("lamele") — are typically managed informally: a building manager (upravnik) posts notices on a physical board, residents complain via a WhatsApp group, and there's no durable record of who asked for what or when a maintenance issue was actually resolved.
+Residential buildings in Serbia — especially larger complexes made up of multiple connected blocks ("lamele") — are typically managed informally: a building manager (upravnik) posts notices on a physical board, residents complain via a WhatsApp group, the money lives in a spreadsheet nobody else sees, and there's no durable record of who asked for what or when a maintenance issue was actually resolved. The *Zakon o stanovanju i održavanju zgrada* nevertheless gives every owner the right to see the building's account balance and its changes (čl. 65) and obliges the upravnik to keep income/expense records and report on them (čl. 50, 53).
 
 Upravnik Platform models this world as a strict hierarchy:
 
@@ -52,176 +55,207 @@ Platform → Complex (optional) → Building → Unit → Account
 ```
 
 - A **Complex** is an optional grouping of buildings that share something (a courtyard, a parking structure, a shared boiler room) — not every building belongs to one.
-- A **Building** always belongs to at most one Complex, and owns its own units, announcements, documents, forum threads, tickets, and chat.
-- A **Unit** (apartment, office, or commercial space) belongs to exactly one Building and can be linked to **at most one account** — enforced at the database level, not just in application logic.
-- **Accounts are never self-registered.** There is no public sign-up flow. An UPRAVNIK provisions every resident account and hands out the generated credentials. This is a deliberate design choice reflecting the real-world process: a building manager already knows who lives where, and a closed system avoids the trust and verification problems a public registration flow would introduce.
+- A **Building** belongs to at most one Complex, and owns its own units, announcements, documents, forum threads, tickets, chat and finances.
+- A **Unit** (apartment, office, or commercial space) belongs to exactly one Building and can be linked to **at most one account** — enforced at the database level. Unit numbers are unique per building (`@@unique([buildingId, unitNumber])`).
+- **Accounts are never self-registered.** There is no public sign-up flow. An UPRAVNIK provisions every resident account and hands out the generated credentials. A building manager already knows who lives where, and a closed system avoids the trust and verification problems a public registration flow would introduce.
 
-This closed, hierarchical model is the foundation everything else in the system builds on — every authorization decision in the backend ultimately traces back to "which Building(s) is this user a member of, and with what role."
+This closed, hierarchical model is the foundation everything else builds on — every authorization decision ultimately traces back to "which Building(s) is this user a member of, and with what role."
 
 ---
 
 ## 5. System Architecture Overview
 
-**Backend:** NestJS 11 + Prisma 7 (using the newer driver-adapter pattern — `@prisma/adapter-pg` wired manually against `pg`, not the legacy connection-string-only client) + PostgreSQL 16 (Dockerized) + JWT auth via `passport-jwt` + a Socket.IO gateway for building-scoped chat + full Swagger documentation at `/api/docs` + a global `ValidationPipe` with `whitelist`/`forbidNonWhitelisted` rejecting any request field not explicitly declared on a DTO.
+**Monorepo:** Nx 23 over npm workspaces, `apps/backend` + `apps/frontend`. CI runs `nx affected -t lint test build`. A `packages/` directory exists for shared code but is still empty (see §15).
 
-**Frontend:** Next.js 16 (canary) + React 19 + TypeScript (strict mode) using the App Router with route groups, TanStack React Query v5 as the sole server-state layer, a hand-written Axios client, and shadcn/ui on top of Tailwind CSS v4's CSS-first theming.
+**Backend:** NestJS 11 + Prisma 7 (driver-adapter pattern — `@prisma/adapter-pg` wired manually against `pg`) + PostgreSQL 16 (Dockerized) + JWT auth via `passport-jwt` + a Socket.IO gateway for building-scoped chat + Swagger at `/api/docs` + a global `ValidationPipe` with `whitelist`/`forbidNonWhitelisted`. Environment variables are validated at boot. Files go to S3-compatible storage through the AWS SDK (RustFS in docker-compose for local development).
 
-Worth calling out directly: **building on Next.js 16 canary and React 19 was a deliberate choice**, not an accident of "npm create latest." It signals comfort working against an unstable, still-shifting API surface rather than waiting for a fully stabilized LTS release — a real tradeoff (occasional breaking changes, thinner community documentation) taken in exchange for the newest App Router and React Server Component capabilities.
+**Frontend:** Next.js 16 + React 19 + TypeScript (strict) using the App Router with route groups, TanStack React Query v5 as the sole server-state layer, a hand-written Axios client, and shadcn/ui on top of Tailwind CSS v4's CSS-first theming. The project started on a Next.js 16 canary; it now runs on a stable 16.2 release.
 
-**Domain layering (backend schema, organized deliberately by the author into six explicit layers):**
+**Domain layering (backend schema, organized into explicit layers):**
 
-1. **Identity** — `User`: a single table for every human in the system regardless of type (admin, upravnik, board member, resident).
-2. **Structure** — `Complex`, `Building`, `Unit`: the physical hierarchy described in §4.
-3. **Membership** — `BuildingMember`: the RBAC join table binding a `User` to a `Building` with a `Role`, enforced to one role per building per user via a composite unique constraint.
-4. **Content** — `Announcement`, `Document`: building-scoped, low-interaction content.
-5. **Interaction** — `Thread`/`ThreadReply` (public forum), `Ticket`/`TicketReply`/`TicketRead` (private support tickets), `ComplexThread`/`ComplexThreadReply` (cross-building forum), `ChatMessage`: everything with back-and-forth conversation.
-6. **System** — `AuditLog`, `Notification`: cross-cutting system concerns.
+1. **Identity** — `User`: a single table for every human in the system.
+2. **Structure** — `Complex`, `Building`, `Unit`.
+3. **Membership** — `BuildingMember`: the RBAC join table binding a `User` to a `Building` with a `Role`.
+4. **Content** — `Announcement`, `Document`.
+5. **Interaction** — `Thread`/`ThreadReply`, `Ticket`/`TicketReply`/`TicketRead`, `ComplexThread`/`ComplexThreadReply`, `ChatMessage`.
+6. **Finance** — 15 models added in October 2026: the finance entity and its bank accounts, categories and suppliers, an immutable transaction ledger, invoices, fee rules and unit charges, bank-statement imports and their lines, budgets, and stored files. [NEEDS VERIFICATION: exact model names if the page lists them individually]
+7. **System** — `AuditLog`, `Notification`: cross-cutting concerns.
 
 ---
 
 ## 6. Backend Deep-Dive: Data Model & Authorization
 
-**Roles and account types.** Two orthogonal concepts: `AccountType` (`SYSTEM_USER` for staff, `UNIT_ACCOUNT` for residents tied to a specific unit) and `Role` (`UPRAVNIK`, `BOARD_MEMBER`, `RESIDENT` — building-scoped) plus a separate platform-level `SystemRole` (`SUPER_ADMIN`, orthogonal to building roles). A `BuildingMember` row is the join between a `User` and a `Building`, carrying the `Role`; a database-level unique constraint on `(buildingId, userId)` guarantees a user can hold exactly one role per building.
+**Roles and account types.** Two orthogonal concepts: `AccountType` (`SYSTEM_USER` for staff, `UNIT_ACCOUNT` for residents tied to a unit) and `Role` (`UPRAVNIK`, `BOARD_MEMBER`, `RESIDENT` — building-scoped) plus a separate platform-level `SystemRole` (`SUPER_ADMIN`). A database-level unique constraint on `(buildingId, userId)` guarantees one role per building per user.
 
-**Authorization is deny-by-default.** Every HTTP handler declares exactly one access policy — `@Public()`, `@AnyUser()`, `@SuperAdmin()`, `@InBuilding(...roles)` or `@InComplex(...roles)` — and two global guards enforce it: `JwtAuthGuard` (token + reload of the user, so disabled accounts and tokens issued before a password reset get `401`) and `AccessGuard` (resolves the caller's role for the route's building or complex and attaches it to the request). A startup check refuses to boot the app if any handler has no policy, or if a building/complex-scoped route lacks the `:buildingId`/`:complexId` param the guard reads. A single `AccessService` is the only code that turns a user plus a building or complex into a role, and both HTTP and the WebSocket chat use it. Row-level rules that a role check can't express — a resident sees only *their own* tickets, the author or staff may close a thread, nobody may reply to a CLOSED item — live as plain functions in one `policies.ts` file. A global exception filter maps Prisma not-found/conflict errors to `404`/`409` instead of `500`. Full description: `docs/authorization-overview.md`.
+**Authorization is deny-by-default.** Every HTTP handler declares exactly one access policy — `@Public()`, `@AnyUser()`, `@SuperAdmin()`, `@InBuilding(...roles)` or `@InComplex(...roles)` — and two global guards enforce it: `JwtAuthGuard` (token + reload of the user, so disabled accounts and tokens issued before a password change get `401`, via `passwordChangedAt`) and `AccessGuard` (resolves the caller's role for the route's building or complex). A startup check refuses to boot the app if any handler has no policy, or if a scoped route lacks the `:buildingId`/`:complexId` param the guard reads. A single `AccessService` is the only code that turns a user plus a building or complex into a role, and both HTTP and the WebSocket chat use it. Row-level rules a role check can't express — a resident sees only their own tickets, nobody replies to a CLOSED item — live as plain functions in one `policies.ts`. Login is throttled. A global exception filter maps Prisma not-found/conflict errors to `404`/`409`. Full description: `docs/authorization-overview.md`.
 
-**How it got here — the evolution is worth explaining rather than hiding.** Authorization originally grew in three layers: a `SystemAdminGuard` for platform operations, a `RolesGuard` + `@Roles(...)` decorator for building roles, and inline service-level checks (four near-duplicate "what is the caller's role here" helpers) in the modules that needed ownership rules. *This used to be a known gap:* guards were attached per controller, several `@Roles(...)` annotations were for a while inert metadata without the guard behind them, and two endpoints (ticket creation, unit-account password reset) ended up missing checks entirely. Rather than patching each endpoint, the default was inverted — a route is now denied unless it declares who may call it — and the whole change is backed by an authorization e2e suite (actor × endpoint matrix, ticket privacy, password-reset scope, deactivation, login throttling, WebSocket auth). The plan and its findings are kept in `docs/authorization-hardening-plan.md`.
+**How it got here — this used to be a known gap.** Authorization originally grew in three layers: a `SystemAdminGuard`, a `RolesGuard` + `@Roles(...)` decorator, and inline service-level checks (four near-duplicate "what is the caller's role here" helpers). Guards were attached per controller, several `@Roles(...)` annotations were for a while inert metadata without the guard behind them, and an audit (`docs/authorization-hardening-plan.md`) found real holes: an upravnik could reset the password of a member of *another* building (S1), a ticket could be opened in a building the caller didn't belong to (S2), generated passwords used `Math.random` (S4), and the JWT secret had a hard-coded fallback (S5). Rather than patching endpoints one by one, the default was inverted — a route is now denied unless it declares who may call it — and every finding got a regression test. The change is backed by a 35-case actor × endpoint e2e matrix plus suites for accounts, chat and setup.
 
-**The most interesting single authorization computation in the codebase** is complex-level access (`AccessService.resolveComplexRole`): since a Complex spans multiple Buildings, and a user might be a `RESIDENT` in one building of the complex but a `BOARD_MEMBER` in another, the caller's role in the complex is their *highest* active role across every building they belong to within it (precedence `UPRAVNIK > BOARD_MEMBER > RESIDENT`), and the request is refused with `403` only if the caller has no active membership in any building of the complex at all.
+**The most interesting single authorization computation** is complex-level access (`AccessService.resolveComplexRole`): a user might be a `RESIDENT` in one building of a complex and a `BOARD_MEMBER` in another, so the caller's complex role is their *highest* active role across every building they belong to within it (`UPRAVNIK > BOARD_MEMBER > RESIDENT`); `403` only if they have no active membership anywhere in the complex.
 
 ---
 
 ## 7. Backend Deep-Dive: Most Sophisticated Business Logic
 
-**Ticket read-tracking and notification fan-out** (`tickets/tickets.service.ts`) is the densest business logic in the codebase:
+The densest business logic now lives in the finance module — see §13 for the full walkthrough (immutable ledger with storno reversals, idempotent monthly charges under an advisory lock, bank-statement import with deduplication and auto-matching, and period locking by published reports).
 
-- Viewing a ticket automatically upserts a `TicketRead` row (composite primary key `[ticketId, userId]`) with the current timestamp; replying marks it read for the replier. "Unread" is computed cheaply by comparing the ticket's `updatedAt` against the caller's `lastReadAt` — no separate read-state machine, just a timestamp comparison, which is a deliberately lightweight way to back an unread-badge UI feature.
-- Every ticket event triggers a notification fan-out: creating a ticket notifies all active staff (`UPRAVNIK`/`BOARD_MEMBER`) in the building; a resident's reply re-notifies staff; a staff reply notifies only the original ticket author. This is the one concrete place in the codebase where a domain event automatically produces a notification — the `notifications` module itself is otherwise a thin CRUD layer with no triggers of its own.
-- Notification copy is written directly in Serbian (`'Nov tiket otvoren'`, `'Odgovor na vaš tiket'`) — the localization isn't just a translation layer bolted on later, it's baked into the service logic from the start, matching the product's actual Serbian-market audience.
+**Ticket read-tracking and notification fan-out** (`tickets/tickets.service.ts`):
 
-**Transactional bulk-provisioning** (`setup/setup.service.ts`, `POST /setup/bulk`) wraps an entire "create a complex, then N buildings, then each building's units" operation inside a single `prisma.$transaction`, guaranteeing all-or-nothing atomicity for what would otherwise be a failure-prone multi-step admin operation. This endpoint exists specifically to back a frontend super-admin bulk-creation wizard (see §10) — a good example of backend and frontend being designed together as one feature rather than the API trailing the UI.
+- Viewing a ticket upserts a `TicketRead` row (composite key `[ticketId, userId]`); replying marks it read for the replier. "Unread" is a timestamp comparison of the ticket's `updatedAt` against the caller's `lastReadAt` — no separate read-state machine.
+- Every ticket event fans out notifications: a new ticket notifies all active staff in the building; a resident's reply re-notifies staff; a staff reply notifies only the author. Finance adds its own domain events (charge issued, payment recorded, report published). [NEEDS VERIFICATION: which finance notifications shipped in phases 1–4]
+- Notification copy is written directly in Serbian (`'Nov tiket otvoren'`, `'Odgovor na vaš tiket'`) — localization baked into the service logic from the start.
+
+**Transactional bulk-provisioning** (`setup/setup.service.ts`, `POST /setup/bulk`) wraps "create a complex, then N buildings, then each building's units" inside a single `prisma.$transaction` — all-or-nothing — capped at 1,000 units per request. It exists to back the super-admin wizard (see §10).
 
 ---
 
 ## 8. Backend Deep-Dive: Engineering Process & Discipline
 
-**API-contract discipline.** Every endpoint addition or change is mirrored in a 1,210-line Postman collection (`postman/upravnik-platform.postman_collection.json`) containing full request/response examples, role requirements, and error cases — enforced by a documented internal convention in `CLAUDE.md` ("Skill: Endpoint Sync") that requires the collection be updated as part of any endpoint change, written explicitly so "a frontend agent can implement the full integration without asking questions." A running `postman/CHANGES.md` changelog captures every API-shape change chronologically (e.g., a `PATCH .../announcements/:id` replacing older dedicated pin/unpin endpoints, the addition of cross-building "my X" feeds, the full ticket-system rollout, the complex-forum rollout). This changelog is itself a readable narrative of the API's evolution.
+**API-contract discipline.** Every endpoint addition or change is mirrored in a 4,112-line Postman collection (`postman/upravnik-platform.postman_collection.json`) with request/response examples, role requirements and error cases, enforced by a documented convention in `CLAUDE.md` ("Skill: Endpoint Sync") so "a frontend agent can implement the full integration without asking questions." A running `postman/CHANGES.md` changelog captures every API-shape change chronologically and reads as a narrative of the API's evolution.
 
-**Design docs as first-class artifacts.** `upravnik-platform.md` is a self-maintained living document covering the project's mission, the account/role model, an ERD in prose, a layered request-flow diagram (Auth Guard → Role Guard → Controller → Service → DB → Notifications → Response), and an explicit build-order roadmap. `docs/fe-bulk-create.md` is a complete backend-to-frontend handoff spec for the bulk-provisioning wizard (page layout, CSV schema, state machine, API contract) — evidence that handoff documentation is treated as a real deliverable, not an afterthought.
+**Plans before code, critique after.** Large changes start as written plans in the repo — `docs/monorepo-migration-plan.md`, `apps/backend/docs/authorization-hardening-plan.md`, `docs/finance-module-plan.md` (domain rules, a decision table confirmed with the product owner, phased schema and endpoints, tests and verification per phase). After the finance build, the finance tab went through an automated design critique (scored 16/40, then 28/40 after fixes) that produced a 54-item fix plan (`docs/finance-tab-fix-plan.md`, F-01…F-54) — including small but real bugs like a validation regex missing a backslash (F-01).
 
-**The real build order (from migration timestamps, not commit messages — see §16):** initial schema → `SUPER_ADMIN` split out as a platform-level role distinct from building roles → operational metadata (`Unit.residentCount`) → private ticket system → ticket read-receipts → cross-building complex forum. This is a coherent progression: establish the rigid multi-tenant/RBAC foundation first, then layer increasingly product-driven features on top.
+**Tests.** 194 cases: 53 backend unit tests (access service, policies, env validation, charge maths, finance utilities, CSV parsing, password generation), 132 e2e tests against a dedicated PostgreSQL database (access matrix 35, accounts 9, chat 7, setup 5, finance 30, charges 19, imports 12, reports 15), and 9 frontend tests using Node's built-in runner.
+
+*This used to be a known gap:* until September 2026 the project had no automated tests at all. The authorization rewrite shipped with its e2e suite, and every finance phase shipped with its own.
+
+**The real build order (from migration timestamps — see §16):** initial schema → `SUPER_ADMIN` split out → `Unit.residentCount` → tickets → ticket reads → complex forum → `passwordChangedAt` → unique unit number per building → finance foundation → finance charges → finance import + reports.
 
 ---
 
 ## 9. Frontend Deep-Dive: Application Architecture
 
-The frontend is split into role-gated experiences using Next.js App Router **route groups** — `(auth)`, `(resident)`, `(upravnik)`, `(super-admin)` — each wrapped (except `(auth)`) by an `AuthGuard` component that accepts `requiredAccountType`/`requiredRoles` props and redirects on mismatch, and by a shared `AppShell` that adapts its navigation to the current user's role/account type. Role-based rendering goes well beyond the route level: nav items, action buttons (pin/unpin, close ticket), and badges are conditionally rendered throughout based on `role`/`accountType`, and a single route like `/tickets` renders an entirely different component tree (`UpravnikView` vs. `ResidentView`) purely based on who's logged in.
+The frontend is split into role-gated experiences using Next.js App Router **route groups** — `(auth)`, `(resident)`, `(upravnik)`, `(super-admin)` — each (except `(auth)`) wrapped by an `AuthGuard` that accepts `requiredAccountType`/`requiredRoles` and redirects on mismatch, and by a shared `AppShell` that adapts its navigation to the current user. Role-based rendering goes beyond routes: nav items, actions and badges are conditional throughout, and a single route like `/tickets` renders a different component tree (`UpravnikView` vs. `ResidentView`) depending on who's logged in.
 
-**Server-state approach:** TanStack React Query v5 is the only server-state layer (no Redux/Zustand). Data fetching is a hand-written, resource-by-resource pattern: one Axios wrapper module per backend resource (`lib/api/tickets.ts`, `lib/api/announcements.ts`, ...) and one matching React Query hook module per resource (`hooks/useTickets.ts`, ...), manually kept in sync against the backend's Postman collection rather than generated from an OpenAPI spec. This is a deliberate speed-over-safety tradeoff: faster to iterate early on, at the cost of manual drift risk between frontend types and the actual API shape as the backend evolves.
+**Server-state approach:** TanStack React Query v5 is the only server-state layer. One Axios wrapper module per backend resource (`lib/api/*.ts`) and one matching hook module per resource (`hooks/use*.ts`), kept in sync with the Postman collection by hand rather than generated from OpenAPI — a deliberate speed-over-safety tradeoff (see §15).
+
+**Money on the client.** Amounts arrive as decimal strings and are never parsed into JS floats: the frontend does its arithmetic in integer paras with `BigInt`, and `parseMoneyInput` accepts the way people actually type amounts in Serbia ("12.500,50").
 
 ---
 
 ## 10. Frontend Deep-Dive: Standout Feature — Super-Admin Bulk Provisioning Wizard
 
-The single most elaborate feature in the frontend, and the one that most clearly demonstrates backend/frontend co-design (it exists specifically to drive the transactional `POST /setup/bulk` endpoint from §7):
+The feature that most clearly shows backend/frontend co-design (it drives the transactional `POST /setup/bulk` endpoint from §7):
 
-- A **3-step wizard** (Scope → Buildings → Review) with a visual step indicator, letting a super-admin choose between provisioning a single building, multiple standalone buildings, or a full Complex.
-- Each building supports **two unit-entry modes**: auto-generate (floors × units-per-floor, with a choice of numbering pattern — `floor-unit` like "1-1, 1-2" vs. `sequential` like "101, 102" — and a default unit type), or fully manual entry.
-- A **CSV import mode** with a custom parser that validates required columns, auto-detects whether the CSV describes a single building, multiple buildings, or a full complex, and surfaces row-level validation errors before submission is allowed.
-- A **live ASCII-tree preview** component, rendered in monospace with tree connectors (`├──`/`└──`), reflecting the in-progress form state in real time as complex → buildings → units, collapsing to "…and N more units" beyond the first several.
-- The entire structure is submitted as one call to the transactional bulk-create endpoint, then the admin is redirected straight into the newly created building list.
+- A **3-step wizard** — Vrsta (type) → Zgrade i jedinice (buildings and units) → Pregled (review) — for provisioning a single building, several standalone buildings, or a full Complex.
+- A **FloorEditor** for each building: units are laid out floor by floor and edited in place, with a generator (floors × units per floor, numbering pattern, default unit type) and a "Dupliraj" action to copy a building's layout to the next one. *This replaced an earlier live ASCII-tree preview,* which showed the structure but couldn't edit it.
+- **CSV import** with a downloadable template that opens correctly in Serbian Excel (UTF-8 with BOM, semicolon-separated), a windows-1250 fallback when reading files saved by Excel, and row-level validation errors before submission.
+- Duplicate unit numbers are caught in the form and, as a backstop, by the `@@unique([buildingId, unitNumber])` constraint; requests are capped at 1,000 units.
+- The whole structure is submitted as one transactional call, then the admin lands in the new building list.
 
 ---
 
 ## 11. Frontend Deep-Dive: Fully Implemented Feature Inventory
 
 - **JWT authentication** with route guards and role/account-type-aware redirects.
-- **Merged activity feed** (`/home`) — client-side merge of announcements and forum threads into one chronologically sorted feed, with pinned items pulled into a separate section.
-- **Announcements** with pin/unpin (staff-only), pinned-first ordering throughout.
-- **Nested forum threads** — both per-building and, for buildings that belong to a Complex, a cross-building "complex forum" with author attribution showing which specific building/unit the poster belongs to. Complex-forum replies use an optimistic cache update (`queryClient.setQueryData`) rather than waiting for a refetch, for instant feedback.
-- **Private ticketing system** — full create/list/detail/reply/close flow for both residents and staff, with unread-state badges surfaced in the sidebar, mobile nav, and ticket rows.
-- **Unit/resident directory** — a per-building grid of units showing occupancy status, and a unit-detail page showing that unit's own threads and tickets.
+- **Merged activity feed** (`/home`) — announcements and forum threads in one chronological feed, pinned items pulled out.
+- **Announcements** with pin/unpin (staff-only).
+- **Forum threads** — per-building and a cross-building complex forum with author attribution; complex-forum replies use an optimistic cache update.
+- **Private ticketing** — create/list/detail/reply/close for residents and staff, unread badges in the sidebar, mobile nav and rows, and category colours (maintenance, complaint, question, payment).
+- **Unit/resident directory** — a per-building unit grid with occupancy, and a unit detail page.
+- **Finansije (finance)** — per building: Pregled (overview: balances, budget vs actual, arrears), transactions and invoices with filters, monthly charges, bank-statement import review, budget and published reports; a resident's **Moj stan** view with their own unit ledger and an NBS **IPS QR code** to pay from any Serbian banking app.
 
 ---
 
 ## 12. Frontend Deep-Dive: Design System
 
-The UI runs on shadcn/ui (the "base-vega" style) over Tailwind CSS v4's CSS-first `@theme` configuration — but the actual color system is custom, not the shadcn default: a "pine" (teal, brand) ramp and a "stone" (warm neutral) ramp, each with 11–13 OKLCH-defined steps, plus amber/sky/violet/green/red accent ramps used for a consistent content-type and category coding system across the app (pine = board/announcements, amber = forum, sky = chat, violet = docs). Typography is Hanken Grotesk for UI text and JetBrains Mono for numeric/timestamp data (unit numbers, dates, counts) — a small but deliberate detail that gives tabular data a distinct visual register from prose. This is a genuinely custom design system built for this product, not an out-of-the-box theme.
+The UI runs on shadcn/ui over Tailwind CSS v4's CSS-first `@theme`, with a custom colour system: a "pine" brand ramp (hue 185; brand = `oklch(52% 0.090 185)`) and a "stone" warm-neutral ramp (hue 75), each defined step by step in OKLCH, plus amber / sky / violet / green / red ramps for content types and status, and four ticket-category hues — moss (125), rose (5), indigo (270), plum (335). Every ramp has a tuned dark-mode counterpart rather than an inverted one. Typography is Hanken Grotesk for UI text and JetBrains Mono for numbers and timestamps (unit numbers, amounts, dates). Radii run from 6 to 28px. Finance deliberately has no colour of its own: it speaks through the status tokens (paid / partial / overdue / reversed), so money reads the same everywhere. Tokens live in `apps/frontend/app/globals.css`.
 
 ---
 
-## 13. Engineering War Story
+## 13. Backend + Frontend Deep-Dive: Finance (Finansije)
 
-During the feature push that shipped the ticket system, category-color coding, and the super-admin wizard in one dense commit (see §16), a real bug surfaced in the building-navigation sidebar: the expand/collapse state for the currently active building was resetting on every re-render, making it impossible to manually toggle between buildings in the sidebar tree. The fix tracked the previously-active building ID in local state and only reset the expand/collapse state when that ID actually changed — a small, concrete example of diagnosing a re-render-driven state bug and fixing it with a targeted "previous value" tracking pattern rather than a broader rewrite.
+Built in October 2026 as phases 1–4 of `docs/finance-module-plan.md` (PR #2, about +20.5k lines; ~5.5k backend and ~5.9k frontend source lines, the rest tests, docs and Postman). Grounded in the *Zakon o stanovanju* (čl. 50 t.12–13, 53, 63–65): residents may see the account, the upravnik must keep records and report, and fees are split per unit (upkeep + management) and per m² (investment).
+
+- **Immutable ledger.** Transactions are never edited or deleted; a correction is a storno entry linked by `reversesId` (unique, so a transaction can only be reversed once). Invoices are cancelled with a reason, not deleted, and their status (unpaid / partial / paid) is derived, not stored.
+- **Money as decimals, end to end.** `Decimal(14,2)` in PostgreSQL, serialized as strings, summed in SQL or `Prisma.Decimal` — never JS floats. The frontend continues in integer paras (§9).
+- **Monthly charges.** Fee rules per unit or per m² (with per-unit-type overrides) produce monthly charges. Upravniks can preview, generate and regenerate; a cron job runs at 06:00 on the 1st (Europe/Belgrade). Generation takes a `pg_advisory_xact_lock` per finance entity, so the scheduler and a manual click can't double-charge a building.
+- **Bank-statement import.** CSV statements (UTF-8 or windows-1250) are parsed, deduplicated by a hash of the line plus its occurrence count (two identical payments on the same day stay two payments), auto-matched to units by *poziv na broj* (model 97 reference) and to suppliers by account number, reviewed by the upravnik, then committed all-or-nothing.
+- **Budget and reports.** Budget vs actual per category; a server-side PDF report (pdfkit) that, once published, **locks the period** — any write dated inside it returns `409` (enforced at 10 call sites).
+- **Audit and privacy.** Every finance write records an `AuditLog` row in the same database transaction (24 call sites). Residents see owner payments as "Uplata – stan 12"; payer names and accounts are visible only to staff.
+- **Files.** Invoice and report PDFs go to S3-compatible storage; uploads are type-checked by magic bytes, not by extension, and served through 5-minute signed URLs.
+- **Access.** Only the UPRAVNIK writes; board members read everything including raw bank data; residents see their own unit and building aggregates — all expressed in the same `@InBuilding(...)` policies as the rest of the API (§6).
+- **Not built yet:** Phase 5 (complex-level roll-up), SEF e-invoice import, and an NBS XML statement parser.
+
+*AuditLog used to be a known gap:* the model had been migrated since the first schema but nothing wrote to it. Finance is now its first writer.
 
 ---
 
 ## 14. Scope, Sequencing & Deliberate Deferrals
 
-Several features are clearly labeled "under construction" in the UI rather than faked or silently missing — a sign of deliberate sequencing, not incomplete awareness of the gap:
+Features labelled "under construction" in the UI rather than faked:
 
-- **Real-time chat.** The backend has a fully working Socket.IO gateway (JWT-authenticated on connect, room-per-building, persists and broadcasts messages), but the frontend has no chat UI and no websocket client dependency installed at all — the page renders a plain "coming soon" placeholder. This reflects a conscious choice to ship the support-ticket and admin-provisioning systems first and defer real-time messaging.
-- **Document management** beyond a metadata list — no upload UI, no inline preview; the current documents page is a simple external-link list.
-- **Upravnik dashboard widgets** (pinned content, personal to-dos, sticky notes, activity feed) — currently a labeled roadmap card list rather than live functionality.
-- **Settings and cross-building "members" aggregate view** — placeholders, not yet built.
+- **Real-time chat UI.** The backend gateway is complete and hardened (JWT on connect, building membership checked through `AccessService`, 7 e2e tests), but the frontend still renders a "coming soon" placeholder. Tickets, provisioning and finance were deliberately shipped first.
+- **General document upload.** File storage now exists, but only finance uses it; the documents page is still a list of links.
+- **Upravnik dashboard widgets**, **settings** and the cross-building **members** view — placeholders.
+- **Finance phase 5 and integrations** — complex roll-up, SEF, NBS XML (see §13).
 
 ---
 
 ## 15. Honest Gaps & Tradeoffs
 
-These are presented the way an honest reviewer would present them — not softened into "deliberate sequencing" language, because they're genuinely open items rather than features simply not yet started:
-
-- **`AuditLog` is schema-only.** The model is fully migrated (`entityType`, `entityId`, `action`, `performedBy`, JSON `snapshot`) but no service in the codebase currently writes to it — a deliberate "System layer" placeholder per the project's own build-order roadmap, not yet implemented.
-- **Minimal automated test coverage outside authorization.** The backend now has an authorization e2e suite against a dedicated test database, plus unit tests for the access layer (see §6), but business logic beyond access control has no tests yet, and the frontend has no test framework configured at all. Framed honestly: auth and RBAC are covered, broader coverage is a next milestone, not a claimed feature.
-- **Chat history has no REST endpoint.** `ChatService.getHistory()` exists and works, but nothing exposes it over HTTP — a resident refreshing a (hypothetical) chat page would have no way to fetch prior messages yet.
-- **The frontend's own living design doc lags shipped code.** `upravnik-frontend.md` doesn't mention the ticket system, the super-admin wizard, or the complex forum, even though all three are fully implemented — a real, self-aware example of documentation drift, and part of the reason this case-study document exists as a fresher, more accurate summary.
+- **The e2e suite doesn't run in CI.** CI runs `nx affected -t lint test build`; the 132 e2e tests need a PostgreSQL database and are run locally. [NEEDS VERIFICATION: if a CI database service is added, move this to §8 as resolved]
+- **Frontend types are maintained by hand.** `packages/` exists in the monorepo but no shared contract package has been extracted yet, so the frontend's API types can drift from the backend's DTOs.
+- **Chat history has no REST endpoint.** `ChatService.getHistory()` exists, but nothing exposes it over HTTP.
+- **Frontend test coverage is thin.** 9 tests across `lib/format`, `lib/ips` and `lib/validation` (money formatting, the IPS QR payload, input validation); no component or end-to-end browser tests.
 
 ---
 
 ## 16. Build Timeline & Velocity Narrative
 
-**Backend** — 5 git commits, but the Prisma migration timeline reveals more granular, more recent work than the commit log alone shows:
+**13 commits, 2026-07-08 → 2026-10-05**, in four bursts:
+
+1. **2026-07-08 — first version** (two separate repos then): the backend with the core schema, RBAC, tickets, forums and chat; the frontend scaffolded in one large commit with all role groups and the data layer.
+2. **2026-09-30 — monorepo + trust.** Both repos merged into one Nx workspace with history preserved; the authorization rewrite to deny-by-default with its e2e suite (PR #1).
+3. **2026-10-01 — product docs + provisioning.** Product and design documentation, shared UI components, the FloorEditor and CSV import in the super-admin wizard.
+4. **2026-10-05 — finance.** Phases 1–4 in PR #2.
 
 | Migration | Milestone |
 |---|---|
 | `init` | Core schema: users, complexes, buildings, units, membership, announcements, documents, threads, chat, audit logs, notifications |
-| `add-system-role-to-user` | `SUPER_ADMIN` split out as a platform-level role distinct from building roles |
-| `add-resident-count-to-unit` | Operational metadata addition |
-| `add_tickets` | Private ticket system (matches the last git commit) |
-| `add_ticket_reads` | Unread-badge read-tracking — postdates the last commit |
-| `add_complex_threads` | Cross-building complex forum — postdates the last commit |
-
-**Frontend** — 4 git commits, compressed into essentially two working sessions:
-
-1. Raw `create-next-app` scaffold.
-2. One large "scaffold full-stack frontend" commit laying down nearly the entire app in one pass: all three role-gated route groups, the core pages (many as placeholders), the full component library, and the Axios/React Query data layer.
-3. Five days later, one dense commit — **63 files changed, +3,597/−716 lines** — that shipped the entire private ticket system end-to-end, introduced the category-color-coding system, fixed the sidebar re-render bug (§13), added the mobile account sheet, and built the entire super-admin bulk-provisioning wizard including CSV import and live tree preview.
+| `add-system-role-to-user` | `SUPER_ADMIN` as a platform-level role |
+| `add-resident-count-to-unit` | Operational metadata |
+| `add_tickets` | Private ticket system |
+| `add_ticket_reads` | Unread read-tracking |
+| `add_complex_threads` | Cross-building complex forum |
+| `add_password_changed_at` | Tokens invalidated on password change |
+| `unique_unit_number_per_building` | Unit numbers unique per building |
+| `finance_foundation` | Ledger, invoices, accounts, files, audit |
+| `finance_charges` | Fee rules and monthly charges |
+| `finance_import_reports` | Bank-statement import, budgets, reports |
 
 ---
 
 ## 17. Metrics / By-The-Numbers Appendix
 
-| Metric | Value |
-|---|---|
-| Prisma models | 17 |
-| Prisma enums | 10 |
-| Database migrations | 6 |
-| HTTP endpoints | 46 |
-| Feature modules (backend `src/`) | 13, plus a Socket.IO gateway |
-| Postman collection size | 1,210 lines |
-| Role-gated frontend route groups | 3 (`resident`, `upravnik`, `super-admin`) + 1 public (`auth`) |
-| Roles | 4 (`SUPER_ADMIN`, `UPRAVNIK`, `BOARD_MEMBER`, `RESIDENT`) |
-| Largest single commit | 63 files changed, +3,597/−716 lines (frontend, ticket system + wizard) |
-| Backend commits | 5 |
-| Frontend commits | 4 |
+| Metric | Value | Was (2026-07) |
+|---|---|---|
+| HTTP endpoints | 91 (17 controllers) + 2 Socket.IO handlers | 46 |
+| Feature modules (backend) | 16 | 13 |
+| Prisma models | 32 | 17 |
+| Prisma enums | 16 | 10 |
+| Database migrations | 11 | 6 |
+| Automated tests | 194 (53 unit, 132 e2e, 9 frontend) | 0 |
+| Postman collection size | 4,112 lines | 1,210 |
+| Backend source (excl. tests) | ~9,000 lines | [NEEDS VERIFICATION] |
+| Backend tests | ~3,100 lines | 0 |
+| Frontend source | ~15,800 lines | [NEEDS VERIFICATION] |
+| Largest single change | PR #2, Finance phases 1–4, ~+20.5k lines | 63 files, +3,597/−716 |
+| Roles | 4 (`SUPER_ADMIN`, `UPRAVNIK`, `BOARD_MEMBER`, `RESIDENT`) | 4 |
+| Commits | 13 | 2 + 4 (separate repos) |
 
 ---
 
 ## 18. Terminology Glossary
 
-- **Upravnik** — Serbian for "building manager" / property manager; the staff role that administers a building day-to-day.
-- **Complex** ("kompleks") — an optional grouping of multiple buildings that share physical infrastructure (parking, courtyard, boiler room).
-- **Lamela** — colloquial Serbian term for one block/wing of a larger residential complex; used in seed data to name individual buildings within a complex (e.g., "Lamela 1").
-- **Unit** — an individual apartment, office, or commercial space within a building; the atomic thing an account can be linked to.
-- **BuildingMember** — the database join record binding a user to a specific building with a specific role; the backbone of the RBAC model.
-- **SYSTEM_USER vs. UNIT_ACCOUNT** — the two account types: `SYSTEM_USER` is staff (upravnik, board member, or super admin) not tied to a specific unit; `UNIT_ACCOUNT` is a resident account tied to exactly one unit.
+- **Upravnik** — Serbian for "building manager"; the staff role that administers a building day-to-day.
+- **Complex** ("kompleks") — an optional grouping of buildings that share physical infrastructure.
+- **Lamela** — one block/wing of a larger residential complex (e.g., "Lamela 1").
+- **Unit** — an apartment, office, or commercial space; the atomic thing an account can be linked to.
+- **BuildingMember** — the join record binding a user to a building with a role; the backbone of RBAC.
+- **SYSTEM_USER vs. UNIT_ACCOUNT** — staff accounts vs. resident accounts tied to exactly one unit.
+- **Stambena zajednica** — the homeowners' association; a legal entity with its own bank account, whose books the finance module keeps.
+- **Storno** — a reversal entry that cancels a ledger transaction without editing or deleting it.
+- **Poziv na broj** — the payment reference number on a Serbian bank transfer; "model 97" is the checksummed format used to match payments to units.
+- **IPS QR** — the National Bank of Serbia's instant-payment QR standard, scannable by any Serbian banking app.
+- **Zaduženje** — a monthly charge issued to a unit.

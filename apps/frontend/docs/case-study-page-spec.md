@@ -1,6 +1,6 @@
 # Case Study Page — Build Spec
 
-> A living document. This is the actionable implementation spec for the `/case-study` page in this app. Content facts come from `C:\My Web Projects\upravnik-platform\docs\case-study.md` ("doc #1") — this document does not author new prose; every content-bearing section below references the doc #1 section it pulls from. Sections here are numbered to match doc #1's sections 2–17 **1:1** so future updates are mechanical: when doc #1 changes, find the matching section number here and refresh only what it references.
+> A living document. This is the actionable implementation spec for the `/case-study` page in this app. Content facts come from `apps/backend/docs/case-study.md` ("doc #1") — this document does not author new prose; every content-bearing section below references the doc #1 section it pulls from. Sections here are numbered to match doc #1's sections 2–17 **1:1** so future updates are mechanical: when doc #1 changes, find the matching section number here and refresh only what it references.
 
 ---
 
@@ -48,35 +48,36 @@ Use these exact CSS custom properties — do not hardcode hex/oklch values:
 
 ### Data Model & Authorization Story — pulls doc #1 §6
 
-- A vertical stepper of stacked `Card`s for the six schema layers (Identity → Structure → Membership → Content → Interaction → System).
-- The three-layer authorization evolution (SystemAdminGuard → RolesGuard → inline service-level checks) as a short numbered list or three small cards in sequence.
-- **Honesty callout here:** the `RolesGuard` inconsistent-wiring gap (doc #1 §6/§15) needs a visually distinct treatment — an `amber`-bordered `Card` used as a lightweight callout box. No dedicated "Alert" component exists in `components/ui/`; this spec assembles the callout from `Card` + amber tokens. **Optional:** adding a shadcn `alert` primitive would be more semantically correct — worth raising with the user before or during implementation if a real Alert component is preferred over a hand-rolled Card variant. Whichever treatment is chosen, reuse the same pattern for every other honesty-callout on the page (see the Honest Gaps section below) so they're visually consistent.
+- A vertical stepper of stacked `Card`s for the seven schema layers (Identity → Structure → Membership → Content → Interaction → Finance → System) — doc #1 §5.
+- The deny-by-default policy set (`@Public` / `@AnyUser` / `@SuperAdmin` / `@InBuilding` / `@InComplex`) as a short list, followed by the "how it got here" growth note (three guard layers → audit findings S1/S2/S4/S5 → inverted default + e2e matrix).
+- **Honesty callout here:** the "used to be a known gap" note from doc #1 §6 needs a visually distinct treatment — an `amber`-bordered `Card` used as a lightweight callout box. No dedicated "Alert" component exists in `components/ui/`; this spec assembles the callout from `Card` + amber tokens. **Optional:** adding a shadcn `alert` primitive would be more semantically correct — worth raising with the user before or during implementation if a real Alert component is preferred over a hand-rolled Card variant. Whichever treatment is chosen, reuse the same pattern for every other honesty-callout on the page (see the Honest Gaps section below) so they're visually consistent.
 
 ### Sophisticated Business Logic Spotlight — pulls doc #1 §7
 
-- Two feature `Card`s (Ticket read-tracking + notification fan-out; Transactional bulk-provisioning), each with a "read more" `Dialog` for the longer explanation rather than cramming full prose into the card — reuses the existing `Dialog` primitive instead of adding an accordion dependency.
+- Two feature `Card`s (Ticket read-tracking + notification fan-out; Transactional bulk-provisioning), with a pointer to the Finance section (§13) where the densest logic now lives, each with a "read more" `Dialog` for the longer explanation rather than cramming full prose into the card — reuses the existing `Dialog` primitive instead of adding an accordion dependency.
 
 ### Engineering Process & Discipline — pulls doc #1 §8
 
-- A small stat row (Postman collection line count, migration count) styled as stat tiles: `Card` + large `font-mono` numeral, to visually separate "hard numbers" from surrounding prose. This can double up with the by-the-numbers stat strip below if page length runs long — implementer's call.
+- A small stat row (Postman collection line count, migration count, test count) styled as stat tiles: `Card` + large `font-mono` numeral, to visually separate "hard numbers" from surrounding prose. This can double up with the by-the-numbers stat strip below if page length runs long — implementer's call.
 
 ### Frontend Architecture & Standout Feature (Bulk Wizard) — pulls doc #1 §9 + §10
 
 - This is the best candidate for real visual evidence in the whole page.
-- **Placeholder assets needed:** screenshots or a short screen-recording/GIF of all three wizard steps (Scope → Buildings → Review) and the live ASCII-tree preview. Until captured, use `Skeleton` blocks sized to the eventual screenshots so the layout is correct and swapping in real media later is a one-line change, not a layout rewrite.
+- **Placeholder assets needed:** screenshots or a short screen-recording/GIF of all three wizard steps (Vrsta → Zgrade i jedinice → Pregled) and the FloorEditor. Until captured, use `Skeleton` blocks sized to the eventual screenshots so the layout is correct and swapping in real media later is a one-line change, not a layout rewrite.
 
 ### Feature Inventory Grid — pulls doc #1 §11
 
-- A grid of small `Card`s or a single `Table` (both primitives exist — pick based on final visual density preference), one entry per feature (auth, activity feed, announcements, forum, tickets, unit directory), each tagged with a `Badge` reading "Shipped" in a `pine`/green tone.
+- A grid of small `Card`s or a single `Table` (both primitives exist — pick based on final visual density preference), one entry per feature (auth, activity feed, announcements, forum, tickets, unit directory, finance), each tagged with a `Badge` reading "Shipped" in a `pine`/green tone.
 
 ### Design System Showcase — pulls doc #1 §12
 
 - **Make this section self-referential.** Render live color swatches by reading the actual CSS custom properties (`--color-pine-500`, `--color-stone-300`, etc.) directly — small colored blocks with the token name printed underneath in `font-mono` — rather than hardcoding hex values anywhere. Include a short font sample of Hanken Grotesk and JetBrains Mono side by side.
 - This is an intentional device: the page itself becomes a live demo of the design system it's describing. Call this out in a short caption so it doesn't read as accidental.
 
-### Engineering War Story — pulls doc #1 §13
+### Finance (Finansije) — pulls doc #1 §13
 
-- A single narrative `Card`. No special components needed — this is prose-only.
+- New flagship section (replaces the former war story, which was dropped). Lead with one screenshot of the finance overview, then the doc #1 §13 bullets as compact `Card`s (ledger, money, charges, import, reports, audit & privacy, files, access), and the "not built yet" line in the stone "Planned" badge variant.
+- **Placeholder assets needed:** finance overview (Pregled), resident "Moj stan" with the IPS QR, import review.
 
 ### Scope & Deliberate Deferrals — pulls doc #1 §14
 
@@ -88,7 +89,7 @@ Use these exact CSS custom properties — do not hardcode hex/oklch values:
 
 ### Build Timeline & Velocity — pulls doc #1 §16
 
-- A vertical timeline assembled from stacked `Card`s connected by `Separator` — no dedicated timeline primitive exists in `components/ui/`, so this is composed from existing primitives, not a new dependency. Cross-repo: interleave backend migration milestones and frontend commit milestones on one shared timeline.
+- A vertical timeline assembled from stacked `Card`s connected by `Separator` — no dedicated timeline primitive exists in `components/ui/`, so this is composed from existing primitives, not a new dependency. Use the four dated bursts from doc #1 §16, with migration milestones nested under each.
 
 ### By-The-Numbers Stat Strip — pulls doc #1 §17
 
@@ -96,7 +97,7 @@ Use these exact CSS custom properties — do not hardcode hex/oklch values:
 
 ### Footer / Contact CTA — not sourced from doc #1
 
-- Links to both repos (`upravnik-platform`, `upravnik-platform-frontend`).
+- Link to the `upravnik-platform` monorepo.
 - **Needs a separate content stub not present in doc #1 at all:** the candidate's own contact info, resume link, and/or LinkedIn/GitHub profile links. Doc #1 is intentionally scoped to the project only, not the candidate — don't go looking for this in doc #1; it must be supplied directly when building this section.
 
 ---
@@ -104,7 +105,8 @@ Use these exact CSS custom properties — do not hardcode hex/oklch values:
 ## Placeholder-Asset Checklist
 
 - [ ] Hero screenshot or mockup of the running app.
-- [ ] Super-admin bulk-provisioning wizard screenshots or short screen-recording/GIF (all 3 steps + the live ASCII tree preview).
+- [ ] Super-admin bulk-provisioning wizard screenshots or short screen-recording/GIF (all 3 steps + the FloorEditor).
+- [ ] Finance screenshots: overview (Pregled), resident "Moj stan" with IPS QR, import review.
 - [ ] Optional: an ERD/domain-hierarchy diagram image (the page works fine with the styled nested-list fallback if this never gets made).
 - [ ] Optional: a ticket-system screenshot showing unread badges/notification UI.
 - [ ] Candidate's own contact/resume/GitHub links for the footer CTA — not derivable from doc #1.
